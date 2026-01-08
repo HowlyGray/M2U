@@ -929,26 +929,26 @@
                 <div class="sidebar-section">
                     <h3>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                            <polyline points="15 3 21 3 21 9"></polyline>
+                            <line x1="10" y1="14" x2="21" y2="3"></line>
                         </svg>
-                        Salon
+                        Connexion directe
                     </h3>
-                    <div class="room-options">
-                        <button class="room-option active" id="create-room-opt">Créer</button>
-                        <button class="room-option" id="join-room-opt">Rejoindre</button>
-                    </div>
-                    <input type="text" id="room-id-input" class="input-field" placeholder="ID du salon">
-                    <button class="btn btn-primary" id="room-action-btn">
+                    <input type="text" id="peer-id-input" class="input-field" placeholder="ID du pair (PT-XXXXXXXX)" style="text-transform:uppercase;">
+                    <button class="btn btn-primary" id="connect-peer-btn">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M12 5v14M5 12h14"></path>
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                            <polyline points="15 3 21 3 21 9"></polyline>
+                            <line x1="10" y1="14" x2="21" y2="3"></line>
                         </svg>
-                        Créer le salon
+                        Se connecter
                     </button>
                     <div class="encryption-info">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                         </svg>
-                        <span>Les clés de chiffrement sont échangées via ECDH. Tous les messages sont chiffrés avec AES-256-GCM.</span>
+                        <span>Échangez vos IDs (PT-XXXXXXXX) puis connectez-vous. Chiffrement AES-256-GCM automatique.</span>
                     </div>
                 </div>
 
@@ -974,8 +974,8 @@
             <div class="chat-area">
                 <div class="chat-header">
                     <div class="chat-header-info">
-                        <h2 id="room-name">Bienvenue</h2>
-                        <span class="room-id" id="current-room-id"></span>
+                        <h2 id="room-name">Chat P2P</h2>
+                        <span class="room-id" id="current-room-id">Chiffrement E2E activé</span>
                     </div>
                     <div class="participants-count">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -984,13 +984,13 @@
                             <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                             <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                         </svg>
-                        <span id="header-participants">0</span>
+                        <span id="header-participants">0</span> connecté(s)
                     </div>
                 </div>
 
                 <div class="messages-container" id="messages-container">
                     <div class="message system">
-                        Bienvenue sur PeerText ! Créez ou rejoignez un salon pour commencer une conversation chiffrée.
+                        Bienvenue sur PeerText ! Copiez votre ID et partagez-le, puis entrez l'ID de votre correspondant pour vous connecter.
                     </div>
                 </div>
 
@@ -1088,10 +1088,8 @@
         myName: document.getElementById('my-name'),
         myPeerId: document.getElementById('my-peer-id'),
         copyIdBtn: document.getElementById('copy-id-btn'),
-        createRoomOpt: document.getElementById('create-room-opt'),
-        joinRoomOpt: document.getElementById('join-room-opt'),
-        roomIdInput: document.getElementById('room-id-input'),
-        roomActionBtn: document.getElementById('room-action-btn'),
+        peerIdInput: document.getElementById('peer-id-input'),
+        connectPeerBtn: document.getElementById('connect-peer-btn'),
         peersList: document.getElementById('peers-list'),
         participantsCount: document.getElementById('participants-count'),
         headerParticipants: document.getElementById('header-participants'),
@@ -1208,9 +1206,10 @@
         // Event listeners
         elements.myName.addEventListener('input', handleNameChange);
         elements.copyIdBtn.addEventListener('click', copyPeerId);
-        elements.createRoomOpt.addEventListener('click', () => selectRoomOption('create'));
-        elements.joinRoomOpt.addEventListener('click', () => selectRoomOption('join'));
-        elements.roomActionBtn.addEventListener('click', handleRoomAction);
+        elements.connectPeerBtn.addEventListener('click', handleConnectPeer);
+        elements.peerIdInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleConnectPeer();
+        });
         elements.sendBtn.addEventListener('click', sendMessage);
         elements.messageInput.addEventListener('keydown', handleMessageKeydown);
         elements.messageInput.addEventListener('input', handleTyping);
@@ -1220,6 +1219,30 @@
 
         // Initialize PeerJS
         initializePeer();
+    }
+
+    // Handle direct peer connection
+    function handleConnectPeer() {
+        const peerId = elements.peerIdInput.value.trim().toUpperCase();
+
+        if (!peerId) {
+            showToast('Entrez l\'ID du pair', 'error');
+            return;
+        }
+
+        if (peerId === state.myPeerId) {
+            showToast('Vous ne pouvez pas vous connecter à vous-même', 'error');
+            return;
+        }
+
+        if (state.connections.has(peerId)) {
+            showToast('Déjà connecté à ce pair', 'warning');
+            return;
+        }
+
+        appendSystemMessage(`Connexion à ${peerId}...`);
+        connectToPeer(peerId);
+        elements.peerIdInput.value = '';
     }
 
     function initializePeer() {
@@ -1232,7 +1255,8 @@
                 state.myPeerId = id;
                 elements.myPeerId.textContent = id;
                 updateStatusBar('connected', 'Connecté au réseau P2P');
-                appendSystemMessage('Prêt ! Créez ou rejoignez un salon pour commencer.');
+                appendSystemMessage('Prêt ! Partagez votre ID et entrez celui de votre correspondant pour vous connecter.');
+                enableChat();
             });
 
             state.peer.on('connection', handleIncomingConnection);
@@ -1246,79 +1270,6 @@
             console.error('Init error:', error);
             updateStatusBar('error', 'Erreur d\'initialisation');
         }
-    }
-
-    // ============================================
-    // ROOM MANAGEMENT
-    // ============================================
-    function selectRoomOption(option) {
-        const isCreate = option === 'create';
-        elements.createRoomOpt.classList.toggle('active', isCreate);
-        elements.joinRoomOpt.classList.toggle('active', !isCreate);
-
-        if (isCreate) {
-            elements.roomIdInput.placeholder = 'ID du salon (auto-généré si vide)';
-            elements.roomActionBtn.innerHTML = `
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 5v14M5 12h14"></path>
-                </svg>
-                Créer le salon
-            `;
-        } else {
-            elements.roomIdInput.placeholder = 'Entrez l\'ID du salon';
-            elements.roomActionBtn.innerHTML = `
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-                    <polyline points="10 17 15 12 10 7"></polyline>
-                    <line x1="15" y1="12" x2="3" y2="12"></line>
-                </svg>
-                Rejoindre
-            `;
-        }
-    }
-
-    async function handleRoomAction() {
-        const isCreate = elements.createRoomOpt.classList.contains('active');
-        let roomId = elements.roomIdInput.value.trim().toUpperCase();
-
-        if (isCreate) {
-            // Create new room
-            roomId = roomId || 'ROOM-' + generateId(6);
-            state.currentRoom = roomId;
-            state.isRoomCreator = true;
-
-            elements.roomIdInput.value = roomId;
-            updateRoomUI(roomId);
-            appendSystemMessage(`Salon "${roomId}" créé ! Partagez cet ID pour inviter des participants.`);
-            showToast('Salon créé !', 'success');
-
-        } else {
-            // Join existing room
-            if (!roomId) {
-                showToast('Entrez l\'ID du salon', 'error');
-                return;
-            }
-
-            state.currentRoom = roomId;
-            state.isRoomCreator = false;
-
-            // Try to connect to the room creator
-            updateRoomUI(roomId);
-            appendSystemMessage(`Connexion au salon "${roomId}"...`);
-
-            // In a real app, we'd use a signaling mechanism
-            // For now, users need to exchange IDs directly
-            showToast('Partagez votre ID avec les autres participants', 'warning');
-        }
-
-        enableChat();
-    }
-
-    function updateRoomUI(roomId) {
-        elements.roomName.textContent = 'Salon';
-        elements.currentRoomId.textContent = roomId;
-        elements.roomActionBtn.disabled = true;
-        elements.roomIdInput.disabled = true;
     }
 
     // ============================================
