@@ -361,10 +361,13 @@
         .messages-container {
             flex: 1;
             overflow-y: auto;
+            overflow-x: hidden;
             padding: 20px;
             display: flex;
             flex-direction: column;
             gap: 12px;
+            min-height: 0;
+            scroll-behavior: smooth;
         }
 
         .message {
@@ -520,6 +523,175 @@
             border-radius: 8px;
             margin-top: 8px;
             cursor: pointer;
+        }
+
+        /* Settings modal styles */
+        .settings-modal {
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .settings-section {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .settings-section:last-child {
+            border-bottom: none;
+        }
+
+        .settings-section h4 {
+            color: #e2e8f0;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ice-server-item {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .ice-server-details {
+            flex: 1;
+        }
+
+        .ice-server-details .server-url {
+            color: #63b3ed;
+            font-family: monospace;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+        }
+
+        .ice-server-details .server-credentials {
+            color: #64748b;
+            font-size: 0.75rem;
+        }
+
+        .ice-server-type {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .ice-server-type.stun {
+            background: rgba(99, 179, 237, 0.2);
+            color: #63b3ed;
+        }
+
+        .ice-server-type.turn {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+        }
+
+        .ice-server-type.turns {
+            background: rgba(52, 211, 153, 0.2);
+            color: #34d399;
+        }
+
+        .delete-ice-server {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .delete-ice-server:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .add-ice-server-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .add-ice-server-form .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .connection-status {
+            padding: 12px;
+            border-radius: 10px;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .connection-status .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+        }
+
+        .connection-status .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #64748b;
+        }
+
+        .connection-status .status-dot.connected {
+            background: #34d399;
+        }
+
+        .connection-status .status-dot.connecting {
+            background: #fbbf24;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .reset-btn {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+
+        .reset-btn:hover:not(:disabled) {
+            background: rgba(239, 68, 68, 0.3);
+        }
+
+        /* Settings button in header */
+        .settings-btn {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(30, 41, 59, 0.8);
+            color: #94a3b8;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .settings-btn:hover {
+            background: rgba(51, 65, 85, 0.8);
+            color: #e2e8f0;
+            transform: rotate(90deg);
         }
 
         /* Input area */
@@ -806,16 +978,32 @@
 
         /* Scrollbar */
         ::-webkit-scrollbar {
-            width: 6px;
+            width: 8px;
+            height: 8px;
         }
 
         ::-webkit-scrollbar-track {
             background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: rgba(99, 179, 237, 0.3);
-            border-radius: 3px;
+            background: rgba(99, 179, 237, 0.4);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 179, 237, 0.6);
+        }
+
+        ::-webkit-scrollbar-corner {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Firefox scrollbar */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(99, 179, 237, 0.4) rgba(255, 255, 255, 0.05);
         }
 
         /* Room creation section */
@@ -866,6 +1054,12 @@
 <body>
     <div class="container">
         <header>
+            <button class="settings-btn" id="settings-btn" title="Paramètres de connexion">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+            </button>
             <h1>PeerText</h1>
             <p class="subtitle">Messagerie P2P chiffrée de bout en bout</p>
             <div class="badges">
@@ -1043,19 +1237,103 @@
         </div>
     </div>
 
+    <!-- Settings modal -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal settings-modal">
+            <h3>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+                Configuration des serveurs ICE
+            </h3>
+
+            <!-- Connection status -->
+            <div class="connection-status">
+                <div class="status-indicator">
+                    <span class="status-dot" id="connection-status-dot"></span>
+                    <span id="connection-status-text">En attente de connexion...</span>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h4>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                    Serveurs STUN/TURN configurés
+                </h4>
+                <div id="ice-servers-list">
+                    <!-- ICE servers will be listed here -->
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h4>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="16"></line>
+                        <line x1="8" y1="12" x2="16" y2="12"></line>
+                    </svg>
+                    Ajouter un serveur ICE
+                </h4>
+                <div class="add-ice-server-form">
+                    <select id="ice-server-type" class="input-field">
+                        <option value="stun">STUN</option>
+                        <option value="turn">TURN (TCP)</option>
+                        <option value="turns">TURN (TLS)</option>
+                    </select>
+                    <input type="text" id="ice-server-url" class="input-field" placeholder="URL (ex: stun:stun.example.com:3478)">
+                    <input type="text" id="ice-server-username" class="input-field" placeholder="Nom d'utilisateur (TURN)">
+                    <input type="password" id="ice-server-credential" class="input-field" placeholder="Mot de passe (TURN)">
+                    <button class="btn btn-success" id="add-ice-server-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Ajouter
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-secondary reset-btn" id="reset-ice-servers-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                        <path d="M3 3v5h5"></path>
+                    </svg>
+                    Réinitialiser
+                </button>
+                <button class="btn btn-secondary" id="close-settings-btn">Fermer</button>
+            </div>
+        </div>
+    </div>
+
     <script>
     // ============================================
     // CONFIGURATION
     // ============================================
+    // Load custom ICE servers from localStorage or use default configuration
+    const savedIceServers = localStorage.getItem('customIceServers');
+    const defaultIceServers = [
+        // STUN servers (public)
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' },
+        { urls: 'stun:global.stun.twilio.com:3478' },
+        // TURN servers (OpenRelay - Free for testing)
+        { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+        { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+        { urls: 'turns:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' }
+    ];
+
     const CONFIG = {
         peerOptions: {
             debug: 1,
             config: {
-                iceServers: [
-                    { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' },
-                    { urls: 'stun:stun2.l.google.com:19302' }
-                ]
+                iceServers: savedIceServers ? JSON.parse(savedIceServers) : defaultIceServers
             }
         },
         chunkSize: 16384, // 16KB chunks for file transfer
@@ -1105,7 +1383,19 @@
         statusBar: document.getElementById('status-bar'),
         toast: document.getElementById('toast'),
         imageModal: document.getElementById('image-modal'),
-        modalImage: document.getElementById('modal-image')
+        modalImage: document.getElementById('modal-image'),
+        settingsBtn: document.getElementById('settings-btn'),
+        settingsModal: document.getElementById('settings-modal'),
+        iceServersList: document.getElementById('ice-servers-list'),
+        iceServerType: document.getElementById('ice-server-type'),
+        iceServerUrl: document.getElementById('ice-server-url'),
+        iceServerUsername: document.getElementById('ice-server-username'),
+        iceServerCredential: document.getElementById('ice-server-credential'),
+        addIceServerBtn: document.getElementById('add-ice-server-btn'),
+        resetIceServersBtn: document.getElementById('reset-ice-servers-btn'),
+        closeSettingsBtn: document.getElementById('close-settings-btn'),
+        connectionStatusDot: document.getElementById('connection-status-dot'),
+        connectionStatusText: document.getElementById('connection-status-text')
     };
 
     // ============================================
@@ -1217,8 +1507,44 @@
         elements.fileInput.addEventListener('change', handleFileSelect);
         elements.imageModal.addEventListener('click', () => elements.imageModal.classList.remove('show'));
 
+        // Settings modal event listeners
+        elements.settingsBtn.addEventListener('click', () => openSettingsModal());
+        elements.closeSettingsBtn.addEventListener('click', () => closeSettingsModal());
+        elements.settingsModal.addEventListener('click', (e) => {
+            if (e.target === elements.settingsModal) closeSettingsModal();
+        });
+        elements.addIceServerBtn.addEventListener('click', addIceServer);
+        elements.resetIceServersBtn.addEventListener('click', resetIceServers);
+
         // Initialize PeerJS
         initializePeer();
+
+        // Start ping/pong interval for connection health
+        startConnectionHealthCheck();
+    }
+
+    // Connection health check
+    function startConnectionHealthCheck() {
+        // Send ping every 30 seconds
+        setInterval(() => {
+            state.connections.forEach(({ conn }) => {
+                if (conn && conn.open) {
+                    conn.send({
+                        type: 'ping',
+                        timestamp: Date.now()
+                    });
+                }
+            });
+
+            // Check for stale connections (no response in 60 seconds)
+            const now = Date.now();
+            state.connections.forEach((info, peerId) => {
+                if (info.lastSeen && now - info.lastSeen > 60000) {
+                    console.log(`Peer ${peerId} appears disconnected`);
+                    appendSystemMessage(`${info.name || 'Un utilisateur'} semble déconnecté`);
+                }
+            });
+        }, 30000);
     }
 
     // Handle direct peer connection
@@ -1245,6 +1571,132 @@
         elements.peerIdInput.value = '';
     }
 
+    // ============================================
+    // ICE SERVERS CONFIGURATION
+    // ============================================
+    function openSettingsModal() {
+        renderIceServersList();
+        updateConnectionStatus();
+        elements.settingsModal.classList.add('show');
+    }
+
+    function closeSettingsModal() {
+        elements.settingsModal.classList.remove('show');
+    }
+
+    function renderIceServersList() {
+        const iceServers = CONFIG.peerOptions.config.iceServers;
+
+        if (iceServers.length === 0) {
+            elements.iceServersList.innerHTML = `
+                <div style="color:#64748b;font-size:0.85rem;text-align:center;padding:20px;">
+                    Aucun serveur ICE configuré
+                </div>
+            `;
+            return;
+        }
+
+        elements.iceServersList.innerHTML = iceServers.map((server, index) => {
+            const url = server.urls;
+            const type = getIceServerType(url);
+            const hasCredentials = server.username || server.credential;
+
+            return `
+                <div class="ice-server-item">
+                    <span class="ice-server-type ${type}">${type}</span>
+                    <div class="ice-server-details">
+                        <div class="server-url">${escapeHtml(url)}</div>
+                        ${hasCredentials ? `
+                            <div class="server-credentials">
+                                ${server.username ? `User: ${escapeHtml(server.username)}` : ''}
+                                ${server.username && server.credential ? ' | ' : ''}
+                                ${server.credential ? '••••••••' : ''}
+                            </div>
+                        ` : ''}
+                    </div>
+                    <button class="delete-ice-server" onclick="removeIceServer(${index})" title="Supprimer">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function getIceServerType(url) {
+        if (url.startsWith('stun:')) return 'stun';
+        if (url.startsWith('turns:')) return 'turns';
+        if (url.startsWith('turn:')) return 'turn';
+        return 'unknown';
+    }
+
+    function addIceServer() {
+        const type = elements.iceServerType.value;
+        const url = elements.iceServerUrl.value.trim();
+
+        if (!url) {
+            showToast('Veuillez entrer l\'URL du serveur', 'error');
+            return;
+        }
+
+        const newServer = { urls: url };
+
+        // Add credentials for TURN servers
+        if (type !== 'stun') {
+            const username = elements.iceServerUsername.value.trim();
+            const credential = elements.iceServerCredential.value;
+
+            if (username) newServer.username = username;
+            if (credential) newServer.credential = credential;
+        }
+
+        // Add to configuration
+        CONFIG.peerOptions.config.iceServers.push(newServer);
+
+        // Save to localStorage
+        localStorage.setItem('customIceServers', JSON.stringify(CONFIG.peerOptions.config.iceServers));
+
+        // Clear form
+        elements.iceServerUrl.value = '';
+        elements.iceServerUsername.value = '';
+        elements.iceServerCredential.value = '';
+
+        // Re-render
+        renderIceServersList();
+        showToast('Serveur ICE ajouté', 'success');
+    }
+
+    window.removeIceServer = function(index) {
+        CONFIG.peerOptions.config.iceServers.splice(index, 1);
+        localStorage.setItem('customIceServers', JSON.stringify(CONFIG.peerOptions.config.iceServers));
+        renderIceServersList();
+        showToast('Serveur ICE supprimé', 'success');
+    };
+
+    function resetIceServers() {
+        if (confirm('Voulez-vous vraiment réinitialiser aux serveurs par défaut ?')) {
+            localStorage.removeItem('customIceServers');
+            CONFIG.peerOptions.config.iceServers = [...defaultIceServers];
+            renderIceServersList();
+            showToast('Configuration réinitialisée', 'success');
+
+            // Note: For the new servers to take effect, the user needs to refresh the page
+            showToast('Actualisez la page pour appliquer les changements', 'warning');
+        }
+    }
+
+    function updateConnectionStatus() {
+        if (state.peer && state.peer.id) {
+            elements.connectionStatusDot.classList.add('connected');
+            elements.connectionStatusText.textContent = 'Connecté au réseau P2P';
+        } else {
+            elements.connectionStatusDot.classList.remove('connected');
+            elements.connectionStatusText.textContent = 'En attente de connexion...';
+        }
+    }
+
     function initializePeer() {
         const peerId = 'PT-' + generateId(8);
 
@@ -1255,6 +1707,7 @@
                 state.myPeerId = id;
                 elements.myPeerId.textContent = id;
                 updateStatusBar('connected', 'Connecté au réseau P2P');
+                updateConnectionStatus();
                 appendSystemMessage('Prêt ! Partagez votre ID et entrez celui de votre correspondant pour vous connecter.');
                 enableChat();
             });
@@ -1262,8 +1715,18 @@
             state.peer.on('connection', handleIncomingConnection);
             state.peer.on('error', handlePeerError);
             state.peer.on('disconnected', () => {
-                updateStatusBar('error', 'Déconnecté. Reconnexion...');
-                setTimeout(() => state.peer.reconnect(), 2000);
+                console.log('Peer disconnected from signaling server');
+                updateStatusBar('warning', 'Connexion serveur perdue. Reconnexion...');
+                // P2P connections remain active even if signaling server is lost
+                // Reconnect to signaling server after delay
+                setTimeout(() => {
+                    try {
+                        state.peer.reconnect();
+                        console.log('Reconnecting to signaling server...');
+                    } catch (e) {
+                        console.error('Reconnect error:', e);
+                    }
+                }, 2000);
             });
 
         } catch (error) {
@@ -1329,6 +1792,11 @@
 
         conn.on('error', (err) => {
             console.error('Connection error:', err);
+            // Don't immediately disconnect on data channel errors during file transfer
+            if (err.type === 'data-channel-error' && state.fileTransfers.size > 0) {
+                console.log('Data channel error during file transfer - ignoring');
+                return;
+            }
             handlePeerDisconnect(peerId);
         });
     }
@@ -1357,6 +1825,22 @@
                 await handleFileEnd(peerId, data);
                 break;
 
+            case 'ping':
+                // Respond to ping with pong
+                const peerInfo = state.connections.get(peerId);
+                if (peerInfo && peerInfo.conn) {
+                    peerInfo.conn.send({ type: 'pong', timestamp: data.timestamp });
+                }
+                break;
+
+            case 'pong':
+                // Update last activity for this peer
+                const info = state.connections.get(peerId);
+                if (info) {
+                    info.lastSeen = Date.now();
+                }
+                break;
+
             case 'typing':
                 handleTypingIndicator(peerId, data);
                 break;
@@ -1371,31 +1855,46 @@
         const peerId = conn.peer;
 
         try {
-            // Import peer's public key and derive shared key
-            const peerPublicKey = await Crypto.importPublicKey(data.publicKey);
-            const sharedKey = await Crypto.deriveSharedKey(state.myKeyPair.privateKey, peerPublicKey);
+            // Check if this is a name update (no public key) or initial handshake
+            const existingConnection = state.connections.get(peerId);
+            
+            if (data.publicKey && !existingConnection) {
+                // Initial handshake - import public key and derive shared key
+                const peerPublicKey = await Crypto.importPublicKey(data.publicKey);
+                const sharedKey = await Crypto.deriveSharedKey(state.myKeyPair.privateKey, peerPublicKey);
 
-            // Store connection info
-            state.connections.set(peerId, {
-                conn,
-                name: data.name || 'Anonyme',
-                publicKey: peerPublicKey,
-                sharedKey
-            });
+                // Store new connection info
+                state.connections.set(peerId, {
+                    conn,
+                    name: data.name || 'Anonyme',
+                    publicKey: peerPublicKey,
+                    sharedKey,
+                    lastSeen: Date.now()
+                });
 
-            state.pendingConnections.delete(peerId);
-            updatePeersList();
+                state.pendingConnections.delete(peerId);
+                updatePeersList();
 
-            appendSystemMessage(`${data.name || 'Anonyme'} a rejoint le salon (E2E activé)`);
-            showToast(`${data.name || 'Anonyme'} connecté`, 'success');
+                appendSystemMessage(`${data.name || 'Anonyme'} a rejoint le salon (E2E activé)`);
+                showToast(`${data.name || 'Anonyme'} connecté`, 'success');
 
-            // If we're the room creator, share the peer list
-            if (state.isRoomCreator) {
-                broadcastPeerList();
+                // If we're the room creator, share the peer list
+                if (state.isRoomCreator) {
+                    broadcastPeerList();
+                }
+
+                // Enable chat if not already
+                enableChat();
+            } else if (existingConnection) {
+                // Name update - just update the name
+                existingConnection.name = data.name || 'Anonyme';
+                existingConnection.lastSeen = Date.now();
+                updatePeersList();
+            } else {
+                // Invalid handshake - no connection and no public key
+                console.warn('Invalid handshake: no existing connection and no public key');
+                conn.close();
             }
-
-            // Enable chat if not already
-            enableChat();
 
         } catch (error) {
             console.error('Handshake error:', error);
@@ -1559,25 +2058,37 @@
                     timestamp: new Date().toISOString()
                 });
 
-                // Send chunks
-                const totalChunks = Math.ceil(encrypted.length / CONFIG.chunkSize);
+                // Send chunks - use smaller chunk size for binary data
+                const chunkSize = 4096; // 4KB chunks for binary data (smaller than JSON limit)
+                const totalChunks = Math.ceil(encrypted.length / chunkSize);
+                
+                // Send chunks with delay to avoid connection overload
                 for (let i = 0; i < totalChunks; i++) {
-                    const start = i * CONFIG.chunkSize;
-                    const end = Math.min(start + CONFIG.chunkSize, encrypted.length);
+                    const start = i * chunkSize;
+                    const end = Math.min(start + chunkSize, encrypted.length);
                     const chunk = encrypted.slice(start, end);
+
+                    // Convert to base64 to avoid array size issues
+                    const chunkBase64 = btoa(String.fromCharCode(...chunk));
 
                     conn.send({
                         type: 'file-chunk',
                         transferId,
                         chunkIndex: i,
                         totalChunks,
-                        data: Array.from(chunk)
+                        data: chunkBase64
                     });
 
                     // Update progress
                     const progress = ((i + 1) / totalChunks) * 100;
                     updateFileProgress(messageId, progress);
+
+                    // Add small delay between chunks to avoid connection overload
+                    await new Promise(resolve => setTimeout(resolve, 10));
                 }
+
+                // Add delay before sending completion
+                await new Promise(resolve => setTimeout(resolve, 100));
 
                 // Send completion
                 conn.send({
@@ -1595,8 +2106,10 @@
     }
 
     function handleFileStart(peerId, data) {
+        // Calculate expected chunks based on 4KB chunk size
+        const chunkSize = 4096;
         state.fileTransfers.set(data.transferId, {
-            chunks: new Array(Math.ceil(data.fileSize / CONFIG.chunkSize)),
+            chunks: new Array(Math.ceil(data.fileSize / chunkSize)),
             metadata: data,
             receivedChunks: 0,
             peerId
@@ -1610,7 +2123,14 @@
         const transfer = state.fileTransfers.get(data.transferId);
         if (!transfer) return;
 
-        transfer.chunks[data.chunkIndex] = new Uint8Array(data.data);
+        // Decode base64 chunk to Uint8Array
+        const binaryString = atob(data.data);
+        const chunk = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+            chunk[i] = binaryString.charCodeAt(i);
+        }
+
+        transfer.chunks[data.chunkIndex] = chunk;
         transfer.receivedChunks++;
 
         const progress = (transfer.receivedChunks / data.totalChunks) * 100;
@@ -1622,11 +2142,12 @@
         if (!transfer) return;
 
         try {
-            // Combine chunks
-            const totalLength = transfer.chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+            // Combine chunks - filter out null/undefined chunks
+            const validChunks = transfer.chunks.filter(chunk => chunk !== null && chunk !== undefined);
+            const totalLength = validChunks.reduce((sum, chunk) => sum + chunk.length, 0);
             const combined = new Uint8Array(totalLength);
             let offset = 0;
-            for (const chunk of transfer.chunks) {
+            for (const chunk of validChunks) {
                 combined.set(chunk, offset);
                 offset += chunk.length;
             }
@@ -1939,13 +2460,19 @@
     function handlePeerError(err) {
         console.error('Peer error:', err);
         let message = 'Erreur de connexion';
+        
         if (err.type === 'peer-unavailable') {
             message = 'Pair introuvable';
-        } else if (err.type === 'network') {
-            message = 'Erreur réseau';
+            updateStatusBar('error', message);
+            showToast(message, 'error');
+        } else if (err.type === 'network' || err.type === 'server-error') {
+            // Network errors are usually temporary and don't affect existing P2P connections
+            // Don't show error toast for temporary network issues
+            console.log('Temporary network error - P2P connections remain active');
+        } else {
+            updateStatusBar('error', message);
+            showToast(message, 'error');
         }
-        updateStatusBar('error', message);
-        showToast(message, 'error');
     }
 
     // Initialize
