@@ -1298,6 +1298,76 @@
                 </div>
             </div>
 
+            <div class="settings-section">
+                <h4>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                    </svg>
+                    Serveur de signalisation
+                </h4>
+                <div style="color:#94a3b8;font-size:0.8rem;margin-bottom:10px;">
+                    Le serveur par défaut est utilisé. Vous pouvez configurer un serveur personnalisé ci-dessous.
+                </div>
+                <input type="text" id="signaling-host" class="input-field" placeholder="Host (ex: 0.peerjs.com)">
+                <input type="number" id="signaling-port" class="input-field" placeholder="Port (ex: 443)" value="443">
+                <input type="text" id="signaling-path" class="input-field" placeholder="Path (ex: /)" value="/">
+                <button class="btn btn-secondary" id="save-signaling-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    Sauvegarder
+                </button>
+                <button class="btn btn-secondary reset-btn" id="reset-signaling-btn" style="margin-top:10px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                        <path d="M3 3v5h5"></path>
+                    </svg>
+                    Réinitialiser par défaut
+                </button>
+            </div>
+
+            <div class="settings-section">
+                <h4>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                        <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                        <line x1="15" y1="9" x2="15.01" y2="9"></line>
+                    </svg>
+                    Diagnostic et aide
+                </h4>
+                <div id="diagnostic-info" style="background:rgba(30, 41, 59, 0.5);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px;font-size:0.85rem;color:#94a3b8;">
+                    <div style="margin-bottom:8px;">
+                        <strong>État actuel:</strong>
+                        <div id="diagnostic-status">Chargement...</div>
+                    </div>
+                    <div style="margin-bottom:8px;">
+                        <strong>Nombre de connexions P2P:</strong>
+                        <span id="diagnostic-connections">0</span>
+                    </div>
+                    <div style="margin-bottom:8px;">
+                        <strong>HTTPS:</strong>
+                        <span id="diagnostic-https">-</span>
+                    </div>
+                    <div>
+                        <strong>WebRTC supporté:</strong>
+                        <span id="diagnostic-webrtc">-</span>
+                    </div>
+                </div>
+                <div style="margin-top:15px;padding:10px;background:rgba(99, 179, 237, 0.1);border:1px solid rgba(99, 179, 237, 0.2);border-radius:8px;font-size:0.8rem;color:#63b3ed;">
+                    <strong>💡 Conseils de dépannage:</strong>
+                    <ul style="margin-left:20px;margin-top:8px;line-height:1.6;">
+                        <li>Assurez-vous d'utiliser <strong>HTTPS</strong> (obligatoire pour WebRTC)</li>
+                        <li>Ajoutez des serveurs TURN pour traverser les NAT/Firewalls</li>
+                        <li>Vérifiez que votre pare-feu/antivirus ne bloque pas WebRTC</li>
+                        <li>Si le pair est injoignable, il peut être hors ligne</li>
+                        <li>Essayez de rafraîchir la page si la connexion au serveur échoue</li>
+                    </ul>
+                </div>
+            </div>
+
             <div class="modal-actions">
                 <button class="btn btn-secondary reset-btn" id="reset-ice-servers-btn">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1329,12 +1399,24 @@
         { urls: 'turns:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' }
     ];
 
+    // Load custom signaling server configuration
+    const savedSignalingConfig = localStorage.getItem('signalingConfig');
+    let signalingConfig = null;
+    if (savedSignalingConfig) {
+        try {
+            signalingConfig = JSON.parse(savedSignalingConfig);
+        } catch (e) {
+            console.error('Error parsing signaling config:', e);
+        }
+    }
+
     const CONFIG = {
         peerOptions: {
             debug: 1,
             config: {
                 iceServers: savedIceServers ? JSON.parse(savedIceServers) : defaultIceServers
-            }
+            },
+            ...(signalingConfig ? signalingConfig : {})
         },
         chunkSize: 16384, // 16KB chunks for file transfer
         maxFileSize: 100 * 1024 * 1024, // 100MB max
@@ -1395,7 +1477,16 @@
         resetIceServersBtn: document.getElementById('reset-ice-servers-btn'),
         closeSettingsBtn: document.getElementById('close-settings-btn'),
         connectionStatusDot: document.getElementById('connection-status-dot'),
-        connectionStatusText: document.getElementById('connection-status-text')
+        connectionStatusText: document.getElementById('connection-status-text'),
+        signalingHost: document.getElementById('signaling-host'),
+        signalingPort: document.getElementById('signaling-port'),
+        signalingPath: document.getElementById('signaling-path'),
+        saveSignalingBtn: document.getElementById('save-signaling-btn'),
+        resetSignalingBtn: document.getElementById('reset-signaling-btn'),
+        diagnosticStatus: document.getElementById('diagnostic-status'),
+        diagnosticConnections: document.getElementById('diagnostic-connections'),
+        diagnosticHttps: document.getElementById('diagnostic-https'),
+        diagnosticWebrtc: document.getElementById('diagnostic-webrtc')
     };
 
     // ============================================
@@ -1515,6 +1606,8 @@
         });
         elements.addIceServerBtn.addEventListener('click', addIceServer);
         elements.resetIceServersBtn.addEventListener('click', resetIceServers);
+        elements.saveSignalingBtn.addEventListener('click', saveSignalingConfig);
+        elements.resetSignalingBtn.addEventListener('click', resetSignalingConfig);
 
         // Initialize PeerJS
         initializePeer();
@@ -1576,8 +1669,39 @@
     // ============================================
     function openSettingsModal() {
         renderIceServersList();
+        loadSignalingConfig();
         updateConnectionStatus();
+        updateDiagnostics();
         elements.settingsModal.classList.add('show');
+    }
+
+    function updateDiagnostics() {
+        // Connection status
+        if (state.peer && state.peer.id) {
+            elements.diagnosticStatus.textContent = '✅ Connecté';
+            elements.diagnosticStatus.style.color = '#34d399';
+        } else {
+            elements.diagnosticStatus.textContent = '❌ Non connecté';
+            elements.diagnosticStatus.style.color = '#ef4444';
+        }
+
+        // P2P connections
+        elements.diagnosticConnections.textContent = state.connections.size;
+        if (state.connections.size > 0) {
+            elements.diagnosticConnections.style.color = '#34d399';
+        } else {
+            elements.diagnosticConnections.style.color = '#fbbf24';
+        }
+
+        // HTTPS check
+        const isHttps = window.location.protocol === 'https:';
+        elements.diagnosticHttps.textContent = isHttps ? '✅ Oui' : '❌ Non (Requis pour WebRTC)';
+        elements.diagnosticHttps.style.color = isHttps ? '#34d399' : '#ef4444';
+
+        // WebRTC support
+        const hasWebRTC = !!(window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection);
+        elements.diagnosticWebrtc.textContent = hasWebRTC ? '✅ Oui' : '❌ Non';
+        elements.diagnosticWebrtc.style.color = hasWebRTC ? '#34d399' : '#ef4444';
     }
 
     function closeSettingsModal() {
@@ -1697,6 +1821,49 @@
         }
     }
 
+    function loadSignalingConfig() {
+        const savedConfig = localStorage.getItem('signalingConfig');
+        if (savedConfig) {
+            try {
+                const config = JSON.parse(savedConfig);
+                elements.signalingHost.value = config.host || '';
+                elements.signalingPort.value = config.port || '443';
+                elements.signalingPath.value = config.path || '/';
+            } catch (e) {
+                console.error('Error loading signaling config:', e);
+            }
+        }
+    }
+
+    function saveSignalingConfig() {
+        const host = elements.signalingHost.value.trim();
+        const port = parseInt(elements.signalingPort.value) || 443;
+        const path = elements.signalingPath.value.trim() || '/';
+
+        if (!host) {
+            showToast('Veuillez entrer l\'hôte du serveur', 'error');
+            return;
+        }
+
+        const config = { host, port, path };
+        localStorage.setItem('signalingConfig', JSON.stringify(config));
+        showToast('Configuration du serveur sauvegardée', 'success');
+
+        // Inform user that reload is needed
+        showToast('Actualisez la page pour appliquer les changements', 'warning');
+    }
+
+    function resetSignalingConfig() {
+        if (confirm('Voulez-vous vraiment réinitialiser au serveur par défaut ?')) {
+            localStorage.removeItem('signalingConfig');
+            elements.signalingHost.value = '';
+            elements.signalingPort.value = '443';
+            elements.signalingPath.value = '/';
+            showToast('Configuration réinitialisée', 'success');
+            showToast('Actualisez la page pour appliquer les changements', 'warning');
+        }
+    }
+
     function initializePeer() {
         const peerId = 'PT-' + generateId(8);
 
@@ -1708,6 +1875,8 @@
                 elements.myPeerId.textContent = id;
                 updateStatusBar('connected', 'Connecté au réseau P2P');
                 updateConnectionStatus();
+                updateDiagnostics();
+                appendSystemMessage('✅ Connecté au serveur de signalisation');
                 appendSystemMessage('Prêt ! Partagez votre ID et entrez celui de votre correspondant pour vous connecter.');
                 enableChat();
             });
@@ -1717,6 +1886,7 @@
             state.peer.on('disconnected', () => {
                 console.log('Peer disconnected from signaling server');
                 updateStatusBar('warning', 'Connexion serveur perdue. Reconnexion...');
+                appendSystemMessage('⚠️ Connexion au serveur de signalisation perdue. Tentative de reconnexion...');
                 // P2P connections remain active even if signaling server is lost
                 // Reconnect to signaling server after delay
                 setTimeout(() => {
@@ -1725,6 +1895,7 @@
                         console.log('Reconnecting to signaling server...');
                     } catch (e) {
                         console.error('Reconnect error:', e);
+                        appendSystemMessage('❌ Impossible de se reconnecter au serveur. Essayez de rafraîchir la page.');
                     }
                 }, 2000);
             });
@@ -1732,6 +1903,8 @@
         } catch (error) {
             console.error('Init error:', error);
             updateStatusBar('error', 'Erreur d\'initialisation');
+            appendSystemMessage('❌ Erreur d\'initialisation: ' + error.message);
+            appendSystemMessage('💡 Astuce: Vérifiez votre connexion internet et les paramètres du serveur de signalisation ⚙️');
         }
     }
 
@@ -1874,6 +2047,7 @@
 
                 state.pendingConnections.delete(peerId);
                 updatePeersList();
+                updateDiagnostics();
 
                 appendSystemMessage(`${data.name || 'Anonyme'} a rejoint le salon (E2E activé)`);
                 showToast(`${data.name || 'Anonyme'} connecté`, 'success');
@@ -1912,6 +2086,7 @@
 
         updatePeersList();
         updateTypingIndicator();
+        updateDiagnostics();
 
         appendSystemMessage(`${name} a quitté le salon`);
     }
@@ -2460,18 +2635,43 @@
     function handlePeerError(err) {
         console.error('Peer error:', err);
         let message = 'Erreur de connexion';
-        
+        let isCritical = false;
+
         if (err.type === 'peer-unavailable') {
-            message = 'Pair introuvable';
+            message = 'Pair introuvable. Vérifiez l\'ID et réessayez.';
             updateStatusBar('error', message);
             showToast(message, 'error');
         } else if (err.type === 'network' || err.type === 'server-error') {
             // Network errors are usually temporary and don't affect existing P2P connections
-            // Don't show error toast for temporary network issues
+            message = 'Erreur réseau temporaire. Connexions P2P actives.';
             console.log('Temporary network error - P2P connections remain active');
-        } else {
+            updateStatusBar('connecting', 'Reconnexion au serveur...');
+            // Don't show error toast for temporary network issues, but show system message
+            appendSystemMessage('⚠️ Erreur de connexion au serveur de signalisation. Les connexions P2P restent actives. Reconnexion en cours...');
+        } else if (err.type === 'peer-error') {
+            message = 'Erreur de connexion au pair. Vérifiez votre configuration ICE.';
+            isCritical = true;
             updateStatusBar('error', message);
             showToast(message, 'error');
+        } else if (err.type === 'ssl-unavailable') {
+            message = 'Erreur SSL. Vérifiez que vous utilisez HTTPS.';
+            isCritical = true;
+            updateStatusBar('error', message);
+            showToast(message, 'error');
+        } else if (err.type === 'server-error') {
+            message = 'Erreur du serveur de signalisation.';
+            updateStatusBar('error', message);
+            showToast(message, 'warning');
+        } else {
+            message = `Erreur: ${err.type || 'Connexion échouée'}`;
+            isCritical = true;
+            updateStatusBar('error', message);
+            showToast(message, 'error');
+        }
+
+        // If critical error, show help message
+        if (isCritical) {
+            appendSystemMessage('💡 Astuce: Si vous avez des problèmes de connexion, essayez d\'ajouter des serveurs TURN supplémentaires dans les paramètres ⚙️');
         }
     }
 
