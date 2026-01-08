@@ -102,6 +102,73 @@
             border: 1px solid rgba(167, 139, 250, 0.3);
         }
 
+        /* Mobile menu button */
+        .mobile-menu-btn {
+            position: absolute;
+            top: 20px;
+            left: 25px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(30, 41, 59, 0.8);
+            color: #94a3b8;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .mobile-menu-btn:hover {
+            background: rgba(51, 65, 85, 0.8);
+            color: #e2e8f0;
+        }
+
+        .mobile-menu-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Close button for mobile sidebar */
+        .mobile-close-btn {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(30, 41, 59, 0.8);
+            color: #94a3b8;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            z-index: 101;
+        }
+
+        .mobile-close-btn:hover {
+            background: rgba(51, 65, 85, 0.8);
+            color: #e2e8f0;
+        }
+
+        /* Overlay for mobile sidebar */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+            display: none;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
+        }
+
         .main-layout {
             display: grid;
             grid-template-columns: 280px 1fr;
@@ -949,6 +1016,14 @@
 
         /* Responsive */
         @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: flex;
+            }
+
+            .mobile-close-btn {
+                display: flex;
+            }
+
             .main-layout {
                 grid-template-columns: 1fr;
             }
@@ -965,6 +1040,7 @@
                 bottom: 0;
                 width: 280px;
                 z-index: 100;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.9);
             }
 
             h1 {
@@ -1054,6 +1130,13 @@
 <body>
     <div class="container">
         <header>
+            <button class="mobile-menu-btn" id="mobile-menu-btn" title="Menu">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
             <button class="settings-btn" id="settings-btn" title="Paramètres de connexion">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="3"></circle>
@@ -1096,8 +1179,17 @@
             </div>
         </header>
 
+        <!-- Mobile sidebar overlay -->
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
         <div class="main-layout">
             <!-- Sidebar -->
+            <button class="mobile-close-btn" id="mobile-close-btn" title="Fermer">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
             <div class="sidebar" id="sidebar">
                 <div class="sidebar-section">
                     <h3>
@@ -1486,7 +1578,10 @@
         diagnosticStatus: document.getElementById('diagnostic-status'),
         diagnosticConnections: document.getElementById('diagnostic-connections'),
         diagnosticHttps: document.getElementById('diagnostic-https'),
-        diagnosticWebrtc: document.getElementById('diagnostic-webrtc')
+        diagnosticWebrtc: document.getElementById('diagnostic-webrtc'),
+        mobileMenuBtn: document.getElementById('mobile-menu-btn'),
+        mobileCloseBtn: document.getElementById('mobile-close-btn'),
+        sidebarOverlay: document.getElementById('sidebar-overlay')
     };
 
     // ============================================
@@ -1608,6 +1703,11 @@
         elements.resetIceServersBtn.addEventListener('click', resetIceServers);
         elements.saveSignalingBtn.addEventListener('click', saveSignalingConfig);
         elements.resetSignalingBtn.addEventListener('click', resetSignalingConfig);
+
+        // Mobile menu event listeners
+        elements.mobileMenuBtn.addEventListener('click', toggleMobileSidebar);
+        elements.mobileCloseBtn.addEventListener('click', toggleMobileSidebar);
+        elements.sidebarOverlay.addEventListener('click', toggleMobileSidebar);
 
         // Initialize PeerJS
         initializePeer();
@@ -2548,6 +2648,22 @@
         elements.statusBar.innerHTML = status === 'connecting'
             ? `<div class="spinner"></div><span>${message}</span>`
             : `<span>${message}</span>`;
+    }
+
+    function toggleMobileSidebar() {
+        const sidebar = elements.sidebar;
+        const overlay = elements.sidebarOverlay;
+        const isShown = sidebar.classList.contains('mobile-show');
+
+        if (isShown) {
+            // Hide sidebar
+            sidebar.classList.remove('mobile-show');
+            overlay.classList.remove('show');
+        } else {
+            // Show sidebar
+            sidebar.classList.add('mobile-show');
+            overlay.classList.add('show');
+        }
     }
 
     // ============================================
