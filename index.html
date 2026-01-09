@@ -384,6 +384,48 @@
             color: #34d399;
         }
 
+        .role-badge {
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 6px;
+        }
+
+        .role-badge.admin {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+        }
+
+        .role-badge.creator {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .peer-actions {
+            display: flex;
+            gap: 4px;
+            margin-left: 8px;
+        }
+
+        .peer-action-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #94a3b8;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .peer-action-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: #e2e8f0;
+        }
+
         /* Main chat area */
         .chat-area {
             display: flex;
@@ -1125,6 +1167,454 @@
             flex-shrink: 0;
             margin-top: 2px;
         }
+
+        /* Tabs for Rooms and DM */
+        .tabs-container {
+            display: flex;
+            gap: 10px;
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(11, 18, 39, 0.8);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(30, 41, 59, 0.5);
+            color: #94a3b8;
+            cursor: pointer;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .tab:hover {
+            border-color: rgba(99, 179, 237, 0.5);
+            color: #63b3ed;
+            background: rgba(99, 179, 237, 0.1);
+        }
+
+        .tab.active {
+            border-color: rgba(99, 179, 237, 0.6);
+            color: #fff;
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        /* Section containers */
+        .section-container {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .section-container.active {
+            display: flex;
+        }
+
+        /* Rooms section */
+        .rooms-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .rooms-header h2 {
+            color: #e2e8f0;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+
+        .rooms-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .rooms-actions-full {
+            display: flex;
+            gap: 10px;
+        }
+
+        .rooms-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .room-card {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .room-card:hover {
+            border-color: rgba(99, 179, 237, 0.4);
+            background: rgba(30, 41, 59, 0.7);
+            transform: translateY(-2px);
+        }
+
+        .room-card.active {
+            border-color: rgba(99, 179, 237, 0.6);
+            background: rgba(99, 179, 237, 0.1);
+        }
+
+        .room-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .room-card-name {
+            color: #e2e8f0;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .room-card-badge {
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: rgba(52, 211, 153, 0.2);
+            color: #34d399;
+        }
+
+        .room-card-info {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+        }
+
+        .room-card-participants {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #64748b;
+            font-size: 0.8rem;
+        }
+
+        /* Room detail view */
+        .room-detail {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .room-detail.active {
+            display: flex;
+        }
+
+        .room-detail-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .room-detail-title h2 {
+            color: #e2e8f0;
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+        }
+
+        .room-detail-id {
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        .room-detail-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Join requests section */
+        .join-requests-section {
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .join-requests-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .join-requests-title {
+            color: #fbbf24;
+            font-size: 0.95rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .join-request-item {
+            background: rgba(11, 22, 47, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .join-request-info {
+            color: #e2e8f0;
+            font-size: 0.9rem;
+        }
+
+        .join-request-time {
+            color: #64748b;
+            font-size: 0.75rem;
+        }
+
+        .join-request-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        /* DM section */
+        .dm-contacts {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .dm-contact {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            border-radius: 10px;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .dm-contact:hover {
+            border-color: rgba(99, 179, 237, 0.4);
+            background: rgba(30, 41, 59, 0.7);
+        }
+
+        .dm-contact.active {
+            border-color: rgba(99, 179, 237, 0.6);
+            background: rgba(99, 179, 237, 0.1);
+        }
+
+        .dm-contact-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .dm-contact-info {
+            flex: 1;
+        }
+
+        .dm-contact-name {
+            color: #e2e8f0;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .dm-contact-status {
+            color: #94a3b8;
+            font-size: 0.8rem;
+        }
+
+        .dm-contact-unread {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ef4444;
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Friends section in sidebar */
+        .friends-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .friends-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 0;
+        }
+
+        .friend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .friend-item:hover {
+            background: rgba(30, 41, 59, 0.5);
+        }
+
+        .friend-item.offline {
+            opacity: 0.6;
+        }
+
+        .friend-status {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #64748b;
+        }
+
+        .friend-status.online {
+            background: #34d399;
+            box-shadow: 0 0 8px rgba(52, 211, 153, 0.5);
+        }
+
+        .friend-name {
+            color: #e2e8f0;
+            font-size: 0.9rem;
+            flex: 1;
+        }
+
+        /* Settings for DM restrictions */
+        .dm-settings {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+
+        .dm-settings h4 {
+            color: #94a3b8;
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .toggle-input {
+            width: 44px;
+            height: 24px;
+            background: rgba(100, 116, 139, 0.3);
+            border-radius: 12px;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .toggle-input.active {
+            background: #4f46e5;
+        }
+
+        .toggle-input::after {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            background: #fff;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: all 0.3s;
+        }
+
+        .toggle-input.active::after {
+            left: 23px;
+        }
+
+        .toggle-label {
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        /* Add friend form */
+        .add-friend-form {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .add-friend-form input {
+            flex: 1;
+        }
+
+        /* Room creation modal */
+        .room-creation-form {
+            display: grid;
+            gap: 12px;
+        }
+
+        .room-creation-field label {
+            display: block;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+        }
+
+        /* Access code display */
+        .access-code-display {
+            background: rgba(99, 179, 237, 0.1);
+            border: 1px solid rgba(99, 179, 237, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+
+        .access-code-label {
+            color: #94a3b8;
+            font-size: 0.8rem;
+            margin-bottom: 6px;
+        }
+
+        .access-code-value {
+            color: #63b3ed;
+            font-family: monospace;
+            font-size: 1rem;
+            word-break: break-all;
+        }
     </style>
 </head>
 <body>
@@ -1238,6 +1728,34 @@
                     </div>
                 </div>
 
+                <!-- Friends section -->
+                <div class="sidebar-section friends-section">
+                    <h3>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="8.5" cy="7" r="4"></circle>
+                            <line x1="20" y1="8" x2="20" y2="14"></line>
+                            <line x1="23" y1="11" x2="17" y2="11"></line>
+                        </svg>
+                        Amis
+                    </h3>
+                    <div class="friends-list" id="friends-list">
+                        <div style="color:#64748b;font-size:0.85rem;text-align:center;padding:20px;">
+                            Aucun ami. Ajoutez-en un !
+                        </div>
+                    </div>
+                    <div class="add-friend-form">
+                        <input type="text" id="add-friend-input" class="input-field" placeholder="ID de l'ami (PT-XXXXXXXX)" style="margin-bottom:0;">
+                        <button class="btn btn-primary" id="add-friend-btn" style="width:auto;padding:10px 14px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Room participants section -->
                 <div class="sidebar-section" style="flex:1;display:flex;flex-direction:column;">
                     <h3>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1250,67 +1768,255 @@
                     </h3>
                     <div class="peers-list" id="peers-list">
                         <div style="color:#64748b;font-size:0.85rem;text-align:center;padding:20px;">
-                            Aucun participant connecté
+                            Rejoignez un salon pour voir les participants
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DM Settings -->
+                <div class="sidebar-section">
+                    <h3>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                        Paramètres DM
+                    </h3>
+                    <div class="dm-settings">
+                        <h4>Restrictions</h4>
+                        <div class="toggle-switch" id="accept-dm-toggle">
+                            <div class="toggle-input active"></div>
+                            <span class="toggle-label">Accepter les messages de non-amis</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Chat area -->
-            <div class="chat-area">
-                <div class="chat-header">
-                    <div class="chat-header-info">
-                        <h2 id="room-name">Chat P2P</h2>
-                        <span class="room-id" id="current-room-id">Chiffrement E2E activé</span>
-                    </div>
-                    <div class="participants-count">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <!-- Main area with tabs -->
+            <div class="main-area">
+                <!-- Tabs -->
+                <div class="tabs-container" id="tabs-container">
+                    <div class="tab active" id="rooms-tab" data-tab="rooms">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                             <circle cx="9" cy="7" r="4"></circle>
                             <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                             <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                         </svg>
-                        <span id="header-participants">0</span> connecté(s)
+                        Salons
+                    </div>
+                    <div class="tab" id="users-tab" data-tab="users">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        Utilisateurs connectés
+                    </div>
+                    <div class="tab" id="dm-tab" data-tab="dm">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        Messages privés
                     </div>
                 </div>
 
-                <div class="messages-container" id="messages-container">
-                    <div class="message system">
-                        Bienvenue sur PeerText ! Copiez votre ID et partagez-le, puis entrez l'ID de votre correspondant pour vous connecter.
-                    </div>
-                </div>
-
-                <div class="typing-indicator" id="typing-indicator">
-                    <div class="typing-dots">
-                        <span></span><span></span><span></span>
-                    </div>
-                    <span id="typing-names">Quelqu'un écrit...</span>
-                </div>
-
-                <div class="input-area">
-                    <div class="input-row">
-                        <div class="input-actions">
-                            <button class="action-btn" id="attach-btn" title="Envoyer un fichier">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                <!-- Rooms Section -->
+                <div class="section-container active" id="rooms-section">
+                    <!-- Rooms list view -->
+                    <div class="rooms-view" id="rooms-list-view">
+                        <div class="rooms-header">
+                            <h2>Mes salons privés</h2>
+                            <div class="rooms-actions">
+                                <input type="text" id="join-room-id-input" class="input-field" placeholder="ID du salon à rejoindre">
+                                <button class="btn btn-primary" id="join-room-btn">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                        <polyline points="15 3 21 3 21 9"></polyline>
+                                        <line x1="10" y1="14" x2="21" y2="3"></line>
+                                    </svg>
+                                    Demander à rejoindre
+                                </button>
+                            </div>
+                            <button class="btn btn-success rooms-actions-full" id="create-room-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
                                 </svg>
+                                Créer un nouveau salon
                             </button>
                         </div>
-                        <div class="message-input-wrapper">
-                            <textarea id="message-input" class="message-input" placeholder="Rejoignez un salon pour discuter..." rows="1" disabled></textarea>
+                        <div class="rooms-list" id="private-rooms-list">
+                            <div style="color:#64748b;font-size:0.9rem;text-align:center;padding:40px;">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin-bottom:12px;">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                </svg>
+                                <p>Aucun salon. Créez-en un ou rejoignez un salon existant.</p>
+                            </div>
                         </div>
-                        <button class="send-btn" id="send-btn" disabled title="Envoyer">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="22" y1="2" x2="11" y2="13"></line>
-                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                            </svg>
-                        </button>
+                    </div>
+
+                    <!-- Room detail view -->
+                    <div class="room-detail" id="room-detail">
+                        <div class="room-detail-header">
+                            <button class="btn btn-secondary" id="back-to-rooms-btn" style="width:auto;padding:8px 16px;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                                    <polyline points="12 19 5 12 12 5"></polyline>
+                                </svg>
+                                Retour
+                            </button>
+                            <div class="room-detail-title">
+                                <h2 id="detail-room-name">Nom du salon</h2>
+                                <span class="room-detail-id" id="detail-room-id">ID: XXXXXXXX</span>
+                            </div>
+                            <div class="room-detail-actions">
+                                <button class="btn btn-secondary" id="copy-access-id-btn" style="width:auto;padding:8px 16px;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                    </svg>
+                                    Copier l'ID
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Join requests section (for creators/admins) -->
+                        <div class="join-requests-section" id="join-requests-section" style="display:none;padding:16px 20px;margin:0;border-radius:0;">
+                            <div class="join-requests-header">
+                                <span class="join-requests-title">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                    </svg>
+                                    Demandes de rejoindre (<span id="join-requests-count">0</span>)
+                                </span>
+                            </div>
+                            <div id="join-requests-list"></div>
+                        </div>
+
+                        <!-- Chat area in room -->
+                        <div class="messages-container" id="messages-container">
+                            <div class="message system">
+                                Bienvenue dans le salon !
+                            </div>
+                        </div>
+
+                        <div class="typing-indicator" id="typing-indicator">
+                            <div class="typing-dots">
+                                <span></span><span></span><span></span>
+                            </div>
+                            <span id="typing-names">Quelqu'un écrit...</span>
+                        </div>
+
+                        <div class="input-area">
+                            <div class="input-row">
+                                <div class="input-actions">
+                                    <button class="action-btn" id="attach-btn" title="Envoyer un fichier">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="message-input-wrapper">
+                                    <textarea id="message-input" class="message-input" placeholder="Écrivez votre message..." rows="1"></textarea>
+                                </div>
+                                <button class="send-btn" id="send-btn" title="Envoyer">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="status-bar connecting" id="status-bar">
+                            <div class="spinner"></div>
+                            <span>Connexion au réseau P2P...</span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="status-bar connecting" id="status-bar">
-                    <div class="spinner"></div>
-                    <span>Connexion au réseau P2P...</span>
+                <!-- Users Section -->
+                <div class="section-container" id="users-section">
+                    <div class="rooms-header">
+                        <h2>Utilisateurs connectés</h2>
+                    </div>
+                    <div class="rooms-list" id="connected-users-list">
+                        <div style="color:#64748b;font-size:0.9rem;text-align:center;padding:40px;">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin-bottom:12px;">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                            <p>Aucun utilisateur connecté pour le moment</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DM Section -->
+                <div class="section-container" id="dm-section">
+                    <div class="dm-contacts" id="dm-contacts-list">
+                        <div style="color:#64748b;font-size:0.9rem;text-align:center;padding:40px;">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin-bottom:12px;">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                            <p>Aucune conversation. Ajoutez des amis depuis la barre latérale.</p>
+                        </div>
+                    </div>
+
+                    <!-- DM conversation view -->
+                    <div class="room-detail" id="dm-conversation" style="display:none;">
+                        <div class="room-detail-header">
+                            <button class="btn btn-secondary dm-back-btn" style="width:auto;padding:8px 16px;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                                    <polyline points="12 19 5 12 12 5"></polyline>
+                                </svg>
+                                Retour
+                            </button>
+                            <div class="room-detail-title">
+                                <h2 id="dm-contact-name">Nom du contact</h2>
+                                <span class="room-detail-id">Message privé</span>
+                            </div>
+                        </div>
+
+                        <div class="messages-container" id="dm-messages">
+                            <div class="message system">
+                                Début de la conversation privée
+                            </div>
+                        </div>
+
+                        <div class="typing-indicator dm-typing-indicator" style="display:none;">
+                            <div class="typing-dots">
+                                <span></span><span></span><span></span>
+                            </div>
+                        </div>
+
+                        <div class="input-area">
+                            <div class="input-row">
+                                <div class="input-actions">
+                                    <button class="action-btn dm-attach-btn" title="Envoyer un fichier">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="message-input-wrapper">
+                                    <textarea id="dm-input" class="message-input" placeholder="Écrivez un message privé..." rows="1"></textarea>
+                                </div>
+                                <button class="send-btn dm-send-btn" title="Envoyer">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1321,6 +2027,37 @@
 
     <!-- Toast -->
     <div class="toast" id="toast"></div>
+
+    <!-- Room creation modal -->
+    <div class="modal-overlay" id="room-creation-modal">
+        <div class="modal">
+            <h3>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                Créer un salon privé
+            </h3>
+            <div class="room-creation-form">
+                <div class="room-creation-field">
+                    <label>Nom du salon</label>
+                    <input type="text" id="room-name-input" class="input-field" placeholder="Ex: Famille, Travail, Amis..." maxlength="50">
+                </div>
+                <button class="btn btn-primary" id="confirm-create-room-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                    Créer le salon
+                </button>
+                <button class="btn btn-secondary" id="cancel-create-room-btn">
+                    Annuler
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Image modal -->
     <div class="modal-overlay" id="image-modal">
@@ -1524,13 +2261,37 @@
         myName: localStorage.getItem('peerName') || 'Anonyme',
         currentRoom: null,
         isRoomCreator: false,
-        connections: new Map(), // peerId -> { conn, name, publicKey, sharedKey }
+        connections: new Map(), // peerId -> { conn, name, publicKey, sharedKey, role, username }
         pendingConnections: new Map(),
         myKeyPair: null,
         typingPeers: new Set(),
         typingTimer: null,
         isTyping: false,
-        fileTransfers: new Map() // transferId -> { chunks, metadata }
+        fileTransfers: new Map(), // transferId -> { chunks, metadata }
+        // Moderation system
+        roomAdmins: new Map(), // roomId -> Set<username>
+        activeVotes: new Map(), // voteId -> { targetUsername, votes: Set<username>, expiresAt }
+        bannedUsers: new Map(), // roomId -> Set<username>
+        reportedUsers: new Map(), // roomId -> Map<username, { reporterUsername, reason, count }>
+        myRole: 'participant', // 'creator', 'admin', 'participant'
+        // Room system (private only)
+        privateRooms: JSON.parse(localStorage.getItem('privateRooms') || '[]'), // Array of room objects
+        currentTab: 'rooms', // 'rooms' or 'dm'
+        // Friends & DM system
+        friends: JSON.parse(localStorage.getItem('friends') || '[]'), // Array of usernames
+        friendRequestsSent: new Map(), // username -> timestamp
+        friendRequestsReceived: new Map(), // username -> { name, timestamp }
+        pendingJoinRequests: new Map(), // roomId -> Array<{username, name, timestamp}>
+        allowDMFromNonFriends: localStorage.getItem('allowDMFromNonFriends') !== 'false',
+        // Direct messages
+        directMessages: new Map(), // username -> Array<{content, timestamp, fromMe}>
+        activeDMConversation: null, // username of current DM conversation
+        // Identity & discovery system
+        usernameToPeerId: new Map(), // username -> current peerId
+        peerIdToUsername: new Map(), // peerId -> username
+        myPreviousPeerIds: JSON.parse(localStorage.getItem('myPreviousPeerIds') || '[]'), // Array of old peerIds
+        // Connections by username for easy lookup
+        connectionsByUsername: new Map() // username -> { conn, name, publicKey, sharedKey, role, peerId }
     };
 
     // ============================================
@@ -1581,7 +2342,47 @@
         diagnosticWebrtc: document.getElementById('diagnostic-webrtc'),
         mobileMenuBtn: document.getElementById('mobile-menu-btn'),
         mobileCloseBtn: document.getElementById('mobile-close-btn'),
-        sidebarOverlay: document.getElementById('sidebar-overlay')
+        sidebar: document.getElementById('sidebar'),
+        sidebarOverlay: document.getElementById('sidebar-overlay'),
+        // New UI elements for rooms & DM
+        tabsContainer: document.getElementById('tabs-container'),
+        roomsTab: document.getElementById('rooms-tab'),
+        usersTab: document.getElementById('users-tab'),
+        dmTab: document.getElementById('dm-tab'),
+        roomsSection: document.getElementById('rooms-section'),
+        usersSection: document.getElementById('users-section'),
+        dmSection: document.getElementById('dm-section'),
+        connectedUsersList: document.getElementById('connected-users-list'),
+        privateRoomsList: document.getElementById('private-rooms-list'),
+        createRoomBtn: document.getElementById('create-room-btn'),
+        joinRoomIdInput: document.getElementById('join-room-id-input'),
+        joinRoomBtn: document.getElementById('join-room-btn'),
+        roomNameInput: document.getElementById('room-name-input'),
+        roomCreationModal: document.getElementById('room-creation-modal'),
+        confirmCreateRoomBtn: document.getElementById('confirm-create-room-btn'),
+        cancelCreateRoomBtn: document.getElementById('cancel-create-room-btn'),
+        backToRoomsBtn: document.getElementById('back-to-rooms-btn'),
+        roomDetail: document.getElementById('room-detail'),
+        detailRoomName: document.getElementById('detail-room-name'),
+        detailRoomId: document.getElementById('detail-room-id'),
+        copyAccessIdBtn: document.getElementById('copy-access-id-btn'),
+        joinRequestsSection: document.getElementById('join-requests-section'),
+        joinRequestsList: document.getElementById('join-requests-list'),
+        joinRequestsCount: document.getElementById('join-requests-count'),
+        // DM elements
+        dmContactsList: document.getElementById('dm-contacts-list'),
+        dmConversation: document.getElementById('dm-conversation'),
+        dmMessages: document.getElementById('dm-messages'),
+        dmInput: document.getElementById('dm-input'),
+        dmSendBtn: document.querySelector('.dm-send-btn'),
+        dmAttachBtn: document.querySelector('.dm-attach-btn'),
+        dmBackBtn: document.querySelectorAll('.dm-back-btn'),
+        dmContactName: document.getElementById('dm-contact-name'),
+        // Friends elements
+        friendsList: document.getElementById('friends-list'),
+        addFriendInput: document.getElementById('add-friend-input'),
+        addFriendBtn: document.getElementById('add-friend-btn'),
+        acceptDMToggle: document.getElementById('accept-dm-toggle')
     };
 
     // ============================================
@@ -1676,6 +2477,12 @@
     async function init() {
         elements.myName.value = state.myName;
 
+        // Load saved data
+        loadDirectMessages();
+
+        // Migrate old data from peerId-based to username-based
+        migrateOldData();
+
         // Generate encryption keys
         state.myKeyPair = await Crypto.generateKeyPair();
 
@@ -1709,11 +2516,76 @@
         elements.mobileCloseBtn.addEventListener('click', toggleMobileSidebar);
         elements.sidebarOverlay.addEventListener('click', toggleMobileSidebar);
 
+        // Tab switching
+        elements.roomsTab.addEventListener('click', () => switchTab('rooms'));
+        elements.usersTab.addEventListener('click', () => switchTab('users'));
+        elements.dmTab.addEventListener('click', () => switchTab('dm'));
+
+        // Room creation and management
+        elements.createRoomBtn.addEventListener('click', openRoomCreationModal);
+        elements.confirmCreateRoomBtn.addEventListener('click', createPrivateRoom);
+        elements.cancelCreateRoomBtn.addEventListener('click', closeRoomCreationModal);
+        elements.roomCreationModal.addEventListener('click', (e) => {
+            if (e.target === elements.roomCreationModal) closeRoomCreationModal();
+        });
+
+        // Join room
+        elements.joinRoomBtn.addEventListener('click', requestToJoinRoom);
+
+        // Room detail navigation
+        elements.backToRoomsBtn.addEventListener('click', backToRoomsList);
+
+        // Copy room access ID
+        elements.copyAccessIdBtn.addEventListener('click', copyRoomAccessId);
+
+        // Friends management
+        elements.addFriendBtn.addEventListener('click', addFriend);
+        elements.addFriendInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addFriend();
+        });
+
+        // DM settings toggle
+        elements.acceptDMToggle.addEventListener('click', toggleDmSettings);
+
+        // DM message sending
+        elements.dmSendBtn.addEventListener('click', sendDirectMessage);
+        elements.dmInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendDirectMessage();
+            }
+        });
+
+        // DM back buttons
+        elements.dmBackBtn.forEach(btn => {
+            btn.addEventListener('click', backToDmList);
+        });
+
+        // Initialize UI
+        updateFriendsList();
+        updatePrivateRoomsList();
+        updateDmContactsList();
+
         // Initialize PeerJS
         initializePeer();
 
+        // Save current peerId mapping for this username
+        savePeerIdMapping();
+
         // Start ping/pong interval for connection health
         startConnectionHealthCheck();
+    }
+
+    function savePeerIdMapping() {
+        // Save mapping: username -> current peerId
+        const mapping = JSON.parse(localStorage.getItem('usernamePeerIdMapping') || '{}');
+        mapping[state.myName] = state.myPeerId;
+        localStorage.setItem('usernamePeerIdMapping', JSON.stringify(mapping));
+    }
+
+    function getPeerIdForUsername(username) {
+        const mapping = JSON.parse(localStorage.getItem('usernamePeerIdMapping') || '{}');
+        return mapping[username];
     }
 
     // Connection health check
@@ -1742,25 +2614,43 @@
 
     // Handle direct peer connection
     function handleConnectPeer() {
-        const peerId = elements.peerIdInput.value.trim().toUpperCase();
+        const input = elements.peerIdInput.value.trim();
 
-        if (!peerId) {
-            showToast('Entrez l\'ID du pair', 'error');
+        if (!input) {
+            showToast('Entrez l\'ID du pair ou le nom d\'utilisateur', 'error');
             return;
         }
 
-        if (peerId === state.myPeerId) {
+        // Check if input looks like a peerId (PT-XXXXXXXX format)
+        const isPeerIdFormat = /^PT-[A-Z0-9]{8}$/.test(input.toUpperCase());
+        let targetPeerId = input.toUpperCase();
+        let targetUsername = input;
+
+        if (!isPeerIdFormat) {
+            // Treat as username - try to find current peerId
+            const foundPeerId = getPeerIdForUsername(input);
+            if (foundPeerId) {
+                targetPeerId = foundPeerId;
+                targetUsername = input;
+                showToast(`Résolution du nom d\'utilisateur "${input}" vers ${foundPeerId}`, 'info');
+            } else {
+                showToast(`Nom d\'utilisateur "${input}" non trouvé. Assurez-vous que l\'utilisateur est connecté.`, 'warning');
+                return;
+            }
+        }
+
+        if (targetPeerId === state.myPeerId) {
             showToast('Vous ne pouvez pas vous connecter à vous-même', 'error');
             return;
         }
 
-        if (state.connections.has(peerId)) {
+        if (state.connections.has(targetPeerId)) {
             showToast('Déjà connecté à ce pair', 'warning');
             return;
         }
 
-        appendSystemMessage(`Connexion à ${peerId}...`);
-        connectToPeer(peerId);
+        appendSystemMessage(`Connexion à ${targetUsername} (${targetPeerId})...`);
+        connectToPeer(targetPeerId);
         elements.peerIdInput.value = '';
     }
 
@@ -2121,11 +3011,56 @@
             case 'peer-list':
                 handlePeerList(data);
                 break;
+
+            case 'kick-user':
+                handleKickUser(data);
+                break;
+
+            case 'ban-user':
+                handleBanUser(data);
+                break;
+
+            case 'report-user':
+                handleReportUser(data);
+                break;
+
+            case 'vote-kick':
+                handleVoteKick(data);
+                break;
+
+            case 'admin-assign':
+                handleAdminAssign(data);
+                break;
+
+            case 'admin-revoke':
+                handleAdminRevoke(data);
+                break;
+
+            case 'join-request':
+                handleJoinRequest(data);
+                break;
+
+            case 'join-approved':
+                handleJoinApproved(data);
+                break;
+
+            case 'dm':
+                handleDirectMessage(data);
+                break;
+
+            case 'dmRejected':
+                handleDmRejected(data);
+                break;
+
+            case 'dmRead':
+                handleDmRead(data);
+                break;
         }
     }
 
     async function handleHandshake(conn, data) {
         const peerId = conn.peer;
+        const username = data.name || 'Anonyme';
 
         try {
             // Check if this is a name update (no public key) or initial handshake
@@ -2137,20 +3072,37 @@
                 const sharedKey = await Crypto.deriveSharedKey(state.myKeyPair.privateKey, peerPublicKey);
 
                 // Store new connection info
-                state.connections.set(peerId, {
+                const connectionInfo = {
                     conn,
-                    name: data.name || 'Anonyme',
+                    name: username,
+                    username: username,
                     publicKey: peerPublicKey,
                     sharedKey,
                     lastSeen: Date.now()
-                });
+                };
+
+                state.connections.set(peerId, connectionInfo);
+                state.connectionsByUsername.set(username, connectionInfo);
+
+                // Store mapping username <-> peerId
+                state.usernameToPeerId.set(username, peerId);
+                state.peerIdToUsername.set(peerId, username);
+
+                // Save previous peerIds for this username
+                if (!state.myPreviousPeerIds.includes(peerId)) {
+                    state.myPreviousPeerIds.push(peerId);
+                    localStorage.setItem('myPreviousPeerIds', JSON.stringify(state.myPreviousPeerIds));
+                }
 
                 state.pendingConnections.delete(peerId);
                 updatePeersList();
                 updateDiagnostics();
+                if (state.currentTab === 'users') {
+                    updateConnectedUsersList();
+                }
 
-                appendSystemMessage(`${data.name || 'Anonyme'} a rejoint le salon (E2E activé)`);
-                showToast(`${data.name || 'Anonyme'} connecté`, 'success');
+                appendSystemMessage(`${username} a rejoint le salon (E2E activé)`);
+                showToast(`${username} connecté`, 'success');
 
                 // If we're the room creator, share the peer list
                 if (state.isRoomCreator) {
@@ -2160,9 +3112,15 @@
                 // Enable chat if not already
                 enableChat();
             } else if (existingConnection) {
-                // Name update - just update the name
-                existingConnection.name = data.name || 'Anonyme';
+                // Name update - just update the name and mappings
+                existingConnection.name = username;
+                existingConnection.username = username;
                 existingConnection.lastSeen = Date.now();
+
+                // Update mappings
+                state.usernameToPeerId.set(username, peerId);
+                state.peerIdToUsername.set(peerId, username);
+
                 updatePeersList();
             } else {
                 // Invalid handshake - no connection and no public key
@@ -2187,6 +3145,9 @@
         updatePeersList();
         updateTypingIndicator();
         updateDiagnostics();
+        if (state.currentTab === 'users') {
+            updateConnectedUsersList();
+        }
 
         appendSystemMessage(`${name} a quitté le salon`);
     }
@@ -2206,6 +3167,277 @@
         data.peers.forEach(peerId => {
             if (!state.connections.has(peerId) && peerId !== state.myPeerId) {
                 connectToPeer(peerId);
+            }
+        });
+    }
+
+    // ============================================
+    // MODERATION HANDLERS
+    // ============================================
+    function handleKickUser(data) {
+        const { targetPeerId, initiatorId, reason } = data;
+
+        // Check if we have permission
+        if (!canModerate()) {
+            appendSystemMessage('⚠️ Action de modération ignorée - permissions insuffisantes', 'warning');
+            return;
+        }
+
+        const peerInfo = state.connections.get(targetPeerId);
+        if (peerInfo) {
+            appendSystemMessage(`🚪 ${peerInfo.name} a été expulsé par l'administrateur`, 'warning');
+            showToast(`${peerInfo.name} expulsé`, 'info');
+
+            // Disconnect the user
+            peerInfo.conn.send({
+                type: 'kicked',
+                reason: reason || 'Expulsion par administrateur',
+                initiatorId
+            });
+            peerInfo.conn.close();
+            state.connections.delete(targetPeerId);
+            updatePeersList();
+        }
+    }
+
+    function handleBanUser(data) {
+        const { targetPeerId, initiatorId, reason } = data;
+
+        // Check if we have permission
+        if (!canModerate()) {
+            appendSystemMessage('⚠️ Action de modération ignorée - permissions insuffisantes', 'warning');
+            return;
+        }
+
+        const peerInfo = state.connections.get(targetPeerId);
+        if (peerInfo) {
+            appendSystemMessage(`🚫 ${peerInfo.name} a été banni du salon`, 'error');
+            showToast(`${peerInfo.name} banni`, 'error');
+
+            // Add to banned list
+            const roomId = state.currentRoom?.id;
+            if (roomId && !state.bannedUsers.has(roomId)) {
+                state.bannedUsers.set(roomId, new Set());
+            }
+            if (roomId) {
+                state.bannedUsers.get(roomId).add(targetPeerId);
+            }
+
+            // Disconnect the user
+            peerInfo.conn.send({
+                type: 'banned',
+                reason: reason || 'Bannissement par administrateur',
+                initiatorId
+            });
+            peerInfo.conn.close();
+            state.connections.delete(targetPeerId);
+            updatePeersList();
+        }
+    }
+
+    function handleReportUser(data) {
+        const { reporterId, targetPeerId, reason } = data;
+        const reporterInfo = state.connections.get(reporterId);
+        const targetInfo = state.connections.get(targetPeerId);
+
+        if (!reporterInfo || !targetInfo) return;
+
+        // Only admins/creator can see reports
+        if (canModerate()) {
+            appendSystemMessage(`🚨 Signalement: ${reporterInfo.name} signale ${targetInfo.name}`, 'warning');
+            if (reason) {
+                appendSystemMessage(`   Raison: ${reason}`, 'warning');
+            }
+            showToast('Nouveau signalement reçu', 'warning');
+        }
+
+        // Store report
+        const roomId = state.currentRoom?.id;
+        if (roomId) {
+            if (!state.reportedUsers.has(roomId)) {
+                state.reportedUsers.set(roomId, new Map());
+            }
+            const reports = state.reportedUsers.get(roomId);
+            const existingReport = reports.get(targetPeerId);
+            if (existingReport) {
+                existingReport.count++;
+                existingReport.reasons.push(reason);
+            } else {
+                reports.set(targetPeerId, {
+                    reporterId,
+                    reason,
+                    count: 1,
+                    reasons: [reason],
+                    timestamp: Date.now()
+                });
+            }
+        }
+    }
+
+    function handleVoteKick(data) {
+        const { voteId, targetPeerId, voterId, vote } = data;
+
+        // Check if we're the one being voted on
+        if (targetPeerId === state.myPeerId) {
+            // We cannot veto our own expulsion
+            const peerInfo = state.connections.get(voterId);
+            appendSystemMessage(`🗳 ${peerInfo?.name || 'Quelqu\'un'} a voté pour votre expulsion`, 'warning');
+
+            // If vote passes (more than half of participants)
+            const totalParticipants = state.connections.size + 1;
+            const activeVote = state.activeVotes.get(voteId);
+            if (activeVote && activeVote.votes.size >= Math.ceil(totalParticipants / 2)) {
+                appendSystemMessage(`💔 Vous avez été expulsé par vote collectif`, 'error');
+                // Send acceptance and disconnect
+                state.connections.forEach(({ conn }) => {
+                    conn.send({ type: 'vote-result', voteId, result: 'accepted', targetPeerId });
+                });
+                leaveRoom();
+            }
+            return;
+        }
+
+        // If we're admin/creator, handle veto
+        if (canModerate()) {
+            handleVoteResult(data);
+            return;
+        }
+
+        // Regular participant - handle voting
+        const activeVote = state.activeVotes.get(voteId);
+        if (!activeVote) {
+            // Create new vote
+            state.activeVotes.set(voteId, {
+                targetPeerId,
+                votes: new Set([voterId]),
+                expiresAt: Date.now() + 300000 // 5 minutes
+            });
+            const targetInfo = state.connections.get(targetPeerId);
+            const voterInfo = state.connections.get(voterId);
+            appendSystemMessage(`🗳 Vote d'expulsion lancé par ${voterInfo?.name || 'inconnu'} contre ${targetInfo?.name || 'inconnu'}`, 'warning');
+            showToast('Vote d\'expulsion en cours - répondez par /oui ou /non', 'info');
+        } else if (!activeVote.votes.has(voterId)) {
+            // Add vote
+            activeVote.votes.add(voterId);
+            const votersCount = activeVote.votes.size;
+            const totalParticipants = state.connections.size + 1;
+
+            // Check if vote passes
+            if (votersCount >= Math.ceil(totalParticipants / 2)) {
+                appendSystemMessage(`✅ Vote accepté - Expulsion en cours`, 'warning');
+                broadcastMessage({
+                    type: 'vote-result',
+                    voteId,
+                    result: 'accepted',
+                    targetPeerId
+                });
+            }
+        }
+    }
+
+    function handleVoteResult(data) {
+        const { voteId, result, targetPeerId } = data;
+
+        if (!canModerate()) {
+            // Not admin - regular participant
+            if (result === 'rejected') {
+                appendSystemMessage(`✅ L'expulsion a été rejetée par l'administrateur`, 'success');
+                showToast('Vote annulé par l\'administrateur', 'success');
+            }
+            return;
+        }
+
+        // Admin/creator - veto authority
+        if (result === 'accepted') {
+            const targetInfo = state.connections.get(targetPeerId);
+            if (confirm(`Le vote pour expulser ${targetInfo?.name || 'ce participant'} a réussi. Voulez-vous l'accepter ou le veto ?`)) {
+                // Accept vote
+                appendSystemMessage(`✅ Vote accepté - ${targetInfo?.name || 'Participant'} expulsé`, 'warning');
+                if (targetInfo) {
+                    targetInfo.conn.send({
+                        type: 'kicked',
+                        reason: 'Expulsion par vote collectif',
+                        initiatorId: 'vote'
+                    });
+                    targetInfo.conn.close();
+                    state.connections.delete(targetPeerId);
+                    updatePeersList();
+                }
+                broadcastMessage({
+                    type: 'vote-result',
+                    voteId,
+                    result: 'accepted',
+                    targetPeerId
+                });
+            } else {
+                // Veto vote
+                appendSystemMessage(`🛡️ Veto appliqué - Expulsion annulée`, 'info');
+                broadcastMessage({
+                    type: 'vote-result',
+                    voteId,
+                    result: 'rejected',
+                    targetPeerId
+                });
+            }
+        }
+
+        state.activeVotes.delete(voteId);
+    }
+
+    function handleAdminAssign(data) {
+        const { targetPeerId, adminId } = data;
+        const targetInfo = state.connections.get(targetPeerId);
+        const adminInfo = state.connections.get(adminId);
+
+        if (!targetInfo || !adminInfo) return;
+
+        // Update role
+        targetInfo.role = 'admin';
+
+        // Store admin
+        const roomId = state.currentRoom?.id;
+        if (roomId) {
+            if (!state.roomAdmins.has(roomId)) {
+                state.roomAdmins.set(roomId, new Set());
+            }
+            state.roomAdmins.get(roomId).add(targetPeerId);
+        }
+
+        appendSystemMessage(`👑 ${adminInfo.name} a nommé ${targetInfo.name} administrateur`, 'success');
+        showToast(`${targetInfo.name} est maintenant administrateur`, 'success');
+        updatePeersList();
+    }
+
+    function handleAdminRevoke(data) {
+        const { targetPeerId, revokerId } = data;
+        const targetInfo = state.connections.get(targetPeerId);
+        const revokerInfo = state.connections.get(revokerId);
+
+        if (!targetInfo || !revokerInfo) return;
+
+        // Update role
+        targetInfo.role = 'participant';
+
+        // Remove from admins
+        const roomId = state.currentRoom?.id;
+        if (roomId && state.roomAdmins.has(roomId)) {
+            state.roomAdmins.get(roomId).delete(targetPeerId);
+        }
+
+        appendSystemMessage(`⚠️ ${revokerInfo.name} a révoqué les droits d'admin de ${targetInfo.name}`, 'warning');
+        showToast(`${targetInfo.name} n'est plus administrateur`, 'warning');
+        updatePeersList();
+    }
+
+    // Helper functions
+    function canModerate() {
+        return state.myRole === 'creator' || state.myRole === 'admin';
+    }
+
+    function broadcastMessage(message) {
+        state.connections.forEach(({ conn }) => {
+            if (conn.open) {
+                conn.send(message);
             }
         });
     }
@@ -2605,6 +3837,10 @@
     // UI UPDATES
     // ============================================
     function updatePeersList() {
+        updateParticipantsList();
+    }
+
+    function updateParticipantsList() {
         const allPeers = [
             ...Array.from(state.connections.entries()).map(([id, info]) => ({ id, ...info, connected: true })),
             ...Array.from(state.pendingConnections.entries()).map(([id, info]) => ({ id, ...info, connected: false }))
@@ -2621,21 +3857,27 @@
                 <div class="peer-item ${peer.connected ? 'connected' : ''}">
                     <div class="peer-avatar">${(peer.name || '?')[0].toUpperCase()}</div>
                     <div class="peer-details">
-                        <div class="peer-name">${escapeHtml(peer.name || 'Connexion...')}</div>
-                        <div class="peer-status ${peer.connected ? 'online' : ''}">
-                            <span class="status-dot"></span>
-                            ${peer.connected ? 'Connecté' : 'Connexion...'}
+                        <div class="peer-name">
+                            ${escapeHtml(peer.name || 'Connexion...')}
+                            ${peer.role === 'admin' ? '<span class="role-badge admin">👑 Admin</span>' : ''}
+                            ${peer.role === 'creator' ? '<span class="role-badge creator">🎯 Créateur</span>' : ''}
                         </div>
+                        <div class="peer-id">${escapeHtml(peer.id)}</div>
                     </div>
-                    ${peer.connected ? '<span class="encryption-badge">E2E</span>' : ''}
+                    ${!peer.connected ? '<span class="peer-status">Connexion...</span>' : ''}
                 </div>
             `).join('');
         }
 
-        const count = state.connections.size;
-        elements.participantsCount.textContent = count;
-        elements.headerParticipants.textContent = count;
+        // Update participants count
+        const connectedCount = state.connections.size;
+        const totalCount = allPeers.length;
+        elements.participantsCount.textContent = connectedCount;
+        if (elements.headerParticipants) {
+            elements.headerParticipants.textContent = connectedCount;
+        }
     }
+
 
     function enableChat() {
         elements.messageInput.disabled = false;
@@ -2695,13 +3937,149 @@
     }
 
     function scrollToBottom() {
-        elements.messagesContainer.scrollTop = elements.messagesContainer.scrollHeight;
+        if (elements.messagesContainer) {
+            elements.messagesContainer.scrollTop = elements.messagesContainer.scrollHeight;
+        }
     }
 
     function showToast(message, type = 'info') {
         elements.toast.textContent = message;
         elements.toast.className = `toast ${type} show`;
         setTimeout(() => elements.toast.classList.remove('show'), 3000);
+    }
+
+    // ============================================
+    // MODERATION ACTIONS
+    // ============================================
+    function initiateKick(peerId) {
+        const peerInfo = state.connections.get(peerId);
+        if (!peerInfo) return;
+
+        const reason = prompt(`Raison de l'expulsion de ${peerInfo.name} :`, 'Comportement inapproprié');
+        if (reason === null) return;
+
+        broadcastMessage({
+            type: 'kick-user',
+            targetPeerId: peerId,
+            initiatorId: state.myPeerId,
+            reason
+        });
+    }
+
+    function initiateBan(peerId) {
+        const peerInfo = state.connections.get(peerId);
+        if (!peerInfo) return;
+
+        if (!confirm(`Voulez-vous vraiment bannir ${peerInfo.name} du salon ?`)) return;
+
+        const reason = prompt(`Raison du bannissement de ${peerInfo.name} :`, 'Comportement inapproprié');
+        if (reason === null) return;
+
+        broadcastMessage({
+            type: 'ban-user',
+            targetPeerId: peerId,
+            initiatorId: state.myPeerId,
+            reason
+        });
+    }
+
+    function reportUser(peerId) {
+        const peerInfo = state.connections.get(peerId);
+        if (!peerInfo) return;
+
+        const reason = prompt(`Raison du signalement de ${peerInfo.name} :`, 'Comportement inapproprié');
+        if (reason === null) return;
+
+        appendSystemMessage(`🚨 Vous avez signalé ${peerInfo.name} aux administrateurs`, 'info');
+        showToast('Signalement envoyé aux administrateurs', 'success');
+
+        broadcastMessage({
+            type: 'report-user',
+            reporterId: state.myPeerId,
+            targetPeerId: peerId,
+            reason
+        });
+    }
+
+    function initiateVote(peerId) {
+        const peerInfo = state.connections.get(peerId);
+        if (!peerInfo) return;
+
+        const reason = prompt(`Raison du vote d'expulsion contre ${peerInfo.name} :`, 'Comportement inapproprié');
+        if (reason === null) return;
+
+        if (!confirm(`Voulez-vous vraiment lancer un vote d'expulsion contre ${peerInfo.name} ? Les participants devront voter avec /oui ou /non`)) return;
+
+        const voteId = generateId(10);
+        state.activeVotes.set(voteId, {
+            targetPeerId: peerId,
+            votes: new Set([state.myPeerId]),
+            reason,
+            expiresAt: Date.now() + 300000
+        });
+
+        appendSystemMessage(`🗳 Vote d'expulsion lancé contre ${peerInfo.name}`, 'warning');
+        showToast('Vote d\'expulsion en cours - envoyez /oui ou /non pour voter', 'info');
+
+        broadcastMessage({
+            type: 'vote-kick',
+            voteId,
+            targetPeerId: peerId,
+            voterId: state.myPeerId,
+            vote: 'initiate',
+            reason
+        });
+    }
+
+    function assignAdmin(peerId) {
+        const peerInfo = state.connections.get(peerId);
+        if (!peerInfo) return;
+
+        if (!confirm(`Voulez-vous nommer ${peerInfo.name} administrateur ?`)) return;
+
+        appendSystemMessage(`👑 Vous avez nommé ${peerInfo.name} administrateur`, 'success');
+        showToast(`${peerInfo.name} est maintenant administrateur`, 'success');
+
+        broadcastMessage({
+            type: 'admin-assign',
+            targetPeerId: peerId,
+            adminId: state.myPeerId
+        });
+
+        // Update local
+        peerInfo.role = 'admin';
+        const roomId = state.currentRoom?.id;
+        if (roomId) {
+            if (!state.roomAdmins.has(roomId)) {
+                state.roomAdmins.set(roomId, new Set());
+            }
+            state.roomAdmins.get(roomId).add(peerId);
+        }
+        updatePeersList();
+    }
+
+    function revokeAdmin(peerId) {
+        const peerInfo = state.connections.get(peerId);
+        if (!peerInfo) return;
+
+        if (!confirm(`Voulez-vous révoquer les droits d'admin de ${peerInfo.name} ?`)) return;
+
+        appendSystemMessage(`⬇️ Vous avez révoqué les droits d'admin de ${peerInfo.name}`, 'warning');
+        showToast(`${peerInfo.name} n'est plus administrateur`, 'warning');
+
+        broadcastMessage({
+            type: 'admin-revoke',
+            targetPeerId: peerId,
+            revokerId: state.myPeerId
+        });
+
+        // Update local
+        peerInfo.role = 'participant';
+        const roomId = state.currentRoom?.id;
+        if (roomId && state.roomAdmins.has(roomId)) {
+            state.roomAdmins.get(roomId).delete(peerId);
+        }
+        updatePeersList();
     }
 
     function playNotificationSound() {
@@ -2789,6 +4167,1018 @@
         if (isCritical) {
             appendSystemMessage('💡 Astuce: Si vous avez des problèmes de connexion, essayez d\'ajouter des serveurs TURN supplémentaires dans les paramètres ⚙️');
         }
+    }
+
+    // ============================================
+    // MIGRATION FROM PEERID TO USERNAME
+    // ============================================
+
+    function migrateOldData() {
+        // Load old data if exists
+        const oldFriends = localStorage.getItem('friends');
+        const oldRooms = localStorage.getItem('privateRooms');
+        const oldDirectMessages = localStorage.getItem('directMessages');
+
+        // These are now loaded in state initialization, but we need to migrate them if they use old format
+        console.log('Migration: Checking for old format data...');
+    }
+
+    // ============================================
+    // TABS AND UI MANAGEMENT
+    // ============================================
+
+    function switchTab(tab) {
+        state.currentTab = tab;
+
+        // Update tab buttons
+        elements.roomsTab.classList.toggle('active', tab === 'rooms');
+        elements.usersTab.classList.toggle('active', tab === 'users');
+        elements.dmTab.classList.toggle('active', tab === 'dm');
+
+        // Update sections
+        elements.roomsSection.classList.toggle('active', tab === 'rooms');
+        elements.usersSection.classList.toggle('active', tab === 'users');
+        elements.dmSection.classList.toggle('active', tab === 'dm');
+
+        // Refresh user list when switching to users tab
+        if (tab === 'users') {
+            updateConnectedUsersList();
+        }
+    }
+
+    // ============================================
+    // CONNECTED USERS SYSTEM
+    // ============================================
+
+    function updateConnectedUsersList() {
+        const container = document.getElementById('connected-users-list');
+        const allPeers = Array.from(state.connections.entries()).map(([id, info]) => ({
+            id,
+            name: info.name,
+            connected: true
+        }));
+
+        if (allPeers.length === 0) {
+            container.innerHTML = `
+                <div style="color:#64748b;font-size:0.9rem;text-align:center;padding:40px;">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin-bottom:12px;">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    <p>Aucun utilisateur connecté pour le moment</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = allPeers.map(peer => {
+            const isFriend = state.friends.includes(peer.id);
+            const initial = peer.name.charAt(0).toUpperCase();
+
+            return `
+                <div class="room-card" style="padding:16px;">
+                    <div class="room-card-header">
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <div class="dm-contact-avatar" style="width:45px;height:45px;font-size:1.3rem;">
+                                ${escapeHtml(initial)}
+                            </div>
+                            <div>
+                                <div class="room-card-name">${escapeHtml(peer.name)}</div>
+                                <div class="room-card-info" style="margin-bottom:0;">${escapeHtml(peer.id)}</div>
+                            </div>
+                        </div>
+                        <span class="room-card-badge" style="background:rgba(52,211,153,0.2);color:#34d399;">
+                            En ligne
+                        </span>
+                    </div>
+                    <div style="display:flex;gap:8px;margin-top:12px;">
+                        ${!isFriend ? `
+                            <button class="btn btn-primary" style="flex:1;padding:8px;" onclick="addFriendById('${peer.id}')">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                Ajouter en ami
+                            </button>
+                        ` : `
+                            <button class="btn btn-success" style="flex:1;padding:8px;" onclick="startDmWithFriend('${peer.id}')">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                                Message
+                            </button>
+                            <button class="btn btn-secondary" style="flex:1;padding:8px;" onclick="removeFriendById('${peer.id}')">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        `}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    window.addFriendById = function(peerId) {
+        if (state.friends.includes(peerId)) {
+            showToast('Cet ami est déjà dans votre liste', 'warning');
+            return;
+        }
+
+        state.friends.push(peerId);
+        saveFriends();
+        updateFriendsList();
+        updateConnectedUsersList();
+        showToast('Ami ajouté !', 'success');
+    };
+
+    window.removeFriendById = function(peerId) {
+        const index = state.friends.indexOf(peerId);
+        if (index > -1) {
+            state.friends.splice(index, 1);
+            saveFriends();
+            updateFriendsList();
+            updateConnectedUsersList();
+            showToast('Ami supprimé', 'info');
+        }
+    };
+
+    // ============================================
+    // PRIVATE ROOMS SYSTEM
+    // ============================================
+
+    function openRoomCreationModal() {
+        elements.roomNameInput.value = '';
+        elements.roomCreationModal.classList.add('show');
+        elements.roomNameInput.focus();
+    }
+
+    function closeRoomCreationModal() {
+        elements.roomCreationModal.classList.remove('show');
+    }
+
+    async function createPrivateRoom() {
+        const roomName = elements.roomNameInput.value.trim();
+        if (!roomName) {
+            showToast('Veuillez entrer un nom pour le salon', 'warning');
+            return;
+        }
+
+        const room = {
+            id: generateRoomId(),
+            name: roomName,
+            creatorId: state.myPeerId,
+            creatorUsername: state.myName,
+            admins: [state.myPeerId],
+            members: [state.myPeerId],
+            createdAt: Date.now()
+        };
+
+        state.privateRooms.push(room);
+        savePrivateRooms();
+        closeRoomCreationModal();
+        updatePrivateRoomsList();
+
+        showToast(`Salon "${roomName}" créé avec succès !`, 'success');
+
+        // Show room detail
+        showRoomDetail(room);
+    }
+
+    function generateRoomId() {
+        const prefix = 'RT';
+        const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        let id = '';
+        for (let i = 0; i < 8; i++) {
+            id += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return `${prefix}-${id}`;
+    }
+
+    function updatePrivateRoomsList() {
+        const rooms = state.privateRooms;
+        const container = elements.privateRoomsList;
+
+        if (rooms.length === 0) {
+            container.innerHTML = `
+                <div style="color:#64748b;font-size:0.9rem;text-align:center;padding:40px;">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin-bottom:12px;">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    <p>Aucun salon. Créez-en un ou rejoignez un salon existant.</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = rooms.map(room => {
+            const memberCount = room.members.length;
+            const isCreator = room.creatorId === state.myPeerId;
+            const isAdmin = room.admins.includes(state.myPeerId);
+
+            // Get creator username from the stored mapping
+            let creatorName = room.creatorId; // Default to peerId
+            if (room.creatorUsername) {
+                creatorName = room.creatorUsername;
+            } else {
+                // Try to find the username from the mapping
+                const savedRoom = state.privateRooms.find(r => r.id === room.id);
+                if (savedRoom && savedRoom.creatorUsername) {
+                    creatorName = savedRoom.creatorUsername;
+                    room.creatorUsername = savedRoom.creatorUsername; // Cache it
+                }
+            }
+
+            return `
+                <div class="room-card" data-room-id="${room.id}">
+                    <div class="room-card-header">
+                        <span class="room-card-name">${escapeHtml(room.name)}</span>
+                        <span class="room-card-badge">${isCreator ? 'Créateur' : isAdmin ? 'Admin' : 'Membre'}</span>
+                    </div>
+                    <div class="room-card-info">ID: ${room.id}</div>
+                    <div class="room-card-info" style="font-size:0.75rem;">Créateur: ${escapeHtml(creatorName)}</div>
+                    <div class="room-card-participants">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                        </svg>
+                        ${memberCount} membre${memberCount > 1 ? 's' : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // Add click listeners
+        container.querySelectorAll('.room-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const roomId = card.dataset.roomId;
+                const room = state.privateRooms.find(r => r.id === roomId);
+                if (room) {
+                    showRoomDetail(room);
+                }
+            });
+        });
+    }
+
+    function showRoomDetail(room) {
+        state.currentRoom = room;
+        state.isRoomCreator = room.creatorId === state.myPeerId;
+        state.myRole = room.creatorId === state.myPeerId ? 'creator' :
+                      room.admins.includes(state.myPeerId) ? 'admin' : 'participant';
+
+        // Check if user is already a member
+        const isMember = room.members.includes(state.myPeerId);
+
+        // Hide rooms list, show detail
+        document.getElementById('rooms-list-view').style.display = 'none';
+        elements.roomDetail.classList.add('active');
+
+        // Update header
+        elements.detailRoomName.textContent = room.name;
+        elements.detailRoomId.textContent = `ID: ${room.id}`;
+
+        if (!isMember) {
+            // User is not a member - show join request view
+            showRoomJoinRequestView(room);
+        } else {
+            // User is a member - show normal room view
+            showRoomNormalView(room);
+        }
+    }
+
+    function showRoomJoinRequestView(room) {
+        // Hide chat elements, show join request interface
+        elements.messagesContainer.innerHTML = `
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:40px;text-align:center;">
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:20px;color:#fbbf24;">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                <h2 style="color:#e2e8f0;margin-bottom:15px;">Salon privé</h2>
+                <p style="color:#94a3b8;margin-bottom:30px;max-width:400px;">
+                    Ce salon est privé. Vous devez envoyer une demande au créateur pour y accéder.
+                </p>
+                <div style="background:rgba(99,179,237,0.1);border:1px solid rgba(99,179,237,0.2);border-radius:12px;padding:20px;margin-bottom:25px;max-width:400px;width:100%;">
+                    <h3 style="color:#63b3ed;font-size:1rem;margin-bottom:10px;">${escapeHtml(room.name)}</h3>
+                    <p style="color:#64748b;font-size:0.85rem;margin-bottom:5px;">Créé par :</p>
+                    <p style="color:#94a3b8;font-weight:600;">${escapeHtml(room.creatorId)}</p>
+                </div>
+                <div style="display:flex;gap:15px;justify-content:center;">
+                    <button id="send-join-request-btn" class="btn btn-primary" style="padding:12px 30px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                        Envoyer une demande
+                    </button>
+                    <button id="cancel-join-request-btn" class="btn btn-secondary" style="padding:12px 30px;">
+                        Annuler
+                    </button>
+                </div>
+                <p style="color:#64748b;font-size:0.75rem;margin-top:20px;">
+                    Votre Peer ID : <strong style="color:#63b3ed;">${state.myPeerId}</strong>
+                </p>
+            </div>
+        `;
+
+        // Add event listeners
+        setTimeout(() => {
+            const sendBtn = document.getElementById('send-join-request-btn');
+            const cancelBtn = document.getElementById('cancel-join-request-btn');
+
+            if (sendBtn) {
+                sendBtn.onclick = () => sendJoinRequestToCreator(room);
+            }
+            if (cancelBtn) {
+                cancelBtn.onclick = backToRoomsList;
+            }
+        }, 100);
+
+        // Hide join requests section and chat input for non-members
+        elements.joinRequestsSection.style.display = 'none';
+
+        // Hide chat input area completely
+        const inputArea = elements.messageInput ? elements.messageInput.closest('.input-area') : null;
+        if (inputArea) {
+            inputArea.style.display = 'none';
+        }
+        if (elements.messageInput) {
+            elements.messageInput.disabled = true;
+        }
+        if (elements.sendBtn) {
+            elements.sendBtn.disabled = true;
+        }
+        if (elements.attachBtn) {
+            elements.attachBtn.disabled = true;
+        }
+    }
+
+    function sendJoinRequestToCreator(room) {
+        // In a real decentralized system, we would need to:
+        // 1. Connect to the room creator via P2P
+        // 2. Send them a join-request message
+        // 3. Wait for their response
+
+        // For now, we'll simulate this by showing a message
+        // and storing the request locally
+
+        showToast('Demande envoyée au créateur du salon', 'success');
+
+        // Simulate storing the request (in real implementation, this would be sent via P2P)
+        const request = {
+            roomId: room.id,
+            peerId: state.myPeerId,
+            name: state.myName,
+            timestamp: Date.now()
+        };
+
+        // Show confirmation
+        elements.messagesContainer.innerHTML = `
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:40px;text-align:center;">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:20px;color:#34d399;">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                <h3 style="color:#34d399;margin-bottom:15px;">Demande envoyée !</h3>
+                <p style="color:#94a3b8;margin-bottom:25px;">
+                    Le créateur du salon a reçu votre demande. Vous serez notifié(e) quand elle sera acceptée.
+                </p>
+                <button class="btn btn-secondary" onclick="backToRoomsList()" style="padding:10px 25px;">
+                    Retour aux salons
+                </button>
+            </div>
+        `;
+
+        // In a real implementation, this would be sent to the creator:
+        /*
+        const creatorConnection = state.connections.get(room.creatorId);
+        if (creatorConnection && creatorConnection.conn.open) {
+            creatorConnection.conn.send({
+                type: 'join-request',
+                roomId: room.id,
+                peerId: state.myPeerId,
+                name: state.myName
+            });
+        }
+        */
+    }
+
+    function showRoomNormalView(room) {
+        // Show/hide join requests section based on role
+        const isAdmin = state.myRole === 'creator' || state.myRole === 'admin';
+        const pendingRequests = state.pendingJoinRequests.get(room.id) || [];
+
+        if (isAdmin && pendingRequests.length > 0) {
+            elements.joinRequestsSection.style.display = 'block';
+            updateJoinRequestsList(room.id);
+        } else {
+            elements.joinRequestsSection.style.display = 'none';
+        }
+
+        // Enable chat and ensure input area is visible
+        if (elements.messageInput) {
+            elements.messageInput.disabled = false;
+            elements.messageInput.placeholder = 'Écrivez votre message...';
+            elements.messageInput.style.display = 'block';
+        }
+        if (elements.sendBtn) {
+            elements.sendBtn.disabled = false;
+            elements.sendBtn.style.display = 'flex';
+        }
+        if (elements.attachBtn) {
+            elements.attachBtn.disabled = false;
+            elements.attachBtn.style.display = 'flex';
+        }
+
+        // Ensure input area container is visible
+        const inputArea = elements.messageInput ? elements.messageInput.closest('.input-area') : null;
+        if (inputArea) {
+            inputArea.style.display = 'block';
+        }
+
+        // Clear and update messages
+        elements.messagesContainer.innerHTML = `<div class="message system">Bienvenue dans le salon "${escapeHtml(room.name)}" !</div>`;
+
+        // Update participants list
+        updateParticipantsList();
+    }
+
+    function backToRoomsList() {
+        state.currentRoom = null;
+        document.getElementById('rooms-list-view').style.display = 'block';
+        elements.roomDetail.classList.remove('active');
+    }
+
+    function copyRoomAccessId() {
+        if (!state.currentRoom) return;
+
+        navigator.clipboard.writeText(state.currentRoom.id)
+            .then(() => showToast('ID du salon copié !', 'success'))
+            .catch(() => showToast('Erreur lors de la copie', 'error'));
+    }
+
+    // ============================================
+    // JOIN REQUESTS SYSTEM
+    // ============================================
+
+    function requestToJoinRoom() {
+        const roomId = elements.joinRoomIdInput.value.trim().toUpperCase();
+        if (!roomId) {
+            showToast('Veuillez entrer l\'ID du salon', 'warning');
+            return;
+        }
+
+        // Check if we're already in this room
+        const existingRoom = state.privateRooms.find(r => r.id === roomId);
+        if (existingRoom) {
+            showToast('Vous êtes déjà membre de ce salon', 'warning');
+            return;
+        }
+
+        // Store the pending join request
+        state.pendingJoinRequest = {
+            roomId,
+            timestamp: Date.now()
+        };
+
+        elements.joinRoomIdInput.value = '';
+
+        // Show instructions modal
+        const modal = document.createElement('div');
+        modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:1000;';
+        modal.innerHTML = `
+            <div style="background:rgba(15,23,42,0.95);padding:30px;border-radius:20px;max-width:400px;text-align:center;">
+                <h3 style="color:#e2e8f0;margin-bottom:15px;">📝 Demande de rejoindre</h3>
+                <p style="color:#94a3b8;margin-bottom:20px;">
+                    Pour rejoindre le salon <strong style="color:#63b3ed;">${roomId}</strong> :
+                </p>
+                <ol style="color:#cbd5e1;text-align:left;margin:0 0 20px 20px;line-height:1.8;">
+                    <li>Partagez votre Peer ID avec le créateur</li>
+                    <li>Le créateur vous connectera au salon</li>
+                    <li>Vous pourrez alors participer</li>
+                </ol>
+                <div style="background:rgba(99,179,237,0.1);border:1px solid rgba(99,179,237,0.2);border-radius:8px;padding:12px;margin-bottom:20px;">
+                    <p style="color:#64748b;font-size:0.85rem;margin:0;">Votre Peer ID :</p>
+                    <p style="color:#63b3ed;font-family:monospace;font-size:1.1rem;margin:5px 0 0 0;">${state.myPeerId}</p>
+                </div>
+                <button id="close-modal-btn" class="btn btn-primary" style="padding:10px 30px;">
+                    Compris
+                </button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        modal.querySelector('#close-modal-btn').onclick = () => modal.remove();
+    }
+
+    function updateJoinRequestsList(roomId) {
+        const requests = state.pendingJoinRequests.get(roomId) || [];
+        elements.joinRequestsCount.textContent = requests.length;
+
+        if (requests.length === 0) {
+            elements.joinRequestsList.innerHTML = `
+                <div style="color:#94a3b8;font-size:0.85rem;padding:10px;">
+                    Aucune demande en attente
+                </div>
+            `;
+            return;
+        }
+
+        elements.joinRequestsList.innerHTML = requests.map((request, index) => {
+            const timeAgo = formatTimeAgo(request.timestamp);
+
+            return `
+                <div class="join-request-item">
+                    <div>
+                        <div class="join-request-info">${escapeHtml(request.name)}</div>
+                        <div class="join-request-time">${timeAgo}</div>
+                    </div>
+                    <div class="join-request-actions">
+                        <button class="btn btn-success" style="width:auto;padding:6px 12px;" onclick="approveJoinRequest('${roomId}', ${index})">
+                            ✓
+                        </button>
+                        <button class="btn reset-btn" style="width:auto;padding:6px 12px;" onclick="rejectJoinRequest('${roomId}', ${index})">
+                            ✗
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    window.approveJoinRequest = function(roomId, index) {
+        const requests = state.pendingJoinRequests.get(roomId);
+        if (!requests || !requests[index]) return;
+
+        const request = requests[index];
+
+        // Send approval to the requester (in real implementation, via P2P)
+        // For now, just log it
+        console.log(`Approving join request from ${request.name} (${request.peerId})`);
+
+        // Remove request
+        requests.splice(index, 1);
+        state.pendingJoinRequests.set(roomId, requests);
+
+        updateJoinRequestsList(roomId);
+
+        if (requests.length === 0) {
+            elements.joinRequestsSection.style.display = 'none';
+        }
+
+        showToast(`Demande de ${request.name} approuvée`, 'success');
+    };
+
+    window.rejectJoinRequest = function(roomId, index) {
+        const requests = state.pendingJoinRequests.get(roomId);
+        if (!requests || !requests[index]) return;
+
+        const request = requests[index];
+
+        // Send rejection (in real implementation, via P2P)
+
+        requests.splice(index, 1);
+        state.pendingJoinRequests.set(roomId, requests);
+
+        updateJoinRequestsList(roomId);
+
+        if (requests.length === 0) {
+            elements.joinRequestsSection.style.display = 'none';
+        }
+
+        showToast(`Demande de ${request.name} rejetée`, 'info');
+    };
+
+    // ============================================
+    // FRIENDS SYSTEM
+    // ============================================
+
+    function addFriend() {
+        const friendId = elements.addFriendInput.value.trim().toUpperCase();
+        if (!friendId) {
+            showToast('Veuillez entrer l\'ID de l\'ami', 'warning');
+            return;
+        }
+
+        if (friendId === state.myPeerId) {
+            showToast('Vous ne pouvez pas vous ajouter vous-même', 'warning');
+            return;
+        }
+
+        if (state.friends.includes(friendId)) {
+            showToast('Cet ami est déjà dans votre liste', 'warning');
+            return;
+        }
+
+        state.friends.push(friendId);
+        saveFriends();
+        updateFriendsList();
+        elements.addFriendInput.value = '';
+
+        showToast('Ami ajouté avec succès !', 'success');
+    }
+
+    function removeFriend(friendId) {
+        const index = state.friends.indexOf(friendId);
+        if (index > -1) {
+            state.friends.splice(index, 1);
+            saveFriends();
+            updateFriendsList();
+            showToast('Ami supprimé', 'info');
+        }
+    }
+
+    function updateFriendsList() {
+        const friends = state.friends;
+        const container = elements.friendsList;
+
+        if (friends.length === 0) {
+            container.innerHTML = `
+                <div style="color:#64748b;font-size:0.85rem;text-align:center;padding:20px;">
+                    Aucun ami. Ajoutez-en un !
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = friends.map(friendId => {
+            const connection = state.connections.get(friendId);
+            const isOnline = connection && connection.conn.open;
+            const name = connection ? connection.name : friendId;
+            const initial = name.charAt(0).toUpperCase();
+
+            return `
+                <div class="friend-item ${isOnline ? '' : 'offline'}" data-friend-id="${friendId}">
+                    <div class="friend-status ${isOnline ? 'online' : ''}"></div>
+                    <span class="friend-name">${escapeHtml(name)}</span>
+                    ${isOnline ?
+                        `<button class="btn btn-primary" style="width:auto;padding:4px 8px;font-size:0.75rem;" onclick="startDmWithFriend('${friendId}')">
+                            DM
+                        </button>` :
+                        `<span style="color:#64748b;font-size:0.75rem;">Hors ligne</span>`
+                    }
+                </div>
+            `;
+        }).join('');
+
+        // Add click listeners for starting DM
+        container.querySelectorAll('.friend-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                if (e.target.tagName !== 'BUTTON') {
+                    const friendId = item.dataset.friendId;
+                    const connection = state.connections.get(friendId);
+                    if (connection && connection.conn.open) {
+                        startDmWithFriend(friendId);
+                    }
+                }
+            });
+        });
+    }
+
+    window.startDmWithFriend = function(friendId) {
+        const connection = state.connections.get(friendId);
+        if (!connection) {
+            showToast('Non connecté à cet ami', 'warning');
+            return;
+        }
+
+        switchTab('dm');
+        openDmConversation(friendId);
+    };
+
+    function saveFriends() {
+        localStorage.setItem('friends', JSON.stringify(state.friends));
+    }
+
+    // ============================================
+    // DIRECT MESSAGES SYSTEM
+    // ============================================
+
+    function toggleDmSettings() {
+        state.allowDMFromNonFriends = !state.allowDMFromNonFriends;
+        localStorage.setItem('allowDMFromNonFriends', state.allowDMFromNonFriends);
+
+        const toggle = elements.acceptDMToggle.querySelector('.toggle-input');
+        toggle.classList.toggle('active', state.allowDMFromNonFriends);
+
+        showToast(state.allowDMFromNonFriends ?
+            'Messages de non-amis autorisés' :
+            'Seuls les amis peuvent vous envoyer des messages',
+        'info');
+    }
+
+    function updateDmContactsList() {
+        // Get all contacts we have DMs with
+        const contacts = Array.from(state.directMessages.keys()).filter(peerId =>
+            state.friends.includes(peerId) || state.allowDMFromNonFriends
+        );
+
+        const container = elements.dmContactsList;
+
+        if (contacts.length === 0) {
+            container.innerHTML = `
+                <div style="color:#64748b;font-size:0.9rem;text-align:center;padding:40px;">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin-bottom:12px;">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    <p>Aucune conversation. Ajoutez des amis depuis la barre latérale.</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = contacts.map(peerId => {
+            const connection = state.connections.get(peerId);
+            const isOnline = connection && connection.conn.open;
+            const name = connection ? connection.name : peerId;
+            const initial = name.charAt(0).toUpperCase();
+            const messages = state.directMessages.get(peerId) || [];
+            const lastMessage = messages[messages.length - 1];
+            const unreadCount = messages.filter(m => !m.fromMe && !m.read).length;
+
+            return `
+                <div class="dm-contact" data-peer-id="${peerId}">
+                    <div class="dm-contact-avatar">${escapeHtml(initial)}</div>
+                    <div class="dm-contact-info">
+                        <div class="dm-contact-name">${escapeHtml(name)}</div>
+                        <div class="dm-contact-status">${isOnline ? 'En ligne' : 'Hors ligne'}</div>
+                    </div>
+                    ${unreadCount > 0 ? `<div class="dm-contact-unread">${unreadCount}</div>` : ''}
+                </div>
+            `;
+        }).join('');
+
+        // Add click listeners
+        container.querySelectorAll('.dm-contact').forEach(contact => {
+            contact.addEventListener('click', () => {
+                openDmConversation(contact.dataset.peerId);
+            });
+        });
+    }
+
+    function openDmConversation(peerId) {
+        state.activeDMConversation = peerId;
+
+        const connection = state.connections.get(peerId);
+        const name = connection ? connection.name : peerId;
+
+        elements.dmContactName.textContent = name;
+
+        // Show conversation, hide list
+        elements.dmContactsList.style.display = 'none';
+        elements.dmConversation.style.display = 'block';
+
+        // Load messages
+        const messages = state.directMessages.get(peerId) || [];
+        renderDmMessages(messages);
+
+        // Mark as read
+        messages.forEach(m => { if (!m.fromMe) m.read = true; });
+        state.directMessages.set(peerId, messages);
+        saveDirectMessages();
+
+        elements.dmInput.focus();
+    }
+
+    function backToDmList() {
+        state.activeDMConversation = null;
+        elements.dmContactsList.style.display = 'block';
+        elements.dmConversation.style.display = 'none';
+        updateDmContactsList();
+    }
+
+    function renderDmMessages(messages) {
+        elements.dmMessages.innerHTML = '';
+
+        if (messages.length === 0) {
+            elements.dmMessages.innerHTML = `<div class="message system">Début de la conversation privée</div>`;
+            return;
+        }
+
+        messages.forEach(msg => {
+            appendDmMessage(msg.content, msg.fromMe, msg.timestamp);
+        });
+
+        scrollToBottom(elements.dmMessages);
+    }
+
+    function appendDmMessage(content, fromMe, timestamp = Date.now()) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${fromMe ? 'sent' : 'received'}`;
+
+        const timeStr = new Date(timestamp).toLocaleTimeString('fr-FR', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        messageDiv.innerHTML = `
+            <div class="message-content">${escapeHtml(content)}</div>
+            <div class="message-time">${timeStr}</div>
+        `;
+
+        elements.dmMessages.appendChild(messageDiv);
+        scrollToBottom(elements.dmMessages);
+    }
+
+    function sendDirectMessage() {
+        if (!state.activeDMConversation) return;
+
+        const content = elements.dmInput.value.trim();
+        if (!content) return;
+
+        const peerId = state.activeDMConversation;
+        const connection = state.connections.get(peerId);
+
+        if (!connection || !connection.conn.open) {
+            showToast('Non connecté à ce contact', 'warning');
+            return;
+        }
+
+        // Encrypt and send message
+        const encrypted = Crypto.encrypt(connection.sharedKey, content);
+
+        connection.conn.send({
+            type: 'dm',
+            encrypted: encrypted
+        });
+
+        // Store locally
+        const messages = state.directMessages.get(peerId) || [];
+        messages.push({
+            content,
+            timestamp: Date.now(),
+            fromMe: true,
+            read: true
+        });
+        state.directMessages.set(peerId, messages);
+        saveDirectMessages();
+
+        // Display
+        appendDmMessage(content, true, Date.now());
+
+        elements.dmInput.value = '';
+    }
+
+    function saveDirectMessages() {
+        const data = Array.from(state.directMessages.entries()).map(([peerId, msgs]) => ({
+            peerId,
+            messages: msgs
+        }));
+        localStorage.setItem('directMessages', JSON.stringify(data));
+    }
+
+    function loadDirectMessages() {
+        const data = JSON.parse(localStorage.getItem('directMessages') || '[]');
+        data.forEach(({ peerId, messages }) => {
+            state.directMessages.set(peerId, messages);
+        });
+    }
+
+    // ============================================
+    // UTILITY FUNCTIONS
+    // ============================================
+
+    function savePrivateRooms() {
+        localStorage.setItem('privateRooms', JSON.stringify(state.privateRooms));
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function formatTimeAgo(timestamp) {
+        const seconds = Math.floor((Date.now() - timestamp) / 1000);
+
+        if (seconds < 60) return "À l'instant";
+        if (seconds < 3600) return `Il y a ${Math.floor(seconds / 60)} min`;
+        if (seconds < 86400) return `Il y a ${Math.floor(seconds / 3600)} h`;
+        return `Il y a ${Math.floor(seconds / 86400)} j`;
+    }
+
+    function scrollToBottom(container) {
+        if (container && container.scrollHeight !== undefined) {
+            container.scrollTop = container.scrollHeight;
+        }
+    }
+
+    // ============================================
+    // MESSAGE HANDLERS FOR NEW FEATURES
+    // ============================================
+
+    function handleJoinRequest(data) {
+        // Handler for when someone requests to join a room
+        // In real implementation, this would be called from the P2P message handler
+        const { peerId, name, roomId } = data;
+
+        const room = state.privateRooms.find(r => r.id === roomId);
+        if (!room) return;
+
+        // Only creator/admins receive join requests
+        const isAdmin = room.creatorId === state.myPeerId || room.admins.includes(state.myPeerId);
+        if (!isAdmin) return;
+
+        // Add to pending requests
+        const requests = state.pendingJoinRequests.get(roomId) || [];
+        requests.push({
+            peerId,
+            name,
+            timestamp: Date.now()
+        });
+        state.pendingJoinRequests.set(roomId, requests);
+
+        if (state.currentRoom && state.currentRoom.id === roomId) {
+            elements.joinRequestsSection.style.display = 'block';
+            updateJoinRequestsList(roomId);
+        }
+
+        showToast(`${name} souhaite rejoindre le salon`, 'info');
+    }
+
+    function handleJoinApproved(data) {
+        // Handler for when our join request is approved
+        const { roomId, roomName, creatorId, admins } = data;
+
+        const room = {
+            id: roomId,
+            name: roomName,
+            creatorId,
+            admins,
+            members: [state.myPeerId],
+            createdAt: Date.now()
+        };
+
+        state.privateRooms.push(room);
+        savePrivateRooms();
+        updatePrivateRoomsList();
+
+        showToast(`Demande approuvée ! Vous avez rejoint "${roomName}"`, 'success');
+        showRoomDetail(room);
+    }
+
+    function handleDirectMessage(data) {
+        const { peerId, encrypted } = data;
+
+        // Check if we allow DMs from this sender
+        const isFriend = state.friends.includes(peerId);
+        if (!state.allowDMFromNonFriends && !isFriend) {
+            // Send rejection
+            const connection = state.connections.get(peerId);
+            if (connection) {
+                connection.conn.send({
+                    type: 'dmRejected',
+                    reason: 'DM restricted to friends only'
+                });
+            }
+            return;
+        }
+
+        const connection = state.connections.get(peerId);
+        if (!connection) return;
+
+        try {
+            const content = Crypto.decrypt(connection.sharedKey, encrypted);
+
+            // Store message
+            const messages = state.directMessages.get(peerId) || [];
+            messages.push({
+                content,
+                timestamp: Date.now(),
+                fromMe: false,
+                read: !state.activeDMConversation || state.activeDMConversation !== peerId
+            });
+            state.directMessages.set(peerId, messages);
+            saveDirectMessages();
+
+            // Update UI
+            if (state.activeDMConversation === peerId) {
+                appendDmMessage(content, false, Date.now());
+                // Send read receipt
+                connection.conn.send({ type: 'dmRead' });
+            }
+
+            updateDmContactsList();
+
+        } catch (err) {
+            console.error('Error decrypting DM:', err);
+        }
+    }
+
+    function handleDmRejected(data) {
+        showToast(`Message rejeté: ${data.reason}`, 'warning');
+    }
+
+    function handleDmRead(data) {
+        // Mark messages as read
+        const peerId = data.peerId;
+        const messages = state.directMessages.get(peerId) || [];
+        messages.forEach(m => { if (!m.fromMe) m.read = true; });
+        state.directMessages.set(peerId, messages);
+        saveDirectMessages();
     }
 
     // Initialize
