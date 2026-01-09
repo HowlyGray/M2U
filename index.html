@@ -2349,7 +2349,7 @@
 
     function joinRoom(roomId) {
         const room = findRoom(roomId);
-        
+
         if (!room) {
             showToast('Salon introuvable', 'error');
             return;
@@ -2364,15 +2364,24 @@
         }
 
         showApp();
-        
+
         // Update UI
         elements.roomName.textContent = room.name;
         elements.currentRoomId.textContent = `Salon: ${room.id} (${room.visibility === 'public' ? 'Public' : 'Privé'})`;
         elements.peerIdInput.placeholder = `ID du pair (PT-XXXXXXXX)`;
-        
+
+        // Clear previous messages and show room info
+        elements.chatMessages.innerHTML = '';
+        appendSystemMessage(`🏠 Bienvenue dans le salon "${room.name}"`);
+        appendSystemMessage(`🆔 ID du salon: ${room.id}`);
+        appendSystemMessage('🤝 Vous allez être connecté automatiquement aux autres membres du salon');
+
         // Connect to room creator
         if (room.creatorId && room.creatorId !== state.myPeerId) {
+            appendSystemMessage('⏳ Connexion au créateur du salon en cours...');
             connectToPeer(room.creatorId);
+        } else {
+            appendSystemMessage('✅ Vous êtes le créateur de ce salon');
         }
     }
 
@@ -2744,7 +2753,13 @@
                 updateConnectionStatus();
                 updateDiagnostics();
                 appendSystemMessage('✅ Connecté au serveur de signalisation');
-                appendSystemMessage('Prêt ! Partagez votre ID et entrez celui de votre correspondant pour vous connecter.');
+
+                if (state.currentRoom) {
+                    appendSystemMessage(`🏠 Salon actuel: ${state.currentRoom.name} (${state.currentRoom.id})`);
+                    appendSystemMessage('🤝 Les nouveaux membres seront connectés automatiquement');
+                } else {
+                    appendSystemMessage('Prêt ! Créez ou rejoignez un salon pour commencer.');
+                }
                 enableChat();
             });
 
@@ -2866,7 +2881,7 @@
 
     function joinRoom(roomId) {
         const room = findRoom(roomId);
-        
+
         if (!room) {
             showToast('Salon introuvable', 'error');
             return;
@@ -2881,15 +2896,24 @@
         }
 
         showApp();
-        
+
         // Update UI
         elements.roomName.textContent = room.name;
         elements.currentRoomId.textContent = `Salon: ${room.id} (${room.visibility === 'public' ? 'Public' : 'Privé'})`;
         elements.peerIdInput.placeholder = `ID du pair (PT-XXXXXXXX)`;
-        
+
+        // Clear previous messages and show room info
+        elements.chatMessages.innerHTML = '';
+        appendSystemMessage(`🏠 Bienvenue dans le salon "${room.name}"`);
+        appendSystemMessage(`🆔 ID du salon: ${room.id}`);
+        appendSystemMessage('🤝 Vous allez être connecté automatiquement aux autres membres du salon');
+
         // Connect to room creator
         if (room.creatorId && room.creatorId !== state.myPeerId) {
+            appendSystemMessage('⏳ Connexion au créateur du salon en cours...');
             connectToPeer(room.creatorId);
+        } else {
+            appendSystemMessage('✅ Vous êtes le créateur de ce salon');
         }
     }
 
@@ -3192,8 +3216,11 @@
                 appendSystemMessage(`${data.name || 'Anonyme'} a rejoint le salon (E2E activé)`);
                 showToast(`${data.name || 'Anonyme'} connecté`, 'success');
 
-                // If we're the room creator, share the peer list
-                if (state.isRoomCreator) {
+                // Share peer list with new peer so they can connect to others
+                sendPeerListToPeer(conn);
+
+                // Broadcast peer list to all connected peers when new peer joins
+                if (state.connections.size > 1) {
                     broadcastPeerList();
                 }
 
@@ -3233,18 +3260,56 @@
 
     function broadcastPeerList() {
         const peerIds = Array.from(state.connections.keys());
+        const roomInfo = state.currentRoom ? {
+            roomId: state.currentRoom.id,
+            roomName: state.currentRoom.name,
+            isPublic: state.currentRoom.visibility === 'public'
+        } : null;
+
         state.connections.forEach(({ conn }) => {
-            conn.send({
-                type: 'peer-list',
-                peers: peerIds
-            });
+            if (conn.open) {
+                conn.send({
+                    type: 'peer-list',
+                    peers: peerIds,
+                    room: roomInfo,
+                    senderId: state.myPeerId
+                });
+            }
         });
     }
 
+    function sendPeerListToPeer(conn) {
+        const peerIds = Array.from(state.connections.keys()).filter(id => id !== conn.peer);
+        const roomInfo = state.currentRoom ? {
+            roomId: state.currentRoom.id,
+            roomName: state.currentRoom.name,
+            isPublic: state.currentRoom.visibility === 'public'
+        } : null;
+
+        if (conn.open) {
+            conn.send({
+                type: 'peer-list',
+                peers: peerIds,
+                room: roomInfo,
+                senderId: state.myPeerId
+            });
+        }
+    }
+
     function handlePeerList(data) {
+        // Verify room information if provided
+        if (data.room && state.currentRoom) {
+            // Only connect if we're in the same room
+            if (data.room.roomId !== state.currentRoom.id) {
+                console.log('Ignoring peer list from different room:', data.room.roomId);
+                return;
+            }
+        }
+
         // Connect to any peers we're not already connected to
         data.peers.forEach(peerId => {
             if (!state.connections.has(peerId) && peerId !== state.myPeerId) {
+                console.log('Auto-connecting to peer in same room:', peerId);
                 connectToPeer(peerId);
             }
         });
@@ -3341,7 +3406,7 @@
 
     function joinRoom(roomId) {
         const room = findRoom(roomId);
-        
+
         if (!room) {
             showToast('Salon introuvable', 'error');
             return;
@@ -3356,15 +3421,24 @@
         }
 
         showApp();
-        
+
         // Update UI
         elements.roomName.textContent = room.name;
         elements.currentRoomId.textContent = `Salon: ${room.id} (${room.visibility === 'public' ? 'Public' : 'Privé'})`;
         elements.peerIdInput.placeholder = `ID du pair (PT-XXXXXXXX)`;
-        
+
+        // Clear previous messages and show room info
+        elements.chatMessages.innerHTML = '';
+        appendSystemMessage(`🏠 Bienvenue dans le salon "${room.name}"`);
+        appendSystemMessage(`🆔 ID du salon: ${room.id}`);
+        appendSystemMessage('🤝 Vous allez être connecté automatiquement aux autres membres du salon');
+
         // Connect to room creator
         if (room.creatorId && room.creatorId !== state.myPeerId) {
+            appendSystemMessage('⏳ Connexion au créateur du salon en cours...');
             connectToPeer(room.creatorId);
+        } else {
+            appendSystemMessage('✅ Vous êtes le créateur de ce salon');
         }
     }
 
@@ -3693,7 +3767,7 @@
 
     function joinRoom(roomId) {
         const room = findRoom(roomId);
-        
+
         if (!room) {
             showToast('Salon introuvable', 'error');
             return;
@@ -3708,15 +3782,24 @@
         }
 
         showApp();
-        
+
         // Update UI
         elements.roomName.textContent = room.name;
         elements.currentRoomId.textContent = `Salon: ${room.id} (${room.visibility === 'public' ? 'Public' : 'Privé'})`;
         elements.peerIdInput.placeholder = `ID du pair (PT-XXXXXXXX)`;
-        
+
+        // Clear previous messages and show room info
+        elements.chatMessages.innerHTML = '';
+        appendSystemMessage(`🏠 Bienvenue dans le salon "${room.name}"`);
+        appendSystemMessage(`🆔 ID du salon: ${room.id}`);
+        appendSystemMessage('🤝 Vous allez être connecté automatiquement aux autres membres du salon');
+
         // Connect to room creator
         if (room.creatorId && room.creatorId !== state.myPeerId) {
+            appendSystemMessage('⏳ Connexion au créateur du salon en cours...');
             connectToPeer(room.creatorId);
+        } else {
+            appendSystemMessage('✅ Vous êtes le créateur de ce salon');
         }
     }
 
@@ -4278,7 +4361,7 @@
 
     function joinRoom(roomId) {
         const room = findRoom(roomId);
-        
+
         if (!room) {
             showToast('Salon introuvable', 'error');
             return;
@@ -4293,15 +4376,24 @@
         }
 
         showApp();
-        
+
         // Update UI
         elements.roomName.textContent = room.name;
         elements.currentRoomId.textContent = `Salon: ${room.id} (${room.visibility === 'public' ? 'Public' : 'Privé'})`;
         elements.peerIdInput.placeholder = `ID du pair (PT-XXXXXXXX)`;
-        
+
+        // Clear previous messages and show room info
+        elements.chatMessages.innerHTML = '';
+        appendSystemMessage(`🏠 Bienvenue dans le salon "${room.name}"`);
+        appendSystemMessage(`🆔 ID du salon: ${room.id}`);
+        appendSystemMessage('🤝 Vous allez être connecté automatiquement aux autres membres du salon');
+
         // Connect to room creator
         if (room.creatorId && room.creatorId !== state.myPeerId) {
+            appendSystemMessage('⏳ Connexion au créateur du salon en cours...');
             connectToPeer(room.creatorId);
+        } else {
+            appendSystemMessage('✅ Vous êtes le créateur de ce salon');
         }
     }
 
@@ -4616,7 +4708,7 @@
 
     function joinRoom(roomId) {
         const room = findRoom(roomId);
-        
+
         if (!room) {
             showToast('Salon introuvable', 'error');
             return;
@@ -4631,15 +4723,24 @@
         }
 
         showApp();
-        
+
         // Update UI
         elements.roomName.textContent = room.name;
         elements.currentRoomId.textContent = `Salon: ${room.id} (${room.visibility === 'public' ? 'Public' : 'Privé'})`;
         elements.peerIdInput.placeholder = `ID du pair (PT-XXXXXXXX)`;
-        
+
+        // Clear previous messages and show room info
+        elements.chatMessages.innerHTML = '';
+        appendSystemMessage(`🏠 Bienvenue dans le salon "${room.name}"`);
+        appendSystemMessage(`🆔 ID du salon: ${room.id}`);
+        appendSystemMessage('🤝 Vous allez être connecté automatiquement aux autres membres du salon');
+
         // Connect to room creator
         if (room.creatorId && room.creatorId !== state.myPeerId) {
+            appendSystemMessage('⏳ Connexion au créateur du salon en cours...');
             connectToPeer(room.creatorId);
+        } else {
+            appendSystemMessage('✅ Vous êtes le créateur de ce salon');
         }
     }
 
