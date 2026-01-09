@@ -1829,6 +1829,11 @@
                         <div class="rooms-header">
                             <h2>Mes salons privés</h2>
                             <div class="rooms-actions">
+                                <button class="btn btn-secondary" id="refresh-rooms-btn" title="Actualiser la liste" style="width:auto;padding:8px 12px;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                                    </svg>
+                                </button>
                                 <input type="text" id="join-room-id-input" class="input-field" placeholder="ID du salon à rejoindre">
                                 <button class="btn btn-primary" id="join-room-btn">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -2515,6 +2520,12 @@
         elements.mobileMenuBtn.addEventListener('click', toggleMobileSidebar);
         elements.mobileCloseBtn.addEventListener('click', toggleMobileSidebar);
         elements.sidebarOverlay.addEventListener('click', toggleMobileSidebar);
+
+        // Refresh rooms button
+        const refreshRoomsBtn = document.getElementById('refresh-rooms-btn');
+        if (refreshRoomsBtn) {
+            refreshRoomsBtn.addEventListener('click', refreshRoomsList);
+        }
 
         // Tab switching
         elements.roomsTab.addEventListener('click', () => switchTab('rooms'));
@@ -4347,6 +4358,21 @@
         showRoomDetail(room);
     }
 
+    function refreshRoomsList() {
+        // Recharge la liste des salons depuis localStorage
+        const savedRooms = JSON.parse(localStorage.getItem('privateRooms') || '[]');
+        state.privateRooms = savedRooms;
+        updatePrivateRoomsList();
+        showToast('Liste des salons actualisée', 'success');
+    }
+
+    // Auto-refresh every 30 seconds
+    setInterval(() => {
+        if (state.currentTab === 'rooms') {
+            refreshRoomsList();
+        }
+    }, 30000);
+
     function generateRoomId() {
         const prefix = 'RT';
         const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -4872,10 +4898,8 @@
 
     function updateDmContactsList() {
         // Get all contacts we have DMs with
-        const contacts = Array.from(state.directMessages.keys()).filter(peerId =>
-            state.friends.includes(peerId) || state.allowDMFromNonFriends
-        );
-
+        const contacts = Array.from(state.directMessages.keys());
+        
         const container = elements.dmContactsList;
 
         if (contacts.length === 0) {
@@ -4941,6 +4965,11 @@
         saveDirectMessages();
 
         elements.dmInput.focus();
+        
+        // Show toast to confirm connection
+        if (connection && connection.conn.open) {
+            showToast(`Conversation avec ${name} prête`, 'success');
+        }
     }
 
     function backToDmList() {
@@ -5002,7 +5031,9 @@
 
         connection.conn.send({
             type: 'dm',
-            encrypted: encrypted
+            encrypted: encrypted,
+            from: state.myName,
+            to: connection.name || 'Inconnu'
         });
 
         // Store locally
@@ -5121,47 +5152,62 @@
     }
 
     function handleDirectMessage(data) {
-        const { peerId, encrypted } = data;
-
-        // Check if we allow DMs from this sender
-        const isFriend = state.friends.includes(peerId);
-        if (!state.allowDMFromNonFriends && !isFriend) {
-            // Send rejection
-            const connection = state.connections.get(peerId);
-            if (connection) {
-                connection.conn.send({
-                    type: 'dmRejected',
-                    reason: 'DM restricted to friends only'
-                });
+        const { encrypted, from } = data;
+        
+        // Find the connection that sent this message
+        let senderConnection = null;
+        let senderPeerId = null;
+        
+        for (const [peerId, connectionInfo] of state.connections) {
+            if (connectionInfo.name === from) {
+                senderConnection = connectionInfo;
+                senderPeerId = peerId;
+                break;
             }
+        }
+        
+        if (!senderConnection || !senderConnection.conn.open) {
+            console.error('No connection found for DM sender:', from);
             return;
         }
 
-        const connection = state.connections.get(peerId);
-        if (!connection) return;
+        // Check if we allow DMs from this sender
+        const isFriend = state.friends.includes(from);
+        if (!state.allowDMFromNonFriends && !isFriend) {
+            // Send rejection
+            senderConnection.conn.send({
+                type: 'dmRejected',
+                reason: 'DM restricted to friends only'
+            });
+            return;
+        }
 
         try {
-            const content = Crypto.decrypt(connection.sharedKey, encrypted);
+            const content = Crypto.decrypt(senderConnection.sharedKey, encrypted);
 
             // Store message
-            const messages = state.directMessages.get(peerId) || [];
+            const messages = state.directMessages.get(senderPeerId) || [];
             messages.push({
                 content,
                 timestamp: Date.now(),
                 fromMe: false,
-                read: !state.activeDMConversation || state.activeDMConversation !== peerId
+                read: !state.activeDMConversation || state.activeDMConversation !== senderPeerId
             });
-            state.directMessages.set(peerId, messages);
+            state.directMessages.set(senderPeerId, messages);
             saveDirectMessages();
 
             // Update UI
-            if (state.activeDMConversation === peerId) {
+            if (state.activeDMConversation === senderPeerId) {
                 appendDmMessage(content, false, Date.now());
                 // Send read receipt
-                connection.conn.send({ type: 'dmRead' });
+                senderConnection.conn.send({ 
+                    type: 'dmRead',
+                    from: state.myName
+                });
             }
 
             updateDmContactsList();
+            showToast(`Message de ${from}`, 'info');
 
         } catch (err) {
             console.error('Error decrypting DM:', err);
