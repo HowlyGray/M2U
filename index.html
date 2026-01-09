@@ -1463,6 +1463,29 @@
             justify-content: center;
         }
 
+        .dm-delete-btn {
+            background: transparent;
+            border: none;
+            color: #64748b;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            opacity: 0;
+        }
+
+        .dm-contact:hover .dm-delete-btn {
+            opacity: 1;
+        }
+
+        .dm-delete-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
         /* Friends section in sidebar */
         .friends-section {
             flex: 1;
@@ -1886,6 +1909,20 @@
                                         <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                                     </svg>
                                     Copier l'ID
+                                </button>
+                                <button class="btn btn-danger" id="leave-room-btn" style="width:auto;padding:8px 16px;display:none;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                        <polyline points="16 17 21 12 16 7"></polyline>
+                                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                                    </svg>
+                                    Quitter
+                                </button>
+                                <button class="btn btn-danger" id="delete-room-btn" style="width:auto;padding:8px 16px;display:none;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                                    </svg>
+                                    Supprimer
                                 </button>
                             </div>
                         </div>
@@ -2371,6 +2408,8 @@
         detailRoomName: document.getElementById('detail-room-name'),
         detailRoomId: document.getElementById('detail-room-id'),
         copyAccessIdBtn: document.getElementById('copy-access-id-btn'),
+        leaveRoomBtn: document.getElementById('leave-room-btn'),
+        deleteRoomBtn: document.getElementById('delete-room-btn'),
         joinRequestsSection: document.getElementById('join-requests-section'),
         joinRequestsList: document.getElementById('join-requests-list'),
         joinRequestsCount: document.getElementById('join-requests-count'),
@@ -2548,6 +2587,10 @@
 
         // Copy room access ID
         elements.copyAccessIdBtn.addEventListener('click', copyRoomAccessId);
+
+        // Leave/Delete room
+        elements.leaveRoomBtn.addEventListener('click', leaveRoom);
+        elements.deleteRoomBtn.addEventListener('click', deleteRoom);
 
         // Friends management
         elements.addFriendBtn.addEventListener('click', addFriend);
@@ -4468,6 +4511,10 @@
         elements.detailRoomName.textContent = room.name;
         elements.detailRoomId.textContent = `ID: ${room.id}`;
 
+        // Show/hide leave and delete buttons based on role
+        elements.leaveRoomBtn.style.display = (isMember && !state.isRoomCreator) ? 'inline-flex' : 'none';
+        elements.deleteRoomBtn.style.display = state.isRoomCreator ? 'inline-flex' : 'none';
+
         if (!isMember) {
             // User is not a member - show join request view
             showRoomJoinRequestView(room);
@@ -4645,6 +4692,56 @@
         navigator.clipboard.writeText(state.currentRoom.id)
             .then(() => showToast('ID du salon copié !', 'success'))
             .catch(() => showToast('Erreur lors de la copie', 'error'));
+    }
+
+    function leaveRoom() {
+        if (!state.currentRoom) return;
+
+        const roomName = state.currentRoom.name;
+        if (!confirm(`Êtes-vous sûr de vouloir quitter le salon "${roomName}" ?`)) return;
+
+        // Remove user from members
+        const memberIndex = state.currentRoom.members.indexOf(state.myPeerId);
+        if (memberIndex > -1) {
+            state.currentRoom.members.splice(memberIndex, 1);
+        }
+
+        // Also remove from admins if applicable
+        const adminIndex = state.currentRoom.admins.indexOf(state.myPeerId);
+        if (adminIndex > -1) {
+            state.currentRoom.admins.splice(adminIndex, 1);
+        }
+
+        // Update the room in state.privateRooms
+        const roomIndex = state.privateRooms.findIndex(r => r.id === state.currentRoom.id);
+        if (roomIndex > -1) {
+            state.privateRooms[roomIndex] = state.currentRoom;
+        }
+
+        savePrivateRooms();
+        updatePrivateRoomsList();
+        backToRoomsList();
+
+        showToast(`Vous avez quitté le salon "${roomName}"`, 'success');
+    }
+
+    function deleteRoom() {
+        if (!state.currentRoom || !state.isRoomCreator) return;
+
+        const roomName = state.currentRoom.name;
+        if (!confirm(`Êtes-vous sûr de vouloir supprimer définitivement le salon "${roomName}" ?\n\nCette action est irréversible.`)) return;
+
+        // Remove room from state
+        const roomIndex = state.privateRooms.findIndex(r => r.id === state.currentRoom.id);
+        if (roomIndex > -1) {
+            state.privateRooms.splice(roomIndex, 1);
+        }
+
+        savePrivateRooms();
+        updatePrivateRoomsList();
+        backToRoomsList();
+
+        showToast(`Salon "${roomName}" supprimé`, 'success');
     }
 
     // ============================================
@@ -4931,16 +5028,49 @@
                         <div class="dm-contact-status">${isOnline ? 'En ligne' : 'Hors ligne'}</div>
                     </div>
                     ${unreadCount > 0 ? `<div class="dm-contact-unread">${unreadCount}</div>` : ''}
+                    <button class="dm-delete-btn" data-peer-id="${peerId}" title="Supprimer la conversation">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                        </svg>
+                    </button>
                 </div>
             `;
         }).join('');
 
-        // Add click listeners
+        // Add click listeners for contacts
         container.querySelectorAll('.dm-contact').forEach(contact => {
-            contact.addEventListener('click', () => {
-                openDmConversation(contact.dataset.peerId);
+            contact.addEventListener('click', (e) => {
+                if (!e.target.closest('.dm-delete-btn')) {
+                    openDmConversation(contact.dataset.peerId);
+                }
             });
         });
+
+        // Add click listeners for delete buttons
+        container.querySelectorAll('.dm-delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                deleteDmConversation(btn.dataset.peerId);
+            });
+        });
+    }
+
+    function deleteDmConversation(peerId) {
+        const connection = state.connections.get(peerId);
+        const name = connection ? connection.name : peerId;
+
+        if (!confirm(`Êtes-vous sûr de vouloir supprimer la conversation avec ${name} ?`)) return;
+
+        state.directMessages.delete(peerId);
+        saveDirectMessages();
+        updateDmContactsList();
+
+        // Si c'est la conversation actuelle, revenir à la liste
+        if (state.activeDMConversation === peerId) {
+            backToDmList();
+        }
+
+        showToast('Conversation supprimée', 'success');
     }
 
     function openDmConversation(peerId) {
