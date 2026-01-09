@@ -2971,8 +2971,13 @@
                 updateConnectionStatus();
                 updateDiagnostics();
                 appendSystemMessage('✅ Connecté au serveur de signalisation');
-                appendSystemMessage('Prêt ! Partagez votre ID et entrez celui de votre correspondant pour vous connecter.');
+                appendSystemMessage('Recherche des utilisateurs en ligne...');
                 enableChat();
+
+                // Start automatic peer discovery
+                discoverPeers();
+                // Refresh peer list every 10 seconds
+                setInterval(discoverPeers, 10000);
             });
 
             state.peer.on('connection', handleIncomingConnection);
@@ -2999,6 +3004,70 @@
             updateStatusBar('error', 'Erreur d\'initialisation');
             appendSystemMessage('❌ Erreur d\'initialisation: ' + error.message);
             appendSystemMessage('💡 Astuce: Vérifiez votre connexion internet et les paramètres du serveur de signalisation ⚙️');
+        }
+    }
+
+    // ============================================
+    // AUTOMATIC PEER DISCOVERY
+    // ============================================
+    async function discoverPeers() {
+        if (!state.peer || !state.myPeerId) return;
+
+        try {
+            // Build the API URL based on configuration
+            const savedConfig = localStorage.getItem('signalingConfig');
+            let apiUrl;
+
+            if (savedConfig) {
+                const config = JSON.parse(savedConfig);
+                const protocol = config.port === 443 ? 'https' : 'http';
+                const path = config.path || '/';
+                apiUrl = `${protocol}://${config.host}:${config.port}${path}peerjs/peers`;
+            } else {
+                // Default PeerJS cloud server
+                apiUrl = 'https://0.peerjs.com/peerjs/peers';
+            }
+
+            console.log('Discovering peers from:', apiUrl);
+
+            const response = await fetch(apiUrl, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                console.warn('Peer discovery not available on this server');
+                return;
+            }
+
+            const peers = await response.json();
+            console.log('Discovered peers:', peers);
+
+            // Filter out our own peer ID and already connected peers
+            const newPeers = peers.filter(peerId =>
+                peerId !== state.myPeerId &&
+                !state.connections.has(peerId) &&
+                !state.pendingConnections.has(peerId) &&
+                peerId.startsWith('PT-') // Only connect to PeerText users
+            );
+
+            // Connect to each discovered peer
+            for (const peerId of newPeers) {
+                console.log('Auto-connecting to discovered peer:', peerId);
+                await connectToPeer(peerId);
+                // Small delay between connections to avoid overwhelming
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+
+            if (newPeers.length > 0) {
+                showToast(`${newPeers.length} nouvel(s) utilisateur(s) découvert(s)`, 'info');
+            }
+
+        } catch (error) {
+            console.warn('Peer discovery error:', error.message);
+            // Silently fail - peer discovery is optional
         }
     }
 
@@ -4541,23 +4610,49 @@
     }
 
     function sendJoinRequestToCreator(room) {
-        // In a real decentralized system, we would need to:
-        // 1. Connect to the room creator via P2P
-        // 2. Send them a join-request message
-        // 3. Wait for their response
+        // Find the room creator among connected peers by username
+        let creatorConnection = null;
+        let creatorPeerId = null;
 
-        // For now, we'll simulate this by showing a message
-        // and storing the request locally
+        for (const [peerId, connectionInfo] of state.connections) {
+            if (connectionInfo.name === room.creatorUsername) {
+                creatorConnection = connectionInfo;
+                creatorPeerId = peerId;
+                break;
+            }
+        }
 
-        showToast('Demande envoyée au créateur du salon', 'success');
+        if (!creatorConnection || !creatorConnection.conn.open) {
+            // Creator is not online
+            elements.messagesContainer.innerHTML = `
+                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:40px;text-align:center;">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:20px;color:#f59e0b;">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    <h3 style="color:#f59e0b;margin-bottom:15px;">Créateur hors ligne</h3>
+                    <p style="color:#94a3b8;margin-bottom:25px;">
+                        Le créateur du salon <strong style="color:#63b3ed;">${escapeHtml(room.creatorUsername)}</strong> n'est pas connecté actuellement.<br>
+                        Réessayez quand il sera en ligne.
+                    </p>
+                    <button class="btn btn-secondary" onclick="backToRoomsList()" style="padding:10px 25px;">
+                        Retour aux salons
+                    </button>
+                </div>
+            `;
+            return;
+        }
 
-        // Simulate storing the request (in real implementation, this would be sent via P2P)
-        const request = {
+        // Send join request via P2P
+        creatorConnection.conn.send({
+            type: 'join-request',
             roomId: room.id,
             peerId: state.myPeerId,
-            name: state.myName,
-            timestamp: Date.now()
-        };
+            name: state.myName
+        });
+
+        showToast('Demande envoyée au créateur du salon', 'success');
 
         // Show confirmation
         elements.messagesContainer.innerHTML = `
@@ -4575,19 +4670,6 @@
                 </button>
             </div>
         `;
-
-        // In a real implementation, this would be sent to the creator:
-        /*
-        const creatorConnection = state.connections.get(room.creatorId);
-        if (creatorConnection && creatorConnection.conn.open) {
-            creatorConnection.conn.send({
-                type: 'join-request',
-                roomId: room.id,
-                peerId: state.myPeerId,
-                name: state.myName
-            });
-        }
-        */
     }
 
     function showRoomNormalView(room) {
@@ -4720,31 +4802,76 @@
 
         elements.joinRoomIdInput.value = '';
 
-        // Show instructions modal
-        const modal = document.createElement('div');
-        modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:1000;';
-        modal.innerHTML = `
-            <div style="background:rgba(15,23,42,0.95);padding:30px;border-radius:20px;max-width:400px;text-align:center;">
-                <h3 style="color:#e2e8f0;margin-bottom:15px;">📝 Demande de rejoindre</h3>
-                <p style="color:#94a3b8;margin-bottom:20px;">
-                    Pour rejoindre le salon <strong style="color:#63b3ed;">${roomId}</strong> :
-                </p>
-                <ol style="color:#cbd5e1;text-align:left;margin:0 0 20px 20px;line-height:1.8;">
-                    <li>Partagez votre Peer ID avec le créateur</li>
-                    <li>Le créateur vous connectera au salon</li>
-                    <li>Vous pourrez alors participer</li>
-                </ol>
-                <div style="background:rgba(99,179,237,0.1);border:1px solid rgba(99,179,237,0.2);border-radius:8px;padding:12px;margin-bottom:20px;">
-                    <p style="color:#64748b;font-size:0.85rem;margin:0;">Votre Peer ID :</p>
-                    <p style="color:#63b3ed;font-family:monospace;font-size:1.1rem;margin:5px 0 0 0;">${state.myPeerId}</p>
+        // Try to find the room creator among connected peers by sending a room info request
+        // First, broadcast a room-info-request to all connected peers
+        let requestSent = false;
+
+        for (const [peerId, connectionInfo] of state.connections) {
+            if (connectionInfo.conn && connectionInfo.conn.open) {
+                connectionInfo.conn.send({
+                    type: 'join-request',
+                    roomId: roomId,
+                    peerId: state.myPeerId,
+                    name: state.myName
+                });
+                requestSent = true;
+            }
+        }
+
+        if (requestSent) {
+            showToast('Demande de rejoindre envoyée aux utilisateurs connectés', 'success');
+
+            // Show confirmation modal
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:1000;';
+            modal.innerHTML = `
+                <div style="background:rgba(15,23,42,0.95);padding:30px;border-radius:20px;max-width:400px;text-align:center;">
+                    <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:15px;color:#34d399;">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    <h3 style="color:#e2e8f0;margin-bottom:15px;">Demande envoyée</h3>
+                    <p style="color:#94a3b8;margin-bottom:20px;">
+                        Votre demande pour rejoindre le salon <strong style="color:#63b3ed;">${roomId}</strong> a été envoyée.
+                    </p>
+                    <p style="color:#64748b;font-size:0.85rem;margin-bottom:20px;">
+                        Vous serez notifié(e) si un administrateur du salon accepte votre demande.
+                    </p>
+                    <button id="close-modal-btn" class="btn btn-primary" style="padding:10px 30px;">
+                        Compris
+                    </button>
                 </div>
-                <button id="close-modal-btn" class="btn btn-primary" style="padding:10px 30px;">
-                    Compris
-                </button>
-            </div>
-        `;
-        document.body.appendChild(modal);
-        modal.querySelector('#close-modal-btn').onclick = () => modal.remove();
+            `;
+            document.body.appendChild(modal);
+            modal.querySelector('#close-modal-btn').onclick = () => modal.remove();
+        } else {
+            // No connected peers
+            showToast('Aucun utilisateur connecté pour recevoir la demande', 'warning');
+
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:1000;';
+            modal.innerHTML = `
+                <div style="background:rgba(15,23,42,0.95);padding:30px;border-radius:20px;max-width:400px;text-align:center;">
+                    <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:15px;color:#f59e0b;">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    <h3 style="color:#f59e0b;margin-bottom:15px;">Aucun utilisateur connecté</h3>
+                    <p style="color:#94a3b8;margin-bottom:20px;">
+                        Aucun autre utilisateur n'est actuellement en ligne pour recevoir votre demande.
+                    </p>
+                    <p style="color:#64748b;font-size:0.85rem;margin-bottom:20px;">
+                        Attendez que d'autres utilisateurs se connectent et réessayez.
+                    </p>
+                    <button id="close-modal-btn" class="btn btn-primary" style="padding:10px 30px;">
+                        Compris
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.querySelector('#close-modal-btn').onclick = () => modal.remove();
+        }
     }
 
     function updateJoinRequestsList(roomId) {
