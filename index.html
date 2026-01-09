@@ -5012,7 +5012,7 @@
         scrollToBottom(elements.dmMessages);
     }
 
-    async function sendDirectMessage() {
+    function sendDirectMessage() {
         if (!state.activeDMConversation) return;
 
         const content = elements.dmInput.value.trim();
@@ -5027,7 +5027,7 @@
         }
 
         // Encrypt and send message
-        const encrypted = await Crypto.encrypt(connection.sharedKey, content);
+        const encrypted = Crypto.encrypt(connection.sharedKey, content);
 
         connection.conn.send({
             type: 'dm',
@@ -5151,7 +5151,7 @@
         showRoomDetail(room);
     }
 
-    async function handleDirectMessage(data) {
+    function handleDirectMessage(data) {
         const { encrypted, from } = data;
         
         // Find the connection that sent this message
@@ -5183,7 +5183,7 @@
         }
 
         try {
-            const content = await Crypto.decrypt(senderConnection.sharedKey, encrypted);
+            const content = Crypto.decrypt(senderConnection.sharedKey, encrypted);
 
             // Store message
             const messages = state.directMessages.get(senderPeerId) || [];
