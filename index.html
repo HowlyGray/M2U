@@ -5014,8 +5014,8 @@
         container.innerHTML = contacts.map(peerId => {
             const connection = state.connections.get(peerId);
             const isOnline = connection && connection.conn.open;
-            const name = connection ? connection.name : peerId;
-            const initial = name.charAt(0).toUpperCase();
+            const name = connection ? connection.name : (peerId || 'Unknown');
+            const initial = name ? name.charAt(0).toUpperCase() : '?';
             const messages = state.directMessages.get(peerId) || [];
             const lastMessage = messages[messages.length - 1];
             const unreadCount = messages.filter(m => !m.fromMe && !m.read).length;
