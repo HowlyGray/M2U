@@ -1855,6 +1855,20 @@
                 <div style="color:#94a3b8;font-size:0.8rem;margin-bottom:10px;">
                     Le serveur par défaut est utilisé. Vous pouvez configurer un serveur personnalisé ci-dessous.
                 </div>
+                <div style="margin-bottom:15px;">
+                    <label style="color:#64748b;font-size:0.75rem;margin-bottom:5px;display:block;">Serveurs alternatifs (cliquez pour utiliser)</label>
+                    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                        <button class="btn btn-secondary preset-btn" data-host="cloudflare-signal.peerjs.com" data-port="443" data-path="/">
+                            Cloudflare
+                        </button>
+                        <button class="btn btn-secondary preset-btn" data-host="turn-2.peerjs.com" data-port="443" data-path="/">
+                            Turn-2
+                        </button>
+                        <button class="btn btn-secondary preset-btn" data-host="global.mtalk.google.com" data-port="443" data-path="/">
+                            Google
+                        </button>
+                    </div>
+                </div>
                 <input type="text" id="signaling-host" class="input-field" placeholder="Host (ex: 0.peerjs.com)">
                 <input type="number" id="signaling-port" class="input-field" placeholder="Port (ex: 443)" value="443">
                 <input type="text" id="signaling-path" class="input-field" placeholder="Path (ex: /)" value="/">
@@ -2181,6 +2195,19 @@
         elements.saveSignalingBtn.addEventListener('click', saveSignalingConfig);
         elements.resetSignalingBtn.addEventListener('click', resetSignalingConfig);
 
+        // Signaling preset buttons
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const host = e.target.dataset.host;
+                const port = e.target.dataset.port;
+                const path = e.target.dataset.path;
+                elements.signalingHost.value = host;
+                elements.signalingPort.value = port;
+                elements.signalingPath.value = path;
+                showToast(`Serveur ${host} sélectionné. Cliquez sur "Sauvegarder" pour appliquer.`, 'info');
+            });
+        });
+
         // Mobile menu event listeners
         elements.mobileMenuBtn.addEventListener('click', toggleMobileSidebar);
         elements.mobileCloseBtn.addEventListener('click', toggleMobileSidebar);
@@ -2371,7 +2398,7 @@
         elements.peerIdInput.placeholder = `ID du pair (PT-XXXXXXXX)`;
 
         // Clear previous messages and show room info
-        elements.chatMessages.innerHTML = '';
+        elements.messagesContainer.innerHTML = '';
         appendSystemMessage(`🏠 Bienvenue dans le salon "${room.name}"`);
         appendSystemMessage(`🆔 ID du salon: ${room.id}`);
         appendSystemMessage('🤝 Vous allez être connecté automatiquement aux autres membres du salon');
@@ -2903,7 +2930,7 @@
         elements.peerIdInput.placeholder = `ID du pair (PT-XXXXXXXX)`;
 
         // Clear previous messages and show room info
-        elements.chatMessages.innerHTML = '';
+        elements.messagesContainer.innerHTML = '';
         appendSystemMessage(`🏠 Bienvenue dans le salon "${room.name}"`);
         appendSystemMessage(`🆔 ID du salon: ${room.id}`);
         appendSystemMessage('🤝 Vous allez être connecté automatiquement aux autres membres du salon');
@@ -3428,7 +3455,7 @@
         elements.peerIdInput.placeholder = `ID du pair (PT-XXXXXXXX)`;
 
         // Clear previous messages and show room info
-        elements.chatMessages.innerHTML = '';
+        elements.messagesContainer.innerHTML = '';
         appendSystemMessage(`🏠 Bienvenue dans le salon "${room.name}"`);
         appendSystemMessage(`🆔 ID du salon: ${room.id}`);
         appendSystemMessage('🤝 Vous allez être connecté automatiquement aux autres membres du salon');
@@ -3789,7 +3816,7 @@
         elements.peerIdInput.placeholder = `ID du pair (PT-XXXXXXXX)`;
 
         // Clear previous messages and show room info
-        elements.chatMessages.innerHTML = '';
+        elements.messagesContainer.innerHTML = '';
         appendSystemMessage(`🏠 Bienvenue dans le salon "${room.name}"`);
         appendSystemMessage(`🆔 ID du salon: ${room.id}`);
         appendSystemMessage('🤝 Vous allez être connecté automatiquement aux autres membres du salon');
@@ -4383,7 +4410,7 @@
         elements.peerIdInput.placeholder = `ID du pair (PT-XXXXXXXX)`;
 
         // Clear previous messages and show room info
-        elements.chatMessages.innerHTML = '';
+        elements.messagesContainer.innerHTML = '';
         appendSystemMessage(`🏠 Bienvenue dans le salon "${room.name}"`);
         appendSystemMessage(`🆔 ID du salon: ${room.id}`);
         appendSystemMessage('🤝 Vous allez être connecté automatiquement aux autres membres du salon');
@@ -4730,7 +4757,7 @@
         elements.peerIdInput.placeholder = `ID du pair (PT-XXXXXXXX)`;
 
         // Clear previous messages and show room info
-        elements.chatMessages.innerHTML = '';
+        elements.messagesContainer.innerHTML = '';
         appendSystemMessage(`🏠 Bienvenue dans le salon "${room.name}"`);
         appendSystemMessage(`🆔 ID du salon: ${room.id}`);
         appendSystemMessage('🤝 Vous allez être connecté automatiquement aux autres membres du salon');
