@@ -2664,7 +2664,10 @@
         // Enhanced peer discovery (Ares/RetroShare style)
         discoveredPeers: new Map(), // peerId -> {name, lastSeen, lastHeartbeat, connectable, via}
         peerListVersion: 0, // Incremented when peer list changes
-        lastPeerBroadcast: 0 // Timestamp of last broadcast
+        lastPeerBroadcast: 0, // Timestamp of last broadcast
+        // Bootstrap peers - known peers that help start the network
+        bootstrapPeers: JSON.parse(localStorage.getItem('bootstrapPeers') || '[]'), // Array of peerIds
+        lastBootstrapAttempt: 0
     };
 
     // ============================================
@@ -3276,11 +3279,18 @@
                 discoverPeers();
                 setInterval(discoverPeers, 10000); // Discover from server every 10s
 
+                // Try bootstrap peers immediately (helps with cold start)
+                setTimeout(tryBootstrapPeers, 2000);
+                setInterval(tryBootstrapPeers, 30000); // Retry bootstrap every 30s
+
                 // Start heartbeat system
                 setInterval(sendHeartbeat, 5000); // Send heartbeat every 5s
 
                 // Start peer list broadcasting (gossip protocol)
                 setInterval(broadcastPeerList, 15000); // Broadcast every 15s
+
+                // Announce presence every 10s
+                setInterval(announcePresenceToDiscoveryRoom, 10000);
             });
 
             state.peer.on('connection', handleIncomingConnection);
@@ -3311,13 +3321,17 @@
     }
 
     // ============================================
-    // AUTOMATIC PEER DISCOVERY (Ares/RetroShare style)
+    // AUTOMATIC PEER DISCOVERY (Global Discovery Room)
     // ============================================
+
+    // GLOBAL DISCOVERY ROOM - All users auto-join this virtual room for peer discovery
+    const DISCOVERY_ROOM_ID = 'PT-DISCOVERY-GLOBAL-v1';
+
     async function discoverPeers() {
         if (!state.peer || !state.myPeerId) return;
 
+        // Strategy 1: Try server API (if available)
         try {
-            // Build the API URL based on configuration
             const savedConfig = localStorage.getItem('signalingConfig');
             let apiUrl;
 
@@ -3327,81 +3341,297 @@
                 const path = config.path || '/';
                 apiUrl = `${protocol}://${config.host}:${config.port}${path}peerjs/peers`;
             } else {
-                // Default PeerJS cloud server
                 apiUrl = 'https://0.peerjs.com/peerjs/peers';
             }
 
-            console.log('🔍 Discovering peers from:', apiUrl);
+            console.log('🔍 Trying server discovery from:', apiUrl);
 
             const response = await fetch(apiUrl, {
                 method: 'GET',
-                headers: {
-                    'Accept': 'application/json'
-                }
+                headers: { 'Accept': 'application/json' }
             });
 
-            if (!response.ok) {
-                console.warn('Peer discovery not available on this server');
-                return;
-            }
+            if (response.ok) {
+                const peers = await response.json();
+                const now = Date.now();
+                let newPeersFound = 0;
 
-            const peers = await response.json();
-            const now = Date.now();
-            let newPeersFound = 0;
+                for (const peerId of peers) {
+                    if (peerId === state.myPeerId) continue;
+                    if (!peerId.startsWith('PT-')) continue;
 
-            // Add ALL discovered peers to our list (not just connected ones)
-            for (const peerId of peers) {
-                if (peerId === state.myPeerId) continue;
-                if (!peerId.startsWith('PT-')) continue; // Only PeerText users
+                    const existing = state.discoveredPeers.get(peerId);
+                    if (!existing) {
+                        state.discoveredPeers.set(peerId, {
+                            name: 'Utilisateur',
+                            lastSeen: now,
+                            lastHeartbeat: now,
+                            connectable: true,
+                            via: 'server'
+                        });
+                        newPeersFound++;
+                    } else {
+                        existing.lastSeen = now;
+                    }
+                }
 
-                // Add to discovered peers list
-                const existing = state.discoveredPeers.get(peerId);
-                if (!existing) {
-                    state.discoveredPeers.set(peerId, {
-                        name: 'Utilisateur',
-                        lastSeen: now,
-                        lastHeartbeat: now,
-                        connectable: true,
-                        via: 'server'
-                    });
-                    newPeersFound++;
-                } else {
-                    existing.lastSeen = now;
-                    existing.connectable = true;
+                if (newPeersFound > 0) {
+                    console.log(`✅ Server discovery: ${newPeersFound} peer(s) found`);
+                    updateDiscoveredPeersList();
+
+                    // Auto-connect to newly discovered peers
+                    const peersToConnect = Array.from(state.discoveredPeers.keys()).filter(peerId =>
+                        !state.connections.has(peerId) &&
+                        !state.pendingConnections.has(peerId)
+                    );
+
+                    for (const peerId of peersToConnect.slice(0, 3)) {
+                        console.log('🔗 Auto-connecting to:', peerId);
+                        await connectToPeer(peerId);
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    }
                 }
             }
+        } catch (error) {
+            console.log('Server discovery unavailable, using discovery room fallback');
+        }
 
-            // Update UI
+        // Strategy 2: Use Global Discovery Room (always active)
+        // This ensures discovery works even without server API
+        announcePresenceToDiscoveryRoom();
+
+        // Cleanup old peers
+        const now = Date.now();
+        const timeout = 60000;
+        for (const [peerId, info] of state.discoveredPeers.entries()) {
+            if (now - info.lastSeen > timeout && !state.connections.has(peerId)) {
+                state.discoveredPeers.delete(peerId);
+            }
+        }
+
+        updateDiscoveredPeersList();
+    }
+
+    // Announce our presence to the discovery room via all connected peers
+    function announcePresenceToDiscoveryRoom() {
+        const announcement = {
+            type: 'discovery_announcement',
+            peerId: state.myPeerId,
+            name: state.myName,
+            timestamp: Date.now()
+        };
+
+        // Send to all connected peers
+        state.connections.forEach(({ conn }) => {
+            try {
+                conn.send(announcement);
+            } catch (err) {
+                console.warn('Failed to send discovery announcement:', err);
+            }
+        });
+
+        // Also add ourselves to the discovered peers list
+        state.discoveredPeers.set(state.myPeerId, {
+            name: state.myName,
+            lastSeen: Date.now(),
+            lastHeartbeat: Date.now(),
+            connectable: false, // Can't connect to ourselves
+            via: 'self'
+        });
+    }
+
+    // Handle discovery announcement from other peers
+    function handleDiscoveryAnnouncement(data, fromPeerId) {
+        const { peerId, name, timestamp } = data;
+        const now = Date.now();
+
+        if (peerId === state.myPeerId) return;
+        if (!peerId || !peerId.startsWith('PT-')) return;
+
+        console.log(`📡 Discovered peer via announcement: ${name} (${peerId})`);
+
+        const existing = state.discoveredPeers.get(peerId);
+        if (!existing) {
+            state.discoveredPeers.set(peerId, {
+                name: name || 'Utilisateur',
+                lastSeen: now,
+                lastHeartbeat: timestamp || now,
+                connectable: true,
+                via: fromPeerId
+            });
+
+            showToast(`${name || 'Nouvel utilisateur'} découvert!`, 'info');
             updateDiscoveredPeersList();
 
-            // Auto-connect to newly discovered peers
+            // Save as bootstrap peer for future sessions
+            saveAsBootstrapPeer(peerId);
+
+            // Try to connect if not already connected
+            if (!state.connections.has(peerId) && !state.pendingConnections.has(peerId)) {
+                setTimeout(() => {
+                    console.log(`🔗 Attempting connection to discovered peer: ${peerId}`);
+                    connectToPeer(peerId);
+                }, 1000);
+            }
+        } else {
+            existing.lastSeen = now;
+            if (name && name !== 'Utilisateur') {
+                existing.name = name;
+            }
+            updateDiscoveredPeersList();
+        }
+    }
+
+    // Try connecting to bootstrap peers (helps with network cold start)
+    async function tryBootstrapPeers() {
+        const now = Date.now();
+
+        // Don't retry too often
+        if (now - state.lastBootstrapAttempt < 25000) return;
+        state.lastBootstrapAttempt = now;
+
+        // If we already have connections, no need for bootstrap
+        if (state.connections.size > 0) {
+            console.log('Already connected to peers, skipping bootstrap');
+            return;
+        }
+
+        console.log(`🥾 Attempting bootstrap connection (${state.bootstrapPeers.length} known peers)...`);
+
+        // Try to connect to saved bootstrap peers
+        for (const peerId of state.bootstrapPeers) {
+            if (peerId === state.myPeerId) continue;
+            if (state.connections.has(peerId)) continue;
+            if (state.pendingConnections.has(peerId)) continue;
+
+            console.log(`🔗 Bootstrap: connecting to ${peerId}`);
+            await connectToPeer(peerId);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // If we got a connection, stop trying more
+            if (state.connections.size > 0) {
+                console.log('✅ Bootstrap successful, network joined!');
+                return;
+            }
+        }
+
+        if (state.connections.size === 0) {
+            console.log('⚠️ No bootstrap peers available. Waiting for manual connection or server discovery...');
+        }
+    }
+
+    // Save a successful peer as bootstrap peer for future sessions
+    function saveAsBootstrapPeer(peerId) {
+        if (!peerId || peerId === state.myPeerId) return;
+        if (state.bootstrapPeers.includes(peerId)) return;
+
+        state.bootstrapPeers.push(peerId);
+
+        // Keep only last 20 bootstrap peers
+        if (state.bootstrapPeers.length > 20) {
+            state.bootstrapPeers = state.bootstrapPeers.slice(-20);
+        }
+
+        localStorage.setItem('bootstrapPeers', JSON.stringify(state.bootstrapPeers));
+        console.log(`💾 Saved ${peerId} as bootstrap peer`);
+    }
+
+    // Handle discovery request - send all known peers to requester
+    function handleDiscoveryRequest(fromPeerId) {
+        console.log(`📨 Received discovery request from ${fromPeerId}`);
+
+        const peerInfo = state.connections.get(fromPeerId);
+        if (!peerInfo) return;
+
+        const now = Date.now();
+
+        // Send all our discovered peers (including ourselves)
+        const peersToSend = Array.from(state.discoveredPeers.entries())
+            .filter(([peerId, info]) => now - info.lastSeen < 60000) // Only active peers
+            .map(([peerId, info]) => ({
+                peerId,
+                name: info.name,
+                lastSeen: info.lastSeen,
+                timestamp: now
+            }));
+
+        // Also include all our active connections not yet in discovered peers
+        state.connections.forEach(({ name }, peerId) => {
+            if (!peersToSend.find(p => p.peerId === peerId)) {
+                peersToSend.push({
+                    peerId,
+                    name: name || 'Utilisateur',
+                    lastSeen: now,
+                    timestamp: now
+                });
+            }
+        });
+
+        try {
+            peerInfo.conn.send({
+                type: 'discovery_response',
+                peers: peersToSend,
+                timestamp: now
+            });
+            console.log(`📤 Sent ${peersToSend.length} peers to ${fromPeerId}`);
+        } catch (err) {
+            console.warn('Failed to send discovery response:', err);
+        }
+    }
+
+    // Handle discovery response - process received peer list
+    async function handleDiscoveryResponse(data, fromPeerId) {
+        if (!data.peers || !Array.isArray(data.peers)) return;
+
+        const now = Date.now();
+        let newPeersFound = 0;
+
+        console.log(`📥 Received discovery response from ${fromPeerId} with ${data.peers.length} peers`);
+
+        for (const peerInfo of data.peers) {
+            const { peerId, name, lastSeen } = peerInfo;
+
+            if (peerId === state.myPeerId) continue;
+            if (!peerId || !peerId.startsWith('PT-')) continue;
+
+            const existing = state.discoveredPeers.get(peerId);
+            if (!existing) {
+                state.discoveredPeers.set(peerId, {
+                    name: name || 'Utilisateur',
+                    lastSeen: now,
+                    lastHeartbeat: lastSeen || now,
+                    connectable: true,
+                    via: fromPeerId
+                });
+                newPeersFound++;
+
+                // Save as bootstrap peer
+                saveAsBootstrapPeer(peerId);
+            } else {
+                existing.lastSeen = now;
+                if (name && name !== 'Utilisateur') {
+                    existing.name = name;
+                }
+            }
+        }
+
+        if (newPeersFound > 0) {
+            console.log(`✨ Discovered ${newPeersFound} new peer(s) via ${fromPeerId}`);
+            showToast(`${newPeersFound} nouvel(s) utilisateur(s) découvert(s)!`, 'info');
+            updateDiscoveredPeersList();
+
+            // Try to connect to newly discovered peers (max 3 at once)
             const peersToConnect = Array.from(state.discoveredPeers.keys()).filter(peerId =>
                 !state.connections.has(peerId) &&
                 !state.pendingConnections.has(peerId) &&
-                state.discoveredPeers.get(peerId).connectable
+                peerId !== state.myPeerId
             );
 
-            for (const peerId of peersToConnect.slice(0, 5)) { // Connect to max 5 at a time
-                console.log('🔗 Auto-connecting to:', peerId);
+            for (const peerId of peersToConnect.slice(0, 3)) {
+                console.log(`🔗 Connecting to discovered peer: ${peerId}`);
                 await connectToPeer(peerId);
-                await new Promise(resolve => setTimeout(resolve, 300));
+                await new Promise(resolve => setTimeout(resolve, 800));
             }
-
-            if (newPeersFound > 0) {
-                console.log(`✅ ${newPeersFound} nouveaux peer(s) découvert(s)`);
-                showToast(`${newPeersFound} utilisateur(s) en ligne détecté(s)`, 'info');
-            }
-
-            // Cleanup old peers (not seen for 60 seconds)
-            const timeout = 60000;
-            for (const [peerId, info] of state.discoveredPeers.entries()) {
-                if (now - info.lastSeen > timeout && !state.connections.has(peerId)) {
-                    state.discoveredPeers.delete(peerId);
-                }
-            }
-
-        } catch (error) {
-            console.warn('Peer discovery error:', error.message);
         }
     }
 
@@ -3674,6 +3904,18 @@
                 handleHeartbeat(data, peerId);
                 break;
 
+            case 'discovery_announcement':
+                handleDiscoveryAnnouncement(data, peerId);
+                break;
+
+            case 'discovery_request':
+                handleDiscoveryRequest(peerId);
+                break;
+
+            case 'discovery_response':
+                handleDiscoveryResponse(data, peerId);
+                break;
+
             case 'encrypted':
                 await handleEncryptedMessage(peerId, data);
                 break;
@@ -3829,8 +4071,21 @@
                 updateConnectedUsersList();
                 updateFriendsList();
 
+                // Save as bootstrap peer for future sessions
+                saveAsBootstrapPeer(peerId);
+
                 appendSystemMessage(`${username} a rejoint le salon (E2E activé)`);
                 showToast(`${username} connecté`, 'success');
+
+                // Immediately request discovery announcements from new peer
+                setTimeout(() => {
+                    announcePresenceToDiscoveryRoom();
+                    // Also request their peer list
+                    conn.send({
+                        type: 'discovery_request',
+                        timestamp: Date.now()
+                    });
+                }, 500);
 
                 // If we're the room creator, share the peer list
                 if (state.isRoomCreator) {
