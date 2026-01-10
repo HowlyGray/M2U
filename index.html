@@ -16,6 +16,11 @@
 
     <!-- PeerJS via jsDelivr (meilleur support des source maps) -->
     <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+    <!-- Firebase SDK (pour découverte automatique des peers) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
     <style>
         * {
             margin: 0;
@@ -3273,10 +3278,13 @@
                 updateDiagnostics();
                 appendSystemMessage('✅ Connecté au serveur de signalisation');
 
+                // Initialize Firebase for automatic discovery
+                initFirebase();
+
                 // Check if we have bootstrap peers
                 if (state.bootstrapPeers.length > 0) {
                     appendSystemMessage(`📡 Tentative de reconnexion à ${state.bootstrapPeers.length} peer(s) connu(s)...`);
-                } else {
+                } else if (!FIREBASE_ENABLED) {
                     appendSystemMessage('ℹ️ Première session détectée');
                     appendSystemMessage('💡 Connectez-vous manuellement à un utilisateur pour rejoindre le réseau');
                     appendSystemMessage('📝 Après la première connexion, la découverte automatique sera activée');
@@ -3326,6 +3334,194 @@
             updateStatusBar('error', 'Erreur d\'initialisation');
             appendSystemMessage('❌ Erreur d\'initialisation: ' + error.message);
             appendSystemMessage('💡 Astuce: Vérifiez votre connexion internet et les paramètres du serveur de signalisation ⚙️');
+        }
+    }
+
+    // ============================================
+    // FIREBASE CONFIGURATION (Auto Peer Discovery)
+    // ============================================
+
+    // IMPORTANT: Remplacez cette configuration par la vôtre (voir FIREBASE_SETUP.md)
+    const FIREBASE_ENABLED = false; // ← Changez en true après configuration
+
+    const firebaseConfig = {
+        apiKey: "VOTRE_API_KEY",
+        authDomain: "VOTRE_PROJECT.firebaseapp.com",
+        databaseURL: "https://VOTRE_PROJECT-default-rtdb.firebaseio.com",
+        projectId: "VOTRE_PROJECT",
+        storageBucket: "VOTRE_PROJECT.appspot.com",
+        messagingSenderId: "123456789012",
+        appId: "1:123456789012:web:abcdef1234567890"
+    };
+
+    let firebaseDb = null;
+    let firebaseMyRef = null;
+
+    // Initialiser Firebase si activé
+    function initFirebase() {
+        if (!FIREBASE_ENABLED) {
+            console.log('ℹ️ Firebase désactivé. Voir FIREBASE_SETUP.md pour activer la découverte automatique');
+            return;
+        }
+
+        if (typeof firebase === 'undefined') {
+            console.error('❌ Firebase SDK non chargé');
+            return;
+        }
+
+        try {
+            // Initialiser Firebase
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            firebaseDb = firebase.database();
+
+            console.log('✅ Firebase initialisé - Découverte automatique activée!');
+            appendSystemMessage('🔥 Firebase: Découverte automatique des peers activée');
+
+            // Enregistrer ce peer
+            registerInFirebase();
+
+            // Écouter les autres peers
+            listenForFirebasePeers();
+
+        } catch (error) {
+            console.error('❌ Erreur initialisation Firebase:', error);
+            appendSystemMessage('⚠️ Erreur Firebase: ' + error.message);
+        }
+    }
+
+    // S'enregistrer dans Firebase
+    function registerInFirebase() {
+        if (!firebaseDb || !state.myPeerId) return;
+
+        firebaseMyRef = firebaseDb.ref(`peers/${state.myPeerId}`);
+
+        // Données du peer
+        const peerData = {
+            name: state.myName,
+            timestamp: firebase.database.ServerValue.TIMESTAMP,
+            online: true,
+            peerId: state.myPeerId
+        };
+
+        // S'enregistrer
+        firebaseMyRef.set(peerData)
+            .then(() => {
+                console.log('🔥 Firebase: Enregistré avec succès');
+            })
+            .catch(error => {
+                console.error('❌ Firebase register error:', error);
+            });
+
+        // Auto-cleanup à la déconnexion
+        firebaseMyRef.onDisconnect().remove();
+
+        // Heartbeat toutes les 30s
+        setInterval(() => {
+            if (firebaseMyRef) {
+                firebaseMyRef.update({
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    name: state.myName
+                });
+            }
+        }, 30000);
+    }
+
+    // Écouter l'ajout de nouveaux peers
+    function listenForFirebasePeers() {
+        if (!firebaseDb) return;
+
+        const peersRef = firebaseDb.ref('peers');
+
+        // Peer ajouté
+        peersRef.on('child_added', (snapshot) => {
+            const peerId = snapshot.key;
+            const data = snapshot.val();
+
+            if (peerId === state.myPeerId) return; // Nous-mêmes
+            if (!peerId.startsWith('PT-')) return;
+
+            console.log(`🔥 Firebase: Peer découvert: ${data.name} (${peerId})`);
+
+            handleFirebasePeerDiscovered(peerId, data);
+        });
+
+        // Peer modifié (changement de nom)
+        peersRef.on('child_changed', (snapshot) => {
+            const peerId = snapshot.key;
+            const data = snapshot.val();
+
+            if (peerId === state.myPeerId) return;
+
+            const existing = state.discoveredPeers.get(peerId);
+            if (existing && data.name) {
+                existing.name = data.name;
+                existing.lastSeen = Date.now();
+                updateDiscoveredPeersList();
+            }
+        });
+
+        // Peer supprimé (déconnexion)
+        peersRef.on('child_removed', (snapshot) => {
+            const peerId = snapshot.key;
+            console.log(`🔥 Firebase: Peer déconnecté: ${peerId}`);
+
+            const existing = state.discoveredPeers.get(peerId);
+            if (existing) {
+                existing.online = false;
+                existing.connectable = false;
+                updateDiscoveredPeersList();
+            }
+        });
+
+        console.log('🔥 Firebase: Écoute des peers activée');
+    }
+
+    // Gérer un peer découvert via Firebase
+    async function handleFirebasePeerDiscovered(peerId, data) {
+        const now = Date.now();
+
+        // Ajouter aux discovered peers
+        const existing = state.discoveredPeers.get(peerId);
+        if (!existing) {
+            state.discoveredPeers.set(peerId, {
+                name: data.name || 'Utilisateur',
+                lastSeen: now,
+                lastHeartbeat: data.timestamp || now,
+                connectable: true,
+                online: true,
+                via: 'firebase'
+            });
+
+            showToast(`${data.name || 'Nouvel utilisateur'} en ligne!`, 'info');
+            updateDiscoveredPeersList();
+
+            // Sauvegarder comme bootstrap peer
+            saveAsBootstrapPeer(peerId);
+
+            // Connexion automatique si pas déjà connecté
+            if (!state.connections.has(peerId) && !state.pendingConnections.has(peerId)) {
+                setTimeout(() => {
+                    console.log(`🔗 Firebase: Connexion automatique à ${peerId}`);
+                    connectToPeer(peerId);
+                }, 1000);
+            }
+        } else {
+            existing.lastSeen = now;
+            existing.online = true;
+            existing.connectable = true;
+            if (data.name && data.name !== 'Utilisateur') {
+                existing.name = data.name;
+            }
+            updateDiscoveredPeersList();
+        }
+    }
+
+    // Mettre à jour le nom dans Firebase quand il change
+    function updateFirebaseName(newName) {
+        if (firebaseMyRef && FIREBASE_ENABLED) {
+            firebaseMyRef.update({ name: newName });
         }
     }
 
@@ -5093,6 +5289,9 @@
     function handleNameChange(e) {
         state.myName = e.target.value.trim() || 'Anonyme';
         localStorage.setItem('peerName', state.myName);
+
+        // Update Firebase
+        updateFirebaseName(state.myName);
 
         // Update all connected peers
         state.connections.forEach(({ conn }) => {
