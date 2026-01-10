@@ -3100,6 +3100,11 @@
 
         // DM file sending
         elements.dmAttachBtn.addEventListener('click', () => {
+            if (!state.activeDMConversation) {
+                showToast('Veuillez d\'abord sélectionner une conversation', 'warning');
+                return;
+            }
+            console.log('DM file attach clicked, activeDMConversation:', state.activeDMConversation);
             elements.fileInput.dataset.context = 'dm';
             elements.fileInput.dataset.recipient = state.activeDMConversation;
             elements.fileInput.click();
@@ -5012,6 +5017,8 @@
         const context = e.target.dataset.context;
         const recipient = e.target.dataset.recipient;
 
+        console.log('handleFileSelect - context:', context, 'recipient:', recipient);
+
         for (const file of files) {
             if (file.size > CONFIG.maxFileSize) {
                 showToast(`${file.name} est trop volumineux (max 100MB)`, 'error');
@@ -5020,14 +5027,26 @@
 
             if (context === 'dm' && recipient) {
                 // Send file via DM
-                await sendFileViaDM(file, recipient);
+                console.log('Sending file via DM to:', recipient);
+                try {
+                    await sendFileViaDM(file, recipient);
+                } catch (error) {
+                    console.error('Error sending file via DM:', error);
+                    showToast('Erreur lors de l\'envoi du fichier via DM', 'error');
+                }
             } else {
                 // Send file to room (existing logic)
                 if (state.connections.size === 0) {
                     showToast('Aucun utilisateur connecté', 'warning');
                     continue;
                 }
-                await sendFile(file);
+                console.log('Sending file to room');
+                try {
+                    await sendFile(file);
+                } catch (error) {
+                    console.error('Error sending file to room:', error);
+                    showToast('Erreur lors de l\'envoi du fichier au salon', 'error');
+                }
             }
         }
 
@@ -5060,7 +5079,8 @@
                     fileType: file.type,
                     iv: Array.from(iv),
                     sender: state.myName,
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date().toISOString(),
+                    isDM: false
                 });
 
                 // Send chunks as binary messages: [4 bytes headerLen LE][header JSON][chunk bytes]
@@ -5127,11 +5147,22 @@
     }
 
     async function sendFileViaDM(file, recipient) {
+        console.log('sendFileViaDM called with recipient:', recipient);
+        console.log('Available connections:', Array.from(state.connections.keys()));
+        
         const connection = state.connections.get(recipient);
-        if (!connection || !connection.conn.open) {
+        if (!connection) {
+            console.error('Connection not found for recipient:', recipient);
             showToast('Non connecté à ce contact', 'warning');
             return;
         }
+        if (!connection.conn.open) {
+            console.error('Connection not open for recipient:', recipient);
+            showToast('Connexion fermée avec ce contact', 'warning');
+            return;
+        }
+        
+        console.log('Connection found and open, starting file transfer');
 
         const transferId = generateId(12);
         const arrayBuffer = await file.arrayBuffer();
@@ -5144,17 +5175,18 @@
             // Encrypt the file
             const { iv, encrypted } = await Crypto.encryptFile(connection.sharedKey, arrayBuffer);
 
-            // Send file metadata
-            connection.conn.send({
-                type: 'file-start',
-                transferId,
-                fileName: file.name,
-                fileSize: encrypted.length,
-                fileType: file.type,
-                iv: Array.from(iv),
-                sender: state.myName,
-                timestamp: new Date().toISOString()
-            });
+                // Send file metadata
+                connection.conn.send({
+                    type: 'file-start',
+                    transferId,
+                    fileName: file.name,
+                    fileSize: encrypted.length,
+                    fileType: file.type,
+                    iv: Array.from(iv),
+                    sender: state.myName,
+                    timestamp: new Date().toISOString(),
+                    isDM: true
+                });
 
             // Send chunks as binary messages
             const chunkSize = 4096;
@@ -5215,9 +5247,8 @@
         // Calculate expected chunks based on 4KB chunk size
         const chunkSize = 4096;
         
-        // Check if this is a DM transfer or room transfer
-        const peerInfo = state.connections.get(peerId);
-        const isDM = state.activeDMConversation === peerId;
+        // Use isDM flag from sender if available, otherwise check active conversation
+        const isDM = data.isDM !== undefined ? data.isDM : (state.activeDMConversation === peerId);
         
         state.fileTransfers.set(data.transferId, {
             chunks: new Array(Math.ceil(data.fileSize / chunkSize)),
@@ -5385,7 +5416,7 @@
         }
 
         actionsEl.innerHTML = `
-            <button class="file-download" onclick="downloadFile('${url}', '${escapeHtml(fileName)}')">
+            <button class="file-download">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                     <polyline points="7 10 12 15 17 10"></polyline>
@@ -5394,6 +5425,10 @@
                 Télécharger
             </button>
         `;
+        const downloadBtn = actionsEl.querySelector('.file-download');
+        downloadBtn.addEventListener('click', () => {
+            downloadFile(url, fileName);
+        });
     }
 
     function downloadFile(url, fileName) {
@@ -5477,7 +5512,7 @@
         }
 
         actionsEl.innerHTML = `
-            <button class="file-download" onclick="downloadFile('${url}', '${escapeHtml(fileName)}')">
+            <button class="file-download">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                     <polyline points="7 10 12 15 17 10"></polyline>
@@ -5486,6 +5521,10 @@
                 Télécharger
             </button>
         `;
+        const downloadBtn = actionsEl.querySelector('.file-download');
+        downloadBtn.addEventListener('click', () => {
+            downloadFile(url, fileName);
+        });
     }
 
     // ============================================
