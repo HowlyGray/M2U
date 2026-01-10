@@ -1,7 +1,6 @@
 {
   "rules": {
-      ".read": true,
-      ".write": true,
+    "peers": {
       "$peerId": {
         ".read": true,
         ".write": true,
