@@ -1511,6 +1511,74 @@
             font-size: 0.8rem;
         }
 
+        /* Room multi-select mode */
+        .room-card.selectable {
+            position: relative;
+            padding-left: 45px;
+        }
+
+        .room-card-checkbox {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 22px;
+            height: 22px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            background: rgba(30, 41, 59, 0.5);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .room-card-checkbox:hover {
+            border-color: rgba(99, 179, 237, 0.6);
+        }
+
+        .room-card.selected .room-card-checkbox {
+            background: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        .room-card.selected .room-card-checkbox svg {
+            display: block;
+        }
+
+        .room-card-checkbox svg {
+            display: none;
+            color: white;
+        }
+
+        .room-card.selected {
+            border-color: rgba(59, 130, 246, 0.6);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .multi-select-actions {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            padding: 12px;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .multi-select-actions .btn {
+            flex: 1;
+        }
+
+        .selection-count {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+        }
+
         /* Room detail view */
         .room-detail {
             display: none;
@@ -2271,6 +2339,26 @@
                                 </svg>
                                 Créer un nouveau salon
                             </button>
+                            <button class="btn btn-secondary rooms-actions-full" id="toggle-select-mode-btn" style="margin-top:8px;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="9 11 12 14 22 4"></polyline>
+                                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                                </svg>
+                                Sélectionner
+                            </button>
+                        </div>
+                        <!-- Multi-select actions bar -->
+                        <div class="multi-select-actions" id="multi-select-actions" style="display:none;">
+                            <span class="selection-count" id="selection-count">0 sélectionné(s)</span>
+                            <button class="btn btn-danger" id="delete-selected-rooms-btn" style="width:auto;padding:8px 16px;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                                </svg>
+                                Supprimer
+                            </button>
+                            <button class="btn btn-secondary" id="cancel-select-mode-btn" style="width:auto;padding:8px 16px;">
+                                Annuler
+                            </button>
                         </div>
                         <div class="rooms-list" id="private-rooms-list">
                             <div style="color:#64748b;font-size:0.9rem;text-align:center;padding:40px;">
@@ -2550,6 +2638,33 @@
                                 <div class="toggle-input active"></div>
                                 <span class="toggle-label">Accepter les messages de non-amis</span>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- ID Generation Settings -->
+                    <div style="padding:20px;border-top:1px solid rgba(255, 255, 255, 0.1);">
+                        <h3 style="color:#94a3b8;font-size:0.85rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                            Identité
+                        </h3>
+                        <div class="dm-settings">
+                            <h4>Génération de l'ID</h4>
+                            <div class="toggle-switch" id="auto-generate-id-toggle">
+                                <div class="toggle-input active"></div>
+                                <span class="toggle-label">Générer un nouvel ID à chaque visite</span>
+                            </div>
+                            <p style="color:#64748b;font-size:0.75rem;margin-top:8px;line-height:1.4;">
+                                Quand activé, votre ID change à chaque rafraîchissement de page pour plus de confidentialité. Désactivez pour garder un ID fixe.
+                            </p>
+                            <button class="btn btn-secondary" id="regenerate-id-btn" style="margin-top:12px;width:100%;display:none;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                                </svg>
+                                Regénérer mon ID
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -2833,7 +2948,13 @@
         lastPeerBroadcast: 0, // Timestamp of last broadcast
         // Bootstrap peers - known peers that help start the network
         bootstrapPeers: JSON.parse(localStorage.getItem('bootstrapPeers') || '[]'), // Array of peerIds
-        lastBootstrapAttempt: 0
+        lastBootstrapAttempt: 0,
+        // Room multi-select mode
+        roomSelectMode: false,
+        selectedRooms: new Set(), // Set of room IDs
+        // ID generation settings
+        autoGenerateId: localStorage.getItem('autoGenerateId') !== 'false', // true by default
+        savedPeerId: localStorage.getItem('savedPeerId') || null // Saved peer ID when auto-generate is off
     };
 
     // ============================================
@@ -2937,7 +3058,16 @@
         acceptFriendBtn: document.getElementById('accept-friend-btn'),
         // Friends elements
         friendsList: document.getElementById('friends-list'),
-        acceptDMToggle: document.getElementById('accept-dm-toggle')
+        acceptDMToggle: document.getElementById('accept-dm-toggle'),
+        // Multi-select room elements
+        toggleSelectModeBtn: document.getElementById('toggle-select-mode-btn'),
+        multiSelectActions: document.getElementById('multi-select-actions'),
+        deleteSelectedRoomsBtn: document.getElementById('delete-selected-rooms-btn'),
+        cancelSelectModeBtn: document.getElementById('cancel-select-mode-btn'),
+        selectionCount: document.getElementById('selection-count'),
+        // ID generation elements
+        autoGenerateIdToggle: document.getElementById('auto-generate-id-toggle'),
+        regenerateIdBtn: document.getElementById('regenerate-id-btn')
     };
 
     // ============================================
@@ -3094,6 +3224,11 @@
         // Join room
         elements.joinRoomBtn.addEventListener('click', requestToJoinRoom);
 
+        // Room multi-select mode
+        elements.toggleSelectModeBtn.addEventListener('click', toggleRoomSelectMode);
+        elements.cancelSelectModeBtn.addEventListener('click', cancelRoomSelectMode);
+        elements.deleteSelectedRoomsBtn.addEventListener('click', deleteSelectedRooms);
+
         // Room detail navigation
         elements.backToRoomsBtn.addEventListener('click', backToRoomsList);
 
@@ -3118,6 +3253,10 @@
 
         // DM settings toggle
         elements.acceptDMToggle.addEventListener('click', toggleDmSettings);
+
+        // ID generation settings
+        elements.autoGenerateIdToggle.addEventListener('click', toggleAutoGenerateId);
+        elements.regenerateIdBtn.addEventListener('click', regenerateUserId);
 
         // DM message sending
         elements.dmSendBtn.addEventListener('click', sendDirectMessage);
@@ -3182,6 +3321,7 @@
         updateFriendsList();
         updatePrivateRoomsList();
         updateDmContactsList();
+        initAutoGenerateIdUI();
 
         // Initialize PeerJS
         initializePeer();
@@ -3472,7 +3612,21 @@
     }
 
     function initializePeer() {
-        const peerId = 'PT-' + generateId(8);
+        let peerId;
+
+        if (state.autoGenerateId) {
+            // Generate new ID each time (default behavior)
+            peerId = 'PT-' + generateId(8);
+        } else {
+            // Use saved ID or generate one if not exists
+            if (state.savedPeerId) {
+                peerId = state.savedPeerId;
+            } else {
+                peerId = 'PT-' + generateId(8);
+                state.savedPeerId = peerId;
+                localStorage.setItem('savedPeerId', peerId);
+            }
+        }
 
         try {
             state.peer = new Peer(peerId, CONFIG.peerOptions);
@@ -6241,6 +6395,7 @@
     function updatePrivateRoomsList() {
         const rooms = state.privateRooms;
         const container = elements.privateRoomsList;
+        const isSelectMode = state.roomSelectMode;
 
         if (rooms.length === 0) {
             container.innerHTML = `
@@ -6254,17 +6409,35 @@
                     <p>Aucun salon. Créez-en un ou rejoignez un salon existant.</p>
                 </div>
             `;
+            // Hide select button and multi-select actions when no rooms
+            elements.toggleSelectModeBtn.style.display = 'none';
+            elements.multiSelectActions.style.display = 'none';
             return;
         }
+
+        // Show select button when there are rooms
+        elements.toggleSelectModeBtn.style.display = '';
 
         container.innerHTML = rooms.map(room => {
             const memberCount = room.members.length;
             const isCreator = room.creatorUsername === state.myName;
             const isAdmin = room.admins.includes(state.myName);
             const creatorName = room.creatorUsername || 'Inconnu';
+            const isSelected = state.selectedRooms.has(room.id);
+            const selectableClass = isSelectMode ? 'selectable' : '';
+            const selectedClass = isSelected ? 'selected' : '';
+
+            const checkboxHtml = isSelectMode ? `
+                <div class="room-card-checkbox">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                </div>
+            ` : '';
 
             return `
-                <div class="room-card" data-room-id="${room.id}">
+                <div class="room-card ${selectableClass} ${selectedClass}" data-room-id="${room.id}">
+                    ${checkboxHtml}
                     <div class="room-card-header">
                         <span class="room-card-name">${escapeHtml(room.name)}</span>
                         <span class="room-card-badge">${isCreator ? 'Créateur' : isAdmin ? 'Admin' : 'Membre'}</span>
@@ -6286,12 +6459,125 @@
         container.querySelectorAll('.room-card').forEach(card => {
             card.addEventListener('click', () => {
                 const roomId = card.dataset.roomId;
-                const room = state.privateRooms.find(r => r.id === roomId);
-                if (room) {
-                    showRoomDetail(room);
+
+                if (state.roomSelectMode) {
+                    // Toggle selection
+                    toggleRoomSelection(roomId);
+                } else {
+                    const room = state.privateRooms.find(r => r.id === roomId);
+                    if (room) {
+                        showRoomDetail(room);
+                    }
                 }
             });
         });
+    }
+
+    // Room multi-select functions
+    function toggleRoomSelectMode() {
+        state.roomSelectMode = true;
+        state.selectedRooms.clear();
+        elements.toggleSelectModeBtn.style.display = 'none';
+        elements.multiSelectActions.style.display = 'flex';
+        updateSelectionCount();
+        updatePrivateRoomsList();
+    }
+
+    function cancelRoomSelectMode() {
+        state.roomSelectMode = false;
+        state.selectedRooms.clear();
+        elements.toggleSelectModeBtn.style.display = '';
+        elements.multiSelectActions.style.display = 'none';
+        updatePrivateRoomsList();
+    }
+
+    function toggleRoomSelection(roomId) {
+        if (state.selectedRooms.has(roomId)) {
+            state.selectedRooms.delete(roomId);
+        } else {
+            state.selectedRooms.add(roomId);
+        }
+        updateSelectionCount();
+        // Update just the card's visual state without full re-render
+        const card = document.querySelector(`.room-card[data-room-id="${roomId}"]`);
+        if (card) {
+            card.classList.toggle('selected', state.selectedRooms.has(roomId));
+        }
+    }
+
+    function updateSelectionCount() {
+        const count = state.selectedRooms.size;
+        elements.selectionCount.textContent = `${count} sélectionné${count > 1 ? 's' : ''}`;
+        elements.deleteSelectedRoomsBtn.disabled = count === 0;
+    }
+
+    function deleteSelectedRooms() {
+        if (state.selectedRooms.size === 0) {
+            showToast('Aucun salon sélectionné', 'warning');
+            return;
+        }
+
+        // Check which rooms the user can delete (only rooms they created) or leave
+        const roomsToDelete = [];
+        const roomsToLeave = [];
+
+        state.selectedRooms.forEach(roomId => {
+            const room = state.privateRooms.find(r => r.id === roomId);
+            if (room) {
+                if (room.creatorUsername === state.myName) {
+                    roomsToDelete.push(room);
+                } else {
+                    roomsToLeave.push(room);
+                }
+            }
+        });
+
+        const deleteCount = roomsToDelete.length;
+        const leaveCount = roomsToLeave.length;
+
+        let confirmMessage = '';
+        if (deleteCount > 0 && leaveCount > 0) {
+            confirmMessage = `Vous allez supprimer ${deleteCount} salon${deleteCount > 1 ? 's' : ''} (dont vous êtes créateur) et quitter ${leaveCount} salon${leaveCount > 1 ? 's' : ''}.\n\nContinuer ?`;
+        } else if (deleteCount > 0) {
+            confirmMessage = `Êtes-vous sûr de vouloir supprimer définitivement ${deleteCount} salon${deleteCount > 1 ? 's' : ''} ?\n\nCette action est irréversible.`;
+        } else if (leaveCount > 0) {
+            confirmMessage = `Êtes-vous sûr de vouloir quitter ${leaveCount} salon${leaveCount > 1 ? 's' : ''} ?`;
+        }
+
+        if (!confirm(confirmMessage)) return;
+
+        // Delete rooms where user is creator
+        roomsToDelete.forEach(room => {
+            const index = state.privateRooms.findIndex(r => r.id === room.id);
+            if (index > -1) {
+                state.privateRooms.splice(index, 1);
+            }
+        });
+
+        // Leave rooms where user is not creator
+        roomsToLeave.forEach(room => {
+            const memberIndex = room.members.indexOf(state.myName);
+            if (memberIndex > -1) {
+                room.members.splice(memberIndex, 1);
+            }
+            const adminIndex = room.admins.indexOf(state.myName);
+            if (adminIndex > -1) {
+                room.admins.splice(adminIndex, 1);
+            }
+        });
+
+        savePrivateRooms();
+        cancelRoomSelectMode();
+
+        let message = '';
+        if (deleteCount > 0 && leaveCount > 0) {
+            message = `${deleteCount} salon${deleteCount > 1 ? 's supprimés' : ' supprimé'} et ${leaveCount} salon${leaveCount > 1 ? 's quittés' : ' quitté'}`;
+        } else if (deleteCount > 0) {
+            message = `${deleteCount} salon${deleteCount > 1 ? 's supprimés' : ' supprimé'}`;
+        } else {
+            message = `${leaveCount} salon${leaveCount > 1 ? 's quittés' : ' quitté'}`;
+        }
+        showToast(message, 'success');
     }
 
     function showRoomDetail(room) {
@@ -7225,6 +7511,53 @@
             'Messages de non-amis autorisés' :
             'Seuls les amis peuvent vous envoyer des messages',
         'info');
+    }
+
+    // ID Generation settings
+    function initAutoGenerateIdUI() {
+        const toggle = elements.autoGenerateIdToggle.querySelector('.toggle-input');
+        toggle.classList.toggle('active', state.autoGenerateId);
+        elements.regenerateIdBtn.style.display = state.autoGenerateId ? 'none' : 'flex';
+    }
+
+    function toggleAutoGenerateId() {
+        state.autoGenerateId = !state.autoGenerateId;
+        localStorage.setItem('autoGenerateId', state.autoGenerateId);
+
+        const toggle = elements.autoGenerateIdToggle.querySelector('.toggle-input');
+        toggle.classList.toggle('active', state.autoGenerateId);
+
+        // Show/hide regenerate button
+        elements.regenerateIdBtn.style.display = state.autoGenerateId ? 'none' : 'flex';
+
+        if (!state.autoGenerateId) {
+            // Switching to fixed ID mode - save current ID
+            state.savedPeerId = state.myPeerId;
+            localStorage.setItem('savedPeerId', state.myPeerId);
+            showToast('ID fixe activé. Votre ID restera le même entre les sessions.', 'info');
+        } else {
+            // Switching to auto-generate mode
+            showToast('Génération automatique activée. Un nouvel ID sera généré au prochain rafraîchissement.', 'info');
+        }
+    }
+
+    function regenerateUserId() {
+        if (state.autoGenerateId) {
+            showToast('La génération automatique est activée. Rafraîchissez la page pour un nouvel ID.', 'warning');
+            return;
+        }
+
+        if (!confirm('Êtes-vous sûr de vouloir générer un nouvel ID ?\n\nVos contacts devront utiliser ce nouvel ID pour vous trouver.')) {
+            return;
+        }
+
+        // Generate new ID
+        const newPeerId = 'PT-' + generateId(8);
+        state.savedPeerId = newPeerId;
+        localStorage.setItem('savedPeerId', newPeerId);
+
+        showToast('Nouvel ID généré. Rafraîchissez la page pour l\'appliquer.', 'success');
+        showToast('Actualisez la page pour utiliser le nouvel ID.', 'warning');
     }
 
     function updateDmContactsList() {
