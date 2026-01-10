@@ -2815,6 +2815,7 @@
         // Friends & DM system
         friends: JSON.parse(localStorage.getItem('friends') || '[]'), // Array of usernames
         friendRequestsReceived: JSON.parse(localStorage.getItem('friendRequestsReceived') || '[]'), // Array<{username, peerId, timestamp}>
+        friendRequestsSent: JSON.parse(localStorage.getItem('friendRequestsSent') || '[]'), // Array<{username, peerId, timestamp}>
         pendingJoinRequests: new Map(), // roomId -> Array<{username, peerId, timestamp}>
         allowDMFromNonFriends: localStorage.getItem('allowDMFromNonFriends') !== 'false',
         // Direct messages
@@ -6814,7 +6815,7 @@
         const sidebarHTML = users.map(([peerId, info]) => {
             const username = info.name || info.username || peerId;
             const isFriend = state.friends.includes(username);
-            const hasPendingRequest = state.friendRequestsReceived.some(r => r.username === username);
+            const hasSentRequest = state.friendRequestsSent.some(r => r.username === username);
 
             return `
                 <div class="peer-item connected" data-peer-id="${peerId}" data-username="${escapeHtml(username)}">
@@ -6825,8 +6826,8 @@
                     </div>
                     ${isFriend ?
                         `<span style="color:#22c55e;font-size:0.7rem;">✓ Ami</span>` :
-                        hasPendingRequest ?
-                        `<span style="color:#fbbf24;font-size:0.7rem;">Demande</span>` :
+                        hasSentRequest ?
+                        `<span style="color:#fbbf24;font-size:0.7rem;">Envoyée</span>` :
                         `<button class="btn btn-primary send-friend-request-btn" style="width:auto;padding:4px 8px;font-size:0.7rem;" data-username="${escapeHtml(username)}" data-peer-id="${peerId}">
                             + Ami
                         </button>`
@@ -6839,7 +6840,7 @@
         const mainHTML = users.map(([peerId, info]) => {
             const username = info.name || info.username || peerId;
             const isFriend = state.friends.includes(username);
-            const hasPendingRequest = state.friendRequestsReceived.some(r => r.username === username);
+            const hasSentRequest = state.friendRequestsSent.some(r => r.username === username);
 
             return `
                 <div class="room-card user-card" data-peer-id="${peerId}" data-username="${escapeHtml(username)}" style="cursor:default;">
@@ -6909,6 +6910,12 @@
             return;
         }
 
+        // Check if already sent a request
+        if (state.friendRequestsSent.some(r => r.username === username)) {
+            showToast(`Demande déjà envoyée à ${username}`, 'warning');
+            return;
+        }
+
         const connection = state.connections.get(peerId);
         if (!connection || !connection.conn.open) {
             showToast('Utilisateur non connecté', 'warning');
@@ -6922,6 +6929,14 @@
             fromPeerId: state.myPeerId,
             timestamp: Date.now()
         });
+
+        // Add to sent requests list
+        state.friendRequestsSent.push({
+            username: username,
+            peerId: peerId,
+            timestamp: Date.now()
+        });
+        saveFriendRequestsSent();
 
         showToast(`Demande d'ami envoyée à ${username}`, 'success');
         updateConnectedUsersList();
@@ -7035,6 +7050,13 @@
             saveFriends();
             updateFriendsList();
             updateConnectedUsersList();
+        }
+
+        // Remove from sent requests list
+        const sentIndex = state.friendRequestsSent.findIndex(r => r.username === fromUsername);
+        if (sentIndex > -1) {
+            state.friendRequestsSent.splice(sentIndex, 1);
+            saveFriendRequestsSent();
         }
 
         showToast(`${fromUsername} a accepté votre demande d'ami !`, 'success');
@@ -7158,6 +7180,10 @@
 
     function saveFriendRequests() {
         localStorage.setItem('friendRequestsReceived', JSON.stringify(state.friendRequestsReceived));
+    }
+
+    function saveFriendRequestsSent() {
+        localStorage.setItem('friendRequestsSent', JSON.stringify(state.friendRequestsSent));
     }
 
     // ============================================
