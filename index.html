@@ -4156,6 +4156,28 @@
     async function handleIncomingData(conn, data) {
         const peerId = conn.peer;
 
+        // Support binary messages: header (uint32 LE length) + header JSON + payload bytes
+        try {
+            if (data && (data instanceof ArrayBuffer || ArrayBuffer.isView(data))) {
+                const u8 = data instanceof ArrayBuffer ? new Uint8Array(data) : (data.buffer ? new Uint8Array(data.buffer, data.byteOffset, data.byteLength) : new Uint8Array(data));
+                const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+                // Read header length (first 4 bytes, little-endian)
+                const headerLen = dv.getUint32(0, true);
+                const headerStart = 4;
+                const headerEnd = headerStart + headerLen;
+                const headerBytes = u8.slice(headerStart, headerEnd);
+                const headerText = new TextDecoder().decode(headerBytes);
+                const header = JSON.parse(headerText);
+                // Remaining bytes are payload
+                const payload = u8.slice(headerEnd);
+                // Attach payload as Uint8Array for handlers
+                header.data = payload;
+                data = header;
+            }
+        } catch (err) {
+            console.error('Failed to parse binary incoming message', err);
+            // Fall through and attempt normal processing for non-binary messages
+        }
         switch (data.type) {
             case 'handshake':
                 await handleHandshake(conn, data);
@@ -4812,32 +4834,43 @@
                     timestamp: new Date().toISOString()
                 });
 
-                // Send chunks - use smaller chunk size for binary data
-                const chunkSize = 4096; // 4KB chunks for binary data (smaller than JSON limit)
+                // Send chunks as binary messages: [4 bytes headerLen LE][header JSON][chunk bytes]
+                const chunkSize = 4096; // 4KB chunks
                 const totalChunks = Math.ceil(encrypted.length / chunkSize);
-                
-                // Send chunks with delay to avoid connection overload
+
                 for (let i = 0; i < totalChunks; i++) {
                     const start = i * chunkSize;
                     const end = Math.min(start + chunkSize, encrypted.length);
                     const chunk = encrypted.slice(start, end);
 
-                    // Convert to base64 to avoid array size issues
-                    const chunkBase64 = btoa(String.fromCharCode(...chunk));
-
-                    conn.send({
+                    // Prepare header
+                    const header = {
                         type: 'file-chunk',
                         transferId,
                         chunkIndex: i,
-                        totalChunks,
-                        data: chunkBase64
-                    });
+                        totalChunks
+                    };
+
+                    const headerStr = JSON.stringify(header);
+                    const headerBytes = new TextEncoder().encode(headerStr);
+                    const headerLen = headerBytes.length;
+
+                    // Allocate buffer: 4 bytes length + header + chunk
+                    const buffer = new ArrayBuffer(4 + headerLen + chunk.length);
+                    const view = new Uint8Array(buffer);
+                    const dv = new DataView(buffer);
+                    dv.setUint32(0, headerLen, true); // little-endian
+                    view.set(headerBytes, 4);
+                    view.set(chunk, 4 + headerLen);
+
+                    // Send binary packet
+                    conn.send(buffer);
 
                     // Update progress
                     const progress = ((i + 1) / totalChunks) * 100;
                     updateFileProgress(messageId, progress);
 
-                    // Add small delay between chunks to avoid connection overload
+                    // Small delay
                     await new Promise(resolve => setTimeout(resolve, 10));
                 }
 
@@ -4877,11 +4910,21 @@
         const transfer = state.fileTransfers.get(data.transferId);
         if (!transfer) return;
 
-        // Decode base64 chunk to Uint8Array
-        const binaryString = atob(data.data);
-        const chunk = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-            chunk[i] = binaryString.charCodeAt(i);
+        // data.data may be a base64 string (old path) or a Uint8Array (binary path)
+        let chunk;
+        if (typeof data.data === 'string') {
+            const binaryString = atob(data.data);
+            chunk = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                chunk[i] = binaryString.charCodeAt(i);
+            }
+        } else if (data.data instanceof Uint8Array) {
+            chunk = data.data;
+        } else if (data.data && data.data.byteLength) {
+            chunk = new Uint8Array(data.data);
+        } else {
+            console.warn('Received file chunk in unknown format', data);
+            return;
         }
 
         transfer.chunks[data.chunkIndex] = chunk;
