@@ -6791,8 +6791,13 @@
         const mainContainer = elements.mainConnectedUsersList;
         const users = Array.from(state.connections.entries());
 
-        // Create cache key based on users count and their IDs
-        const currentCacheKey = users.map(([peerId]) => `${peerId}:${state.friends.includes(peerId)}`).join('|');
+        // Create cache key based on users, friend status, and sent requests
+        const currentCacheKey = users.map(([peerId, info]) => {
+            const username = info.name || info.username || peerId;
+            const isFriend = state.friends.includes(username);
+            const hasSentRequest = state.friendRequestsSent.some(r => r.username === username);
+            return `${peerId}:${isFriend}:${hasSentRequest}`;
+        }).join('|');
 
         // Skip update if nothing changed (unless forced)
         if (!forceUpdate && cachedUsersList === currentCacheKey) {
