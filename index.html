@@ -3380,11 +3380,11 @@
             console.log('✅ Firebase initialisé - Découverte automatique activée!');
             appendSystemMessage('🔥 Firebase: Découverte automatique des peers activée');
 
-            // Enregistrer ce peer
-            registerInFirebase();
-
-            // Écouter les autres peers
+            // IMPORTANT: Écouter AVANT de s'enregistrer pour capturer les peers existants
             listenForFirebasePeers();
+
+            // Ensuite s'enregistrer
+            registerInFirebase();
 
         } catch (error) {
             console.error('❌ Erreur initialisation Firebase:', error);
@@ -3430,7 +3430,7 @@
     }
 
     // Écouter l'ajout de nouveaux peers
-    function listenForFirebasePeers() {
+    async function listenForFirebasePeers() {
         if (!firebaseDb) {
             console.error('❌ Firebase DB not initialized');
             return;
@@ -3441,12 +3441,51 @@
 
         const peersRef = firebaseDb.ref('peers');
 
-        // Peer ajouté
+        // D'abord, charger tous les peers existants
+        console.log('📖 Loading existing peers from Firebase...');
+        try {
+            const snapshot = await peersRef.once('value');
+            const existingPeers = snapshot.val() || {};
+            const peerIds = Object.keys(existingPeers);
+
+            console.log(`📊 Found ${peerIds.length} peer(s) in Firebase:`, peerIds);
+
+            // Traiter chaque peer existant
+            for (const peerId of peerIds) {
+                const data = existingPeers[peerId];
+
+                if (peerId === state.myPeerId) {
+                    console.log(`⏭️  Skipping self in initial load (${peerId})`);
+                    continue;
+                }
+                if (!peerId.startsWith('PT-')) {
+                    console.log(`⏭️  Skipping invalid peer ID in initial load (${peerId})`);
+                    continue;
+                }
+
+                console.log(`🔥 Firebase (initial): Peer discovered: ${data.name} (${peerId})`);
+                handleFirebasePeerDiscovered(peerId, data);
+            }
+
+            console.log('✅ Initial peer load complete');
+        } catch (error) {
+            console.error('❌ Error loading initial peers:', error);
+        }
+
+        // Ensuite, écouter les nouveaux peers qui s'ajoutent
+        console.log('👂 Now listening for new peers...');
         peersRef.on('child_added', (snapshot) => {
             const peerId = snapshot.key;
             const data = snapshot.val();
 
             console.log(`📥 Firebase child_added event:`, { peerId, data });
+
+            // Si c'est un peer qu'on a déjà chargé dans le initial load, on skip
+            const existing = state.discoveredPeers.get(peerId);
+            if (existing && existing.via === 'firebase') {
+                console.log(`⏭️  Peer already loaded (${peerId})`);
+                return;
+            }
 
             if (peerId === state.myPeerId) {
                 console.log(`⏭️  Skipping self (${peerId})`);
@@ -3457,7 +3496,7 @@
                 return;
             }
 
-            console.log(`🔥 Firebase: Peer découvert: ${data.name} (${peerId})`);
+            console.log(`🔥 Firebase (new): Peer découvert: ${data.name} (${peerId})`);
 
             handleFirebasePeerDiscovered(peerId, data);
         });
