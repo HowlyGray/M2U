@@ -6782,11 +6782,24 @@
     // FRIENDS SYSTEM (Username-based)
     // ============================================
 
+    // Cache for connected users list to avoid unnecessary DOM updates
+    let cachedUsersList = null;
+
     // Update list of all connected users (both sidebar and main tab)
-    function updateConnectedUsersList() {
+    function updateConnectedUsersList(forceUpdate = false) {
         const sidebarContainer = elements.connectedUsersList;
         const mainContainer = elements.mainConnectedUsersList;
         const users = Array.from(state.connections.entries());
+
+        // Create cache key based on users count and their IDs
+        const currentCacheKey = users.map(([peerId]) => `${peerId}:${state.friends.includes(peerId)}`).join('|');
+
+        // Skip update if nothing changed (unless forced)
+        if (!forceUpdate && cachedUsersList === currentCacheKey) {
+            return;
+        }
+
+        cachedUsersList = currentCacheKey;
 
         elements.connectedUsersCount.textContent = users.length;
 
@@ -6860,7 +6873,7 @@
                                 </svg>
                                 Message
                             </button>` :
-                            hasPendingRequest ?
+                            hasSentRequest ?
                             `<span style="color:#fbbf24;font-size:0.85rem;padding:8px;">Demande envoyée</span>` :
                             `<button class="btn btn-primary send-friend-request-btn" style="flex:1;padding:8px;" data-username="${escapeHtml(username)}" data-peer-id="${peerId}">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;">
@@ -6939,7 +6952,9 @@
         saveFriendRequestsSent();
 
         showToast(`Demande d'ami envoyée à ${username}`, 'success');
-        updateConnectedUsersList();
+
+        // Force update after a short delay to allow UI to respond
+        setTimeout(() => updateConnectedUsersList(true), 100);
     }
 
     // Handle received friend request
@@ -7036,7 +7051,7 @@
         elements.acceptFriendIdInput.value = '';
         updateFriendRequestsList();
         updateFriendsList();
-        updateConnectedUsersList();
+        updateConnectedUsersList(true);
 
         showToast(`${request.username} ajouté à vos amis !`, 'success');
     }
@@ -7049,7 +7064,7 @@
             state.friends.push(fromUsername);
             saveFriends();
             updateFriendsList();
-            updateConnectedUsersList();
+            updateConnectedUsersList(true);
         }
 
         // Remove from sent requests list
@@ -7080,7 +7095,7 @@
             state.friends.splice(index, 1);
             saveFriends();
             updateFriendsList();
-            updateConnectedUsersList();
+            updateConnectedUsersList(true);
             showToast('Ami supprimé', 'info');
         }
     }
