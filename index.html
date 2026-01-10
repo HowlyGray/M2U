@@ -3431,7 +3431,13 @@
 
     // Écouter l'ajout de nouveaux peers
     function listenForFirebasePeers() {
-        if (!firebaseDb) return;
+        if (!firebaseDb) {
+            console.error('❌ Firebase DB not initialized');
+            return;
+        }
+
+        console.log('👂 Firebase: Starting to listen for peers...');
+        console.log('🆔 My Peer ID:', state.myPeerId);
 
         const peersRef = firebaseDb.ref('peers');
 
@@ -3440,8 +3446,16 @@
             const peerId = snapshot.key;
             const data = snapshot.val();
 
-            if (peerId === state.myPeerId) return; // Nous-mêmes
-            if (!peerId.startsWith('PT-')) return;
+            console.log(`📥 Firebase child_added event:`, { peerId, data });
+
+            if (peerId === state.myPeerId) {
+                console.log(`⏭️  Skipping self (${peerId})`);
+                return; // Nous-mêmes
+            }
+            if (!peerId.startsWith('PT-')) {
+                console.log(`⏭️  Skipping invalid peer ID (${peerId})`);
+                return;
+            }
 
             console.log(`🔥 Firebase: Peer découvert: ${data.name} (${peerId})`);
 
@@ -3481,21 +3495,31 @@
 
     // Gérer un peer découvert via Firebase
     async function handleFirebasePeerDiscovered(peerId, data) {
+        console.log(`🔍 handleFirebasePeerDiscovered called:`, { peerId, data });
+
         const now = Date.now();
 
         // Ajouter aux discovered peers
         const existing = state.discoveredPeers.get(peerId);
+        console.log(`📊 Existing peer in state?`, existing ? 'Yes' : 'No');
+
         if (!existing) {
-            state.discoveredPeers.set(peerId, {
+            const peerInfo = {
                 name: data.name || 'Utilisateur',
                 lastSeen: now,
                 lastHeartbeat: data.timestamp || now,
                 connectable: true,
                 online: true,
                 via: 'firebase'
-            });
+            };
+
+            console.log(`➕ Adding new peer to state.discoveredPeers:`, peerInfo);
+            state.discoveredPeers.set(peerId, peerInfo);
+            console.log(`📈 Total discovered peers:`, state.discoveredPeers.size);
 
             showToast(`${data.name || 'Nouvel utilisateur'} en ligne!`, 'info');
+
+            console.log(`🖥️  Calling updateDiscoveredPeersList()...`);
             updateDiscoveredPeersList();
 
             // Sauvegarder comme bootstrap peer
@@ -3509,6 +3533,7 @@
                 }, 1000);
             }
         } else {
+            console.log(`🔄 Updating existing peer`);
             existing.lastSeen = now;
             existing.online = true;
             existing.connectable = true;
@@ -3970,9 +3995,21 @@
 
     // Update UI with all discovered peers
     function updateDiscoveredPeersList() {
+        console.log(`🔄 updateDiscoveredPeersList() called`);
+        console.log(`📊 state.discoveredPeers size:`, state.discoveredPeers.size);
+        console.log(`📊 state.discoveredPeers content:`, Array.from(state.discoveredPeers.entries()));
+
         const now = Date.now();
-        const allPeers = Array.from(state.discoveredPeers.entries())
-            .filter(([peerId, info]) => now - info.lastSeen < 60000) // Active in last 60s
+        const allPeersBeforeFilter = Array.from(state.discoveredPeers.entries());
+        console.log(`📋 All peers before filter:`, allPeersBeforeFilter);
+
+        const allPeers = allPeersBeforeFilter
+            .filter(([peerId, info]) => {
+                const timeDiff = now - info.lastSeen;
+                const isRecent = timeDiff < 60000; // Active in last 60s
+                console.log(`⏰ Peer ${peerId}: lastSeen=${info.lastSeen}, timeDiff=${timeDiff}ms, isRecent=${isRecent}`);
+                return isRecent;
+            })
             .map(([peerId, info]) => ({
                 peerId,
                 name: info.name,
@@ -3987,17 +4024,25 @@
                 return b.lastSeen - a.lastSeen;
             });
 
+        console.log(`📋 All peers after filter and map:`, allPeers);
+        console.log(`🔢 Number of peers to display:`, allPeers.length);
+
         // Update the main users list
         const usersListElement = document.getElementById('users-list');
+        console.log(`🎯 users-list element found:`, !!usersListElement);
+
         if (usersListElement) {
             if (allPeers.length === 0) {
+                console.log(`📝 Setting users-list to empty state message`);
                 usersListElement.innerHTML = `
                     <div style="color:#64748b;font-size:0.85rem;text-align:center;padding:20px;">
                         🔍 Recherche d'utilisateurs en ligne...<br>
                         <small style="margin-top:8px;display:block;">Découverte automatique active</small>
                     </div>
                 `;
+                console.log(`✅ Empty state HTML set`);
             } else {
+                console.log(`📝 Setting users-list with ${allPeers.length} peer(s)`);
                 usersListElement.innerHTML = allPeers.map(peer => `
                     <div class="peer-item ${peer.connected ? 'connected' : ''}" style="cursor:pointer;" onclick="window.connectToPeer('${peer.peerId}')">
                         <div class="peer-avatar">${(peer.name || '?')[0].toUpperCase()}</div>
@@ -4015,17 +4060,31 @@
                         ` : ''}
                     </div>
                 `).join('');
+                console.log(`✅ Peer list HTML set successfully`);
             }
+        } else {
+            console.error(`❌ users-list element NOT FOUND in DOM!`);
         }
 
         // Update header with peer count
         const onlineCount = allPeers.length;
         const connectedCount = allPeers.filter(p => p.connected).length;
 
+        console.log(`📊 Peer counts: online=${onlineCount}, connected=${connectedCount}`);
+
         const statusElement = document.getElementById('discovery-status');
+        console.log(`🎯 discovery-status element found:`, !!statusElement);
+
         if (statusElement) {
-            statusElement.textContent = `${onlineCount} en ligne • ${connectedCount} connecté(s)`;
+            const statusText = `${onlineCount} en ligne • ${connectedCount} connecté(s)`;
+            console.log(`📝 Setting status text: "${statusText}"`);
+            statusElement.textContent = statusText;
+            console.log(`✅ Status text updated`);
+        } else {
+            console.error(`❌ discovery-status element NOT FOUND in DOM!`);
         }
+
+        console.log(`✅ updateDiscoveredPeersList() completed`);
     }
 
     // ============================================
