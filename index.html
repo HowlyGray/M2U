@@ -4360,9 +4360,18 @@
 
         conn.on('error', (err) => {
             console.error('Connection error:', err);
+            console.error('Connection error details for peer', peerId, ':', {
+                type: err.type,
+                message: err.message
+            });
             // Don't immediately disconnect on data channel errors during file transfer
             if (err.type === 'data-channel-error' && state.fileTransfers.size > 0) {
                 console.log('Data channel error during file transfer - ignoring');
+                return;
+            }
+            // Don't disconnect on peer-unavailable if we have active file transfers
+            if (err.type === 'peer-unavailable' && state.fileTransfers.size > 0) {
+                console.warn('Peer unavailable during file transfer - may be temporary');
                 return;
             }
             handlePeerDisconnect(peerId);
@@ -4372,28 +4381,7 @@
     async function handleIncomingData(conn, data) {
         const peerId = conn.peer;
 
-        // Support binary messages: header (uint32 LE length) + header JSON + payload bytes
-        try {
-            if (data && (data instanceof ArrayBuffer || ArrayBuffer.isView(data))) {
-                const u8 = data instanceof ArrayBuffer ? new Uint8Array(data) : (data.buffer ? new Uint8Array(data.buffer, data.byteOffset, data.byteLength) : new Uint8Array(data));
-                const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
-                // Read header length (first 4 bytes, little-endian)
-                const headerLen = dv.getUint32(0, true);
-                const headerStart = 4;
-                const headerEnd = headerStart + headerLen;
-                const headerBytes = u8.slice(headerStart, headerEnd);
-                const headerText = new TextDecoder().decode(headerBytes);
-                const header = JSON.parse(headerText);
-                // Remaining bytes are payload
-                const payload = u8.slice(headerEnd);
-                // Attach payload as Uint8Array for handlers
-                header.data = payload;
-                data = header;
-            }
-        } catch (err) {
-            console.error('Failed to parse binary incoming message', err);
-            // Fall through and attempt normal processing for non-binary messages
-        }
+        // Directly process JSON messages (no binary parsing needed)
         switch (data.type) {
             case 'handshake':
                 await handleHandshake(conn, data);
@@ -5065,8 +5053,18 @@
         appendFileMessage(messageId, file.name, file.size, file.type, 'sent', 0);
 
         // Send file to all peers
-        for (const [peerId, { conn, sharedKey }] of state.connections) {
+        let peersSent = 0;
+        let peersFailed = 0;
+        
+        for (const [peerId, { conn, sharedKey, name }] of state.connections) {
             try {
+                // Check if connection is still open
+                if (!conn || !conn.open) {
+                    console.warn(`Skipping peer ${peerId} (${name}): connection not open`);
+                    peersFailed++;
+                    continue;
+                }
+                
                 // Encrypt the file
                 const { iv, encrypted } = await Crypto.encryptFile(sharedKey, arrayBuffer);
 
@@ -5079,11 +5077,10 @@
                     fileType: file.type,
                     iv: Array.from(iv),
                     sender: state.myName,
-                    timestamp: new Date().toISOString(),
-                    isDM: false
+                    timestamp: new Date().toISOString()
                 });
 
-                // Send chunks as binary messages: [4 bytes headerLen LE][header JSON][chunk bytes]
+                // Send chunks - use base64 encoding (like old version)
                 const chunkSize = 4096; // 4KB chunks
                 const totalChunks = Math.ceil(encrypted.length / chunkSize);
 
@@ -5092,34 +5089,22 @@
                     const end = Math.min(start + chunkSize, encrypted.length);
                     const chunk = encrypted.slice(start, end);
 
-                    // Prepare header
-                    const header = {
+                    // Convert to base64 to avoid array size issues
+                    const chunkBase64 = btoa(String.fromCharCode(...chunk));
+
+                    conn.send({
                         type: 'file-chunk',
                         transferId,
                         chunkIndex: i,
-                        totalChunks
-                    };
-
-                    const headerStr = JSON.stringify(header);
-                    const headerBytes = new TextEncoder().encode(headerStr);
-                    const headerLen = headerBytes.length;
-
-                    // Allocate buffer: 4 bytes length + header + chunk
-                    const buffer = new ArrayBuffer(4 + headerLen + chunk.length);
-                    const view = new Uint8Array(buffer);
-                    const dv = new DataView(buffer);
-                    dv.setUint32(0, headerLen, true); // little-endian
-                    view.set(headerBytes, 4);
-                    view.set(chunk, 4 + headerLen);
-
-                    // Send binary packet
-                    conn.send(buffer);
+                        totalChunks,
+                        data: chunkBase64
+                    });
 
                     // Update progress
                     const progress = ((i + 1) / totalChunks) * 100;
                     updateFileProgress(messageId, progress);
 
-                    // Small delay
+                    // Add small delay between chunks to avoid connection overload
                     await new Promise(resolve => setTimeout(resolve, 10));
                 }
 
@@ -5131,12 +5116,15 @@
                     type: 'file-end',
                     transferId
                 });
+                peersSent++;
 
             } catch (error) {
-                console.error('File send error:', error);
-                showToast(`Erreur d'envoi de ${file.name}`, 'error');
+                console.error('File send error to peer', peerId, ':', error);
+                peersFailed++;
             }
         }
+        
+        console.log(`File transfer complete: ${peersSent} peers succeeded, ${peersFailed} peers failed`);
 
         updateFileProgress(messageId, 100, true);
 
@@ -5176,19 +5164,18 @@
             const { iv, encrypted } = await Crypto.encryptFile(connection.sharedKey, arrayBuffer);
 
                 // Send file metadata
-                connection.conn.send({
-                    type: 'file-start',
-                    transferId,
-                    fileName: file.name,
-                    fileSize: encrypted.length,
-                    fileType: file.type,
-                    iv: Array.from(iv),
-                    sender: state.myName,
-                    timestamp: new Date().toISOString(),
-                    isDM: true
-                });
+            connection.conn.send({
+                type: 'file-start',
+                transferId,
+                fileName: file.name,
+                fileSize: encrypted.length,
+                fileType: file.type,
+                iv: Array.from(iv),
+                sender: state.myName,
+                timestamp: new Date().toISOString()
+            });
 
-            // Send chunks as binary messages
+            // Send chunks - use base64 encoding (like old version)
             const chunkSize = 4096;
             const totalChunks = Math.ceil(encrypted.length / chunkSize);
 
@@ -5197,25 +5184,16 @@
                 const end = Math.min(start + chunkSize, encrypted.length);
                 const chunk = encrypted.slice(start, end);
 
-                const header = {
+                // Convert to base64 to avoid array size issues
+                const chunkBase64 = btoa(String.fromCharCode(...chunk));
+
+                connection.conn.send({
                     type: 'file-chunk',
                     transferId,
                     chunkIndex: i,
-                    totalChunks
-                };
-
-                const headerStr = JSON.stringify(header);
-                const headerBytes = new TextEncoder().encode(headerStr);
-                const headerLen = headerBytes.length;
-
-                const buffer = new ArrayBuffer(4 + headerLen + chunk.length);
-                const view = new Uint8Array(buffer);
-                const dv = new DataView(buffer);
-                dv.setUint32(0, headerLen, true);
-                view.set(headerBytes, 4);
-                view.set(chunk, 4 + headerLen);
-
-                connection.conn.send(buffer);
+                    totalChunks,
+                    data: chunkBase64
+                });
 
                 const progress = ((i + 1) / totalChunks) * 100;
                 updateDmFileProgress(messageId, progress);
@@ -6078,6 +6056,11 @@
 
     function handlePeerError(err) {
         console.error('Peer error:', err);
+        console.error('Peer error details:', {
+            type: err.type,
+            message: err.message,
+            stack: err.stack
+        });
         let message = 'Erreur de connexion';
         let isCritical = false;
 
@@ -6085,6 +6068,7 @@
             message = 'Pair introuvable. Vérifiez l\'ID et réessayez.';
             updateStatusBar('error', message);
             showToast(message, 'error');
+            console.warn('Peer unavailable - check if connection exists or peer is online');
         } else if (err.type === 'network' || err.type === 'server-error') {
             // Network errors are usually temporary and don't affect existing P2P connections
             message = 'Erreur réseau temporaire. Connexions P2P actives.';
