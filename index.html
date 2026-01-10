@@ -2361,7 +2361,7 @@
                 <!-- Users Section -->
                 <div class="section-container" id="users-section">
                     <div class="rooms-header">
-                        <h2>Utilisateurs en ligne</h2>
+                        <h2>Utilisateurs connectés (<span id="connected-users-count">0</span>)</h2>
                         <div style="font-size:0.8rem;color:#64748b;margin-top:4px;" id="discovery-status">
                             🔍 Découverte automatique...
                         </div>
@@ -2395,12 +2395,14 @@
                         </div>
                     </div>
 
-                    <div class="rooms-list" id="users-list">
+                    <div class="rooms-list" id="main-connected-users-list">
                         <div style="color:#64748b;font-size:0.85rem;text-align:center;padding:20px;">
                             🔍 Recherche d'utilisateurs en ligne...<br>
                             <small style="margin-top:8px;display:block;">Découverte automatique active</small>
                         </div>
                     </div>
+                    <!-- Hidden element for backward compatibility -->
+                    <div id="connected-users-list" style="display:none;"></div>
                 </div>
 
                 <!-- DM Section -->
@@ -4237,7 +4239,7 @@
         console.log(`🔢 Number of peers to display:`, allPeers.length);
 
         // Update the main users list
-        const usersListElement = document.getElementById('users-list');
+        const usersListElement = document.getElementById('main-connected-users-list');
         console.log(`🎯 users-list element found:`, !!usersListElement);
 
         if (usersListElement) {
