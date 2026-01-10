@@ -2314,16 +2314,15 @@
                 <!-- Users Section -->
                 <div class="section-container" id="users-section">
                     <div class="rooms-header">
-                        <h2>Utilisateurs connectés</h2>
+                        <h2>Utilisateurs en ligne</h2>
+                        <div style="font-size:0.8rem;color:#64748b;margin-top:4px;" id="discovery-status">
+                            🔍 Découverte automatique...
+                        </div>
                     </div>
-                    <div class="rooms-list" id="main-connected-users-list">
-                        <div style="color:#64748b;font-size:0.9rem;text-align:center;padding:40px;">
-                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin-bottom:12px;">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <line x1="12" y1="8" x2="12" y2="12"></line>
-                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                            </svg>
-                            <p>Aucun utilisateur connecté pour le moment</p>
+                    <div class="rooms-list" id="users-list">
+                        <div style="color:#64748b;font-size:0.85rem;text-align:center;padding:20px;">
+                            🔍 Recherche d'utilisateurs en ligne...<br>
+                            <small style="margin-top:8px;display:block;">Découverte automatique active</small>
                         </div>
                     </div>
                 </div>
@@ -2661,7 +2660,11 @@
         peerIdToUsername: new Map(), // peerId -> username
         myPreviousPeerIds: JSON.parse(localStorage.getItem('myPreviousPeerIds') || '[]'), // Array of old peerIds
         // Connections by username for easy lookup
-        connectionsByUsername: new Map() // username -> { conn, name, publicKey, sharedKey, role, peerId }
+        connectionsByUsername: new Map(), // username -> { conn, name, publicKey, sharedKey, role, peerId }
+        // Enhanced peer discovery (Ares/RetroShare style)
+        discoveredPeers: new Map(), // peerId -> {name, lastSeen, lastHeartbeat, connectable, via}
+        peerListVersion: 0, // Incremented when peer list changes
+        lastPeerBroadcast: 0 // Timestamp of last broadcast
     };
 
     // ============================================
@@ -3269,10 +3272,15 @@
                 appendSystemMessage('Recherche des utilisateurs en ligne...');
                 enableChat();
 
-                // Start automatic peer discovery
+                // Start automatic peer discovery (Ares/RetroShare style)
                 discoverPeers();
-                // Refresh peer list every 10 seconds
-                setInterval(discoverPeers, 10000);
+                setInterval(discoverPeers, 10000); // Discover from server every 10s
+
+                // Start heartbeat system
+                setInterval(sendHeartbeat, 5000); // Send heartbeat every 5s
+
+                // Start peer list broadcasting (gossip protocol)
+                setInterval(broadcastPeerList, 15000); // Broadcast every 15s
             });
 
             state.peer.on('connection', handleIncomingConnection);
@@ -3303,7 +3311,7 @@
     }
 
     // ============================================
-    // AUTOMATIC PEER DISCOVERY
+    // AUTOMATIC PEER DISCOVERY (Ares/RetroShare style)
     // ============================================
     async function discoverPeers() {
         if (!state.peer || !state.myPeerId) return;
@@ -3323,7 +3331,7 @@
                 apiUrl = 'https://0.peerjs.com/peerjs/peers';
             }
 
-            console.log('Discovering peers from:', apiUrl);
+            console.log('🔍 Discovering peers from:', apiUrl);
 
             const response = await fetch(apiUrl, {
                 method: 'GET',
@@ -3338,31 +3346,249 @@
             }
 
             const peers = await response.json();
-            console.log('Discovered peers:', peers);
+            const now = Date.now();
+            let newPeersFound = 0;
 
-            // Filter out our own peer ID and already connected peers
-            const newPeers = peers.filter(peerId =>
-                peerId !== state.myPeerId &&
-                !state.connections.has(peerId) &&
-                !state.pendingConnections.has(peerId) &&
-                peerId.startsWith('PT-') // Only connect to PeerText users
-            );
+            // Add ALL discovered peers to our list (not just connected ones)
+            for (const peerId of peers) {
+                if (peerId === state.myPeerId) continue;
+                if (!peerId.startsWith('PT-')) continue; // Only PeerText users
 
-            // Connect to each discovered peer
-            for (const peerId of newPeers) {
-                console.log('Auto-connecting to discovered peer:', peerId);
-                await connectToPeer(peerId);
-                // Small delay between connections to avoid overwhelming
-                await new Promise(resolve => setTimeout(resolve, 500));
+                // Add to discovered peers list
+                const existing = state.discoveredPeers.get(peerId);
+                if (!existing) {
+                    state.discoveredPeers.set(peerId, {
+                        name: 'Utilisateur',
+                        lastSeen: now,
+                        lastHeartbeat: now,
+                        connectable: true,
+                        via: 'server'
+                    });
+                    newPeersFound++;
+                } else {
+                    existing.lastSeen = now;
+                    existing.connectable = true;
+                }
             }
 
-            if (newPeers.length > 0) {
-                showToast(`${newPeers.length} nouvel(s) utilisateur(s) découvert(s)`, 'info');
+            // Update UI
+            updateDiscoveredPeersList();
+
+            // Auto-connect to newly discovered peers
+            const peersToConnect = Array.from(state.discoveredPeers.keys()).filter(peerId =>
+                !state.connections.has(peerId) &&
+                !state.pendingConnections.has(peerId) &&
+                state.discoveredPeers.get(peerId).connectable
+            );
+
+            for (const peerId of peersToConnect.slice(0, 5)) { // Connect to max 5 at a time
+                console.log('🔗 Auto-connecting to:', peerId);
+                await connectToPeer(peerId);
+                await new Promise(resolve => setTimeout(resolve, 300));
+            }
+
+            if (newPeersFound > 0) {
+                console.log(`✅ ${newPeersFound} nouveaux peer(s) découvert(s)`);
+                showToast(`${newPeersFound} utilisateur(s) en ligne détecté(s)`, 'info');
+            }
+
+            // Cleanup old peers (not seen for 60 seconds)
+            const timeout = 60000;
+            for (const [peerId, info] of state.discoveredPeers.entries()) {
+                if (now - info.lastSeen > timeout && !state.connections.has(peerId)) {
+                    state.discoveredPeers.delete(peerId);
+                }
             }
 
         } catch (error) {
             console.warn('Peer discovery error:', error.message);
-            // Silently fail - peer discovery is optional
+        }
+    }
+
+    // Broadcast our peer list to all connected peers (Gossip Protocol)
+    function broadcastPeerList() {
+        const now = Date.now();
+
+        // Only broadcast every 15 seconds to avoid spam
+        if (now - state.lastPeerBroadcast < 15000) return;
+        state.lastPeerBroadcast = now;
+
+        const peerList = Array.from(state.discoveredPeers.entries())
+            .filter(([peerId, info]) => now - info.lastSeen < 30000) // Only recent peers
+            .map(([peerId, info]) => ({
+                peerId,
+                name: info.name,
+                lastSeen: info.lastSeen
+            }));
+
+        // Send to all connected peers
+        state.connections.forEach(({ conn }) => {
+            try {
+                conn.send({
+                    type: 'peer_list',
+                    peers: peerList,
+                    version: state.peerListVersion,
+                    sender: state.myName
+                });
+            } catch (err) {
+                console.warn('Failed to broadcast peer list:', err);
+            }
+        });
+
+        console.log(`📡 Broadcasted peer list (${peerList.length} peers) to ${state.connections.size} connections`);
+    }
+
+    // Handle received peer list from other peers
+    function handlePeerListMessage(data, fromPeerId) {
+        if (!data.peers || !Array.isArray(data.peers)) return;
+
+        const now = Date.now();
+        let newPeersFound = 0;
+
+        data.peers.forEach(peerInfo => {
+            const { peerId, name, lastSeen } = peerInfo;
+
+            if (peerId === state.myPeerId) return;
+            if (!peerId.startsWith('PT-')) return;
+
+            const existing = state.discoveredPeers.get(peerId);
+            if (!existing) {
+                state.discoveredPeers.set(peerId, {
+                    name: name || 'Utilisateur',
+                    lastSeen: now,
+                    lastHeartbeat: lastSeen || now,
+                    connectable: true,
+                    via: fromPeerId
+                });
+                newPeersFound++;
+
+                // Try to connect to newly discovered peer
+                if (!state.connections.has(peerId) && !state.pendingConnections.has(peerId)) {
+                    setTimeout(() => connectToPeer(peerId), 1000);
+                }
+            } else {
+                existing.lastSeen = now;
+                if (name && name !== 'Utilisateur') {
+                    existing.name = name;
+                }
+            }
+        });
+
+        if (newPeersFound > 0) {
+            console.log(`📬 Received ${newPeersFound} new peer(s) from ${fromPeerId}`);
+            state.peerListVersion++;
+            updateDiscoveredPeersList();
+        }
+    }
+
+    // Send heartbeat to all connected peers
+    function sendHeartbeat() {
+        const now = Date.now();
+
+        state.connections.forEach(({ conn, name }) => {
+            try {
+                conn.send({
+                    type: 'heartbeat',
+                    timestamp: now,
+                    name: state.myName,
+                    peerId: state.myPeerId
+                });
+            } catch (err) {
+                console.warn('Heartbeat send failed:', err);
+            }
+        });
+
+        // Update our own entry in discovered peers
+        state.discoveredPeers.set(state.myPeerId, {
+            name: state.myName,
+            lastSeen: now,
+            lastHeartbeat: now,
+            connectable: true,
+            via: 'self'
+        });
+    }
+
+    // Handle heartbeat from peer
+    function handleHeartbeat(data, fromPeerId) {
+        const now = Date.now();
+
+        const peerInfo = state.discoveredPeers.get(fromPeerId);
+        if (peerInfo) {
+            peerInfo.lastHeartbeat = now;
+            peerInfo.lastSeen = now;
+            if (data.name) {
+                peerInfo.name = data.name;
+            }
+        } else {
+            state.discoveredPeers.set(fromPeerId, {
+                name: data.name || 'Utilisateur',
+                lastSeen: now,
+                lastHeartbeat: now,
+                connectable: true,
+                via: 'heartbeat'
+            });
+        }
+
+        updateDiscoveredPeersList();
+    }
+
+    // Update UI with all discovered peers
+    function updateDiscoveredPeersList() {
+        const now = Date.now();
+        const allPeers = Array.from(state.discoveredPeers.entries())
+            .filter(([peerId, info]) => now - info.lastSeen < 60000) // Active in last 60s
+            .map(([peerId, info]) => ({
+                peerId,
+                name: info.name,
+                connected: state.connections.has(peerId),
+                pending: state.pendingConnections.has(peerId),
+                lastSeen: info.lastSeen
+            }))
+            .sort((a, b) => {
+                // Sort: connected first, then by last seen
+                if (a.connected && !b.connected) return -1;
+                if (!a.connected && b.connected) return 1;
+                return b.lastSeen - a.lastSeen;
+            });
+
+        // Update the main users list
+        const usersListElement = document.getElementById('users-list');
+        if (usersListElement) {
+            if (allPeers.length === 0) {
+                usersListElement.innerHTML = `
+                    <div style="color:#64748b;font-size:0.85rem;text-align:center;padding:20px;">
+                        🔍 Recherche d'utilisateurs en ligne...<br>
+                        <small style="margin-top:8px;display:block;">Découverte automatique active</small>
+                    </div>
+                `;
+            } else {
+                usersListElement.innerHTML = allPeers.map(peer => `
+                    <div class="peer-item ${peer.connected ? 'connected' : ''}" style="cursor:pointer;" onclick="window.connectToPeer('${peer.peerId}')">
+                        <div class="peer-avatar">${(peer.name || '?')[0].toUpperCase()}</div>
+                        <div class="peer-details">
+                            <div class="peer-name">${escapeHtml(peer.name || 'Utilisateur')}</div>
+                            <div class="peer-status ${peer.connected ? 'online' : ''}">
+                                <span class="status-dot"></span>
+                                ${peer.connected ? 'Connecté' : peer.pending ? 'Connexion...' : 'En ligne'}
+                            </div>
+                        </div>
+                        ${!peer.connected && !peer.pending ? `
+                            <button class="peer-action-btn" onclick="event.stopPropagation(); window.connectToPeer('${peer.peerId}')" title="Se connecter">
+                                ➕
+                            </button>
+                        ` : ''}
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Update header with peer count
+        const onlineCount = allPeers.length;
+        const connectedCount = allPeers.filter(p => p.connected).length;
+
+        const statusElement = document.getElementById('discovery-status');
+        if (statusElement) {
+            statusElement.textContent = `${onlineCount} en ligne • ${connectedCount} connecté(s)`;
         }
     }
 
@@ -3438,6 +3664,14 @@
         switch (data.type) {
             case 'handshake':
                 await handleHandshake(conn, data);
+                break;
+
+            case 'peer_list':
+                handlePeerListMessage(data, peerId);
+                break;
+
+            case 'heartbeat':
+                handleHeartbeat(data, peerId);
                 break;
 
             case 'encrypted':
@@ -3567,6 +3801,21 @@
                 // Store mapping username <-> peerId
                 state.usernameToPeerId.set(username, peerId);
                 state.peerIdToUsername.set(peerId, username);
+
+                // Update discovered peers with actual name
+                const discoveredPeer = state.discoveredPeers.get(peerId);
+                if (discoveredPeer) {
+                    discoveredPeer.name = username;
+                    discoveredPeer.lastSeen = Date.now();
+                } else {
+                    state.discoveredPeers.set(peerId, {
+                        name: username,
+                        lastSeen: Date.now(),
+                        lastHeartbeat: Date.now(),
+                        connectable: true,
+                        via: 'connection'
+                    });
+                }
 
                 // Save previous peerIds for this username
                 if (!state.myPreviousPeerIds.includes(peerId)) {
@@ -4316,6 +4565,7 @@
     // ============================================
     function updatePeersList() {
         updateParticipantsList();
+        updateDiscoveredPeersList(); // Also update the discovered peers list
     }
 
     function updateParticipantsList() {
