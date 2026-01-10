@@ -2964,6 +2964,44 @@
             }
         });
 
+        // DM file sending
+        elements.dmAttachBtn.addEventListener('click', () => {
+            elements.fileInput.dataset.context = 'dm';
+            elements.fileInput.dataset.recipient = state.activeDMConversation;
+            elements.fileInput.click();
+        });
+
+        // DM typing indicator
+        let dmTypingTimer;
+        elements.dmInput.addEventListener('input', () => {
+            if (state.activeDMConversation) {
+                // Send typing indicator
+                const connection = state.connectionsByUsername.get(state.activeDMConversation);
+                if (connection) {
+                    const encrypted = encryptMessage('typing:true', connection.sharedKey);
+                    connection.conn.send(JSON.stringify({
+                        type: 'dm-typing',
+                        content: encrypted,
+                        recipient: state.activeDMConversation
+                    }));
+                }
+
+                // Clear timer
+                clearTimeout(dmTypingTimer);
+                dmTypingTimer = setTimeout(() => {
+                    const connection = state.connectionsByUsername.get(state.activeDMConversation);
+                    if (connection) {
+                        const encrypted = encryptMessage('typing:false', connection.sharedKey);
+                        connection.conn.send(JSON.stringify({
+                            type: 'dm-typing',
+                            content: encrypted,
+                            recipient: state.activeDMConversation
+                        }));
+                    }
+                }, 1000);
+            }
+        });
+
         // DM back buttons
         elements.dmBackBtn.forEach(btn => {
             btn.addEventListener('click', backToDmList);
@@ -4834,16 +4872,34 @@
     // ============================================
     async function handleFileSelect(e) {
         const files = e.target.files;
-        if (!files.length || state.connections.size === 0) return;
+        if (!files.length) return;
+
+        // Check context (DM or room)
+        const context = e.target.dataset.context;
+        const recipient = e.target.dataset.recipient;
 
         for (const file of files) {
             if (file.size > CONFIG.maxFileSize) {
                 showToast(`${file.name} est trop volumineux (max 100MB)`, 'error');
                 continue;
             }
-            await sendFile(file);
+
+            if (context === 'dm' && recipient) {
+                // Send file via DM
+                await sendFileViaDM(file, recipient);
+            } else {
+                // Send file to room (existing logic)
+                if (state.connections.size === 0) {
+                    showToast('Aucun utilisateur connecté', 'warning');
+                    continue;
+                }
+                await sendFile(file);
+            }
         }
 
+        // Clear context
+        delete e.target.dataset.context;
+        delete e.target.dataset.recipient;
         elements.fileInput.value = '';
     }
 
