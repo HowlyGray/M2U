@@ -6842,14 +6842,18 @@
                         <div class="peer-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(username)}</div>
                         <div class="peer-id" style="font-size:0.65rem;">${peerId}</div>
                     </div>
-                    ${isFriend ?
-                        `<span style="color:#22c55e;font-size:0.7rem;">✓ Ami</span>` :
-                        hasSentRequest ?
-                        `<span style="color:#fbbf24;font-size:0.7rem;">Envoyée</span>` :
-                        `<button class="btn btn-primary send-friend-request-btn" style="width:auto;padding:4px 8px;font-size:0.7rem;" data-username="${escapeHtml(username)}" data-peer-id="${peerId}">
-                            + Ami
-                        </button>`
-                    }
+                    <div style="display:flex;gap:4px;align-items:center;">
+                        ${isFriend ?
+                            `<button class="btn btn-primary dm-friend-btn" style="width:auto;padding:4px 8px;font-size:0.7rem;" data-peer-id="${peerId}">
+                                DM
+                            </button>` :
+                            hasSentRequest ?
+                            `<span style="color:#fbbf24;font-size:0.7rem;">Envoyée</span>` :
+                            `<button class="btn btn-primary send-friend-request-btn" style="width:auto;padding:4px 8px;font-size:0.7rem;" data-username="${escapeHtml(username)}" data-peer-id="${peerId}">
+                                + Ami
+                            </button>`
+                        }
+                    </div>
                 </div>
             `;
         }).join('');
@@ -6872,7 +6876,7 @@
                     <div class="room-card-info" style="font-size:0.75rem;color:#64748b;">${peerId}</div>
                     <div style="display:flex;gap:8px;margin-top:12px;">
                         ${isFriend ?
-                            `<button class="btn btn-primary start-dm-btn" style="flex:1;padding:8px;" data-peer-id="${peerId}">
+                            `<button class="btn btn-primary dm-friend-btn" style="flex:1;padding:8px;" data-peer-id="${peerId}">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;">
                                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                                 </svg>
@@ -6911,7 +6915,7 @@
                 });
             });
 
-            container.querySelectorAll('.start-dm-btn').forEach(btn => {
+            container.querySelectorAll('.dm-friend-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     const peerId = btn.dataset.peerId;
