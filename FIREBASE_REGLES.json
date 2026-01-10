@@ -1,14 +1,14 @@
 {
   "rules": {
+    ".read": true,
+    ".write": true,
     "peers": {
+      ".read": true,
+      ".write": true,
       "$peerId": {
-        ".read": true,
-        ".write": true,
         ".validate": "newData.hasChildren(['name', 'timestamp', 'online', 'peerId'])",
         ".indexOn": ["timestamp", "online"]
       }
-    },
-    ".read": false,
-    ".write": false
+    }
   }
 }

@@ -3441,7 +3441,7 @@
 
         const peersRef = firebaseDb.ref('peers');
 
-        // D'abord, charger tous les peers existants
+        // Charger tous les peers existants
         console.log('📖 Loading existing peers from Firebase...');
         try {
             const snapshot = await peersRef.once('value');
