@@ -5030,6 +5030,11 @@
         }
 
         updateFileProgress(messageId, 100, true);
+
+        // Create preview and download link for sender
+        const blob = new Blob([arrayBuffer], { type: file.type });
+        const url = URL.createObjectURL(blob);
+        updateFileDownload(messageId, url, file.name, file.type, blob);
     }
 
     function handleFileStart(peerId, data) {
