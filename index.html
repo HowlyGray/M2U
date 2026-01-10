@@ -5126,18 +5126,113 @@
         updateFileDownload(messageId, url, file.name, file.type, blob);
     }
 
+    async function sendFileViaDM(file, recipient) {
+        const connection = state.connections.get(recipient);
+        if (!connection || !connection.conn.open) {
+            showToast('Non connecté à ce contact', 'warning');
+            return;
+        }
+
+        const transferId = generateId(12);
+        const arrayBuffer = await file.arrayBuffer();
+
+        // Create message element with progress
+        const messageId = 'file-' + transferId;
+        appendDmFileMessage(messageId, file.name, file.size, file.type, 'sent', 0);
+
+        try {
+            // Encrypt the file
+            const { iv, encrypted } = await Crypto.encryptFile(connection.sharedKey, arrayBuffer);
+
+            // Send file metadata
+            connection.conn.send({
+                type: 'file-start',
+                transferId,
+                fileName: file.name,
+                fileSize: encrypted.length,
+                fileType: file.type,
+                iv: Array.from(iv),
+                sender: state.myName,
+                timestamp: new Date().toISOString()
+            });
+
+            // Send chunks as binary messages
+            const chunkSize = 4096;
+            const totalChunks = Math.ceil(encrypted.length / chunkSize);
+
+            for (let i = 0; i < totalChunks; i++) {
+                const start = i * chunkSize;
+                const end = Math.min(start + chunkSize, encrypted.length);
+                const chunk = encrypted.slice(start, end);
+
+                const header = {
+                    type: 'file-chunk',
+                    transferId,
+                    chunkIndex: i,
+                    totalChunks
+                };
+
+                const headerStr = JSON.stringify(header);
+                const headerBytes = new TextEncoder().encode(headerStr);
+                const headerLen = headerBytes.length;
+
+                const buffer = new ArrayBuffer(4 + headerLen + chunk.length);
+                const view = new Uint8Array(buffer);
+                const dv = new DataView(buffer);
+                dv.setUint32(0, headerLen, true);
+                view.set(headerBytes, 4);
+                view.set(chunk, 4 + headerLen);
+
+                connection.conn.send(buffer);
+
+                const progress = ((i + 1) / totalChunks) * 100;
+                updateDmFileProgress(messageId, progress);
+
+                await new Promise(resolve => setTimeout(resolve, 10));
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            connection.conn.send({
+                type: 'file-end',
+                transferId
+            });
+
+            updateDmFileProgress(messageId, 100, true);
+
+            // Create preview and download link for sender
+            const blob = new Blob([arrayBuffer], { type: file.type });
+            const url = URL.createObjectURL(blob);
+            updateDmFileDownload(messageId, url, file.name, file.type, blob);
+
+        } catch (error) {
+            console.error('File send error:', error);
+            showToast(`Erreur d'envoi de ${file.name}`, 'error');
+        }
+    }
+
     function handleFileStart(peerId, data) {
         // Calculate expected chunks based on 4KB chunk size
         const chunkSize = 4096;
+        
+        // Check if this is a DM transfer or room transfer
+        const peerInfo = state.connections.get(peerId);
+        const isDM = state.activeDMConversation === peerId;
+        
         state.fileTransfers.set(data.transferId, {
             chunks: new Array(Math.ceil(data.fileSize / chunkSize)),
             metadata: data,
             receivedChunks: 0,
-            peerId
+            peerId,
+            isDM
         });
 
         const messageId = 'file-' + data.transferId;
-        appendFileMessage(messageId, data.fileName, data.fileSize, data.fileType, 'received', 0, data.sender, data.timestamp);
+        if (isDM) {
+            appendDmFileMessage(messageId, data.fileName, data.fileSize, data.fileType, 'received', 0, data.sender, data.timestamp);
+        } else {
+            appendFileMessage(messageId, data.fileName, data.fileSize, data.fileType, 'received', 0, data.sender, data.timestamp);
+        }
     }
 
     function handleFileChunk(peerId, data) {
@@ -5165,7 +5260,12 @@
         transfer.receivedChunks++;
 
         const progress = (transfer.receivedChunks / data.totalChunks) * 100;
-        updateFileProgress('file-' + data.transferId, progress);
+        
+        if (transfer.isDM) {
+            updateDmFileProgress('file-' + data.transferId, progress);
+        } else {
+            updateFileProgress('file-' + data.transferId, progress);
+        }
     }
 
     async function handleFileEnd(peerId, data) {
@@ -5194,7 +5294,11 @@
             const blob = new Blob([decrypted], { type: transfer.metadata.fileType });
             const url = URL.createObjectURL(blob);
 
-            updateFileDownload('file-' + data.transferId, url, transfer.metadata.fileName, transfer.metadata.fileType, blob);
+            if (transfer.isDM) {
+                updateDmFileDownload('file-' + data.transferId, url, transfer.metadata.fileName, transfer.metadata.fileType, blob);
+            } else {
+                updateFileDownload('file-' + data.transferId, url, transfer.metadata.fileName, transfer.metadata.fileType, blob);
+            }
 
             playNotificationSound();
 
@@ -5299,6 +5403,90 @@
         a.click();
     }
     window.downloadFile = downloadFile;
+
+    function appendDmFileMessage(messageId, fileName, fileSize, fileType, type, progress, sender = state.myName, timestamp = null) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type}`;
+        messageDiv.id = messageId;
+
+        const timeStr = new Date(timestamp || Date.now()).toLocaleTimeString('fr-FR', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        const isImage = fileType.startsWith('image/');
+
+        messageDiv.innerHTML = `
+            <div class="file-message">
+                <div class="file-info">
+                    <div class="file-icon">
+                        ${isImage ?
+                            '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>' :
+                            '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>'
+                        }
+                    </div>
+                    <div class="file-details">
+                        <div class="file-name">${escapeHtml(fileName)}</div>
+                        <div class="file-size">${formatFileSize(fileSize)}</div>
+                    </div>
+                </div>
+                <div class="file-progress">
+                    <div class="file-progress-bar" style="width: ${progress}%"></div>
+                </div>
+                <div class="file-actions"></div>
+            </div>
+            <div class="message-time">${timeStr}</div>
+        `;
+
+        elements.dmMessages.appendChild(messageDiv);
+        scrollToBottom(elements.dmMessages);
+    }
+
+    function updateDmFileProgress(messageId, progress, complete = false) {
+        const el = document.getElementById(messageId);
+        if (!el) return;
+
+        const progressBar = el.querySelector('.file-progress-bar');
+        if (progressBar) {
+            progressBar.style.width = progress + '%';
+        }
+
+        if (complete) {
+            const progressEl = el.querySelector('.file-progress');
+            if (progressEl) progressEl.style.display = 'none';
+        }
+    }
+
+    function updateDmFileDownload(messageId, url, fileName, fileType, blob) {
+        const el = document.getElementById(messageId);
+        if (!el) return;
+
+        const actionsEl = el.querySelector('.file-actions');
+        const progressEl = el.querySelector('.file-progress');
+
+        if (progressEl) progressEl.style.display = 'none';
+
+        if (fileType.startsWith('image/')) {
+            const preview = document.createElement('img');
+            preview.src = url;
+            preview.className = 'image-preview';
+            preview.onclick = () => {
+                elements.modalImage.src = url;
+                elements.imageModal.classList.add('show');
+            };
+            actionsEl.before(preview);
+        }
+
+        actionsEl.innerHTML = `
+            <button class="file-download" onclick="downloadFile('${url}', '${escapeHtml(fileName)}')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Télécharger
+            </button>
+        `;
+    }
 
     // ============================================
     // TYPING INDICATOR
