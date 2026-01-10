@@ -3272,7 +3272,16 @@
                 updateConnectionStatus();
                 updateDiagnostics();
                 appendSystemMessage('✅ Connecté au serveur de signalisation');
-                appendSystemMessage('Recherche des utilisateurs en ligne...');
+
+                // Check if we have bootstrap peers
+                if (state.bootstrapPeers.length > 0) {
+                    appendSystemMessage(`📡 Tentative de reconnexion à ${state.bootstrapPeers.length} peer(s) connu(s)...`);
+                } else {
+                    appendSystemMessage('ℹ️ Première session détectée');
+                    appendSystemMessage('💡 Connectez-vous manuellement à un utilisateur pour rejoindre le réseau');
+                    appendSystemMessage('📝 Après la première connexion, la découverte automatique sera activée');
+                }
+
                 enableChat();
 
                 // Start automatic peer discovery (Ares/RetroShare style)
@@ -3344,7 +3353,7 @@
                 apiUrl = 'https://0.peerjs.com/peerjs/peers';
             }
 
-            console.log('🔍 Trying server discovery from:', apiUrl);
+            // console.log('🔍 Trying server discovery from:', apiUrl);
 
             const response = await fetch(apiUrl, {
                 method: 'GET',
@@ -3393,7 +3402,7 @@
                 }
             }
         } catch (error) {
-            console.log('Server discovery unavailable, using discovery room fallback');
+            // Silently fail - server discovery is optional
         }
 
         // Strategy 2: Use Global Discovery Room (always active)
@@ -6581,13 +6590,15 @@
     // NEW FEATURES IMPLEMENTATION
     // ============================================
 
-    // PWA: Register Service Worker
-    if ('serviceWorker' in navigator) {
+    // PWA: Register Service Worker (only on HTTPS or localhost)
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('/sw.js')
                 .then(reg => console.log('✅ Service Worker enregistré:', reg.scope))
-                .catch(err => console.log('❌ Échec enregistrement SW:', err));
+                .catch(err => console.warn('⚠️ Service Worker:', err.message));
         });
+    } else if (location.protocol === 'file:') {
+        console.log('ℹ️ Service Worker désactivé en mode fichier local (ouvrez via serveur HTTP)');
     }
 
     // Share API Support
