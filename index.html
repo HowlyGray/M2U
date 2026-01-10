@@ -181,24 +181,24 @@
         /* Close button for mobile sidebar */
         .mobile-close-btn {
             position: absolute;
-            top: 20px;
-            right: 25px;
+            top: 10px;
+            left: 10px;
             width: 40px;
             height: 40px;
             border-radius: 10px;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(30, 41, 59, 0.8);
+            background: rgba(30, 41, 59, 0.95);
             color: #94a3b8;
             cursor: pointer;
             display: none;
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
-            z-index: 101;
+            z-index: 102;
         }
 
         .mobile-close-btn:hover {
-            background: rgba(51, 65, 85, 0.8);
+            background: rgba(51, 65, 85, 0.95);
             color: #e2e8f0;
         }
 
@@ -1195,12 +1195,58 @@
                 box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.9);
             }
 
+            /* Sidebar needs relative positioning for absolute child (close button) */
+            .sidebar {
+                position: relative;
+            }
+
+            /* Ensure mobile-close-btn is positioned relative to sidebar */
+            .sidebar .mobile-close-btn {
+                position: absolute;
+            }
+
             h1 {
                 font-size: 1.6rem;
             }
 
             .badges {
                 display: none;
+            }
+
+            /* Fix input area visibility on mobile */
+            .input-area {
+                position: sticky;
+                bottom: 0;
+                z-index: 10;
+            }
+
+            /* Ensure room detail container accounts for mobile viewport */
+            .room-detail {
+                height: 100vh;
+                max-height: 100vh;
+            }
+
+            /* Ensure messages container has proper height on mobile */
+            .messages-container {
+                max-height: calc(100vh - 350px);
+                flex: 1 1 auto;
+            }
+
+            /* Main area adjustments for mobile */
+            .main-area {
+                height: 100vh;
+                max-height: 100vh;
+            }
+
+            /* Section containers for mobile */
+            .section-container {
+                height: 100vh;
+                max-height: 100vh;
+            }
+
+            /* Typing indicator should not push input off screen */
+            .typing-indicator {
+                position: relative;
             }
         }
 
@@ -2047,13 +2093,13 @@
 
         <div class="main-layout">
             <!-- Sidebar -->
-            <button class="mobile-close-btn" id="mobile-close-btn" title="Fermer" aria-label="Fermer le menu">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-            </button>
             <div class="sidebar" id="sidebar">
+                <button class="mobile-close-btn" id="mobile-close-btn" title="Fermer" aria-label="Fermer le menu">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
                 <div class="sidebar-section">
                     <h3>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
