@@ -1257,6 +1257,16 @@
             .typing-indicator {
                 position: relative;
             }
+
+            /* Tabs container scrolling on mobile */
+            .tabs-container {
+                padding: 15px 10px;
+            }
+
+            .tab {
+                padding: 10px 15px;
+                font-size: 0.85rem;
+            }
         }
 
         /* Scrollbar */
@@ -1341,10 +1351,29 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             background: rgba(11, 18, 39, 0.8);
             flex-shrink: 0;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(99, 179, 237, 0.5) rgba(15, 23, 42, 0.5);
+        }
+
+        .tabs-container::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .tabs-container::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 3px;
+        }
+
+        .tabs-container::-webkit-scrollbar-thumb {
+            background: rgba(99, 179, 237, 0.5);
+            border-radius: 3px;
         }
 
         .tab {
-            flex: 1;
+            flex: 0 0 auto;
+            min-width: fit-content;
             padding: 12px 20px;
             border-radius: 10px;
             border: 1px solid rgba(255, 255, 255, 0.1);
