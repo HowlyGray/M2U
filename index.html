@@ -6030,6 +6030,20 @@
     }
 
     function updateParticipantsList() {
+        // Only update if user is in a room
+        if (!state.currentRoom) {
+            elements.peersList.innerHTML = `
+                <div style="color:#64748b;font-size:0.85rem;text-align:center;padding:20px;">
+                    Rejoignez un salon pour voir les participants
+                </div>
+            `;
+            elements.participantsCount.textContent = '0';
+            if (elements.headerParticipants) {
+                elements.headerParticipants.textContent = '0';
+            }
+            return;
+        }
+
         // Get all peers
         let allPeers = [
             ...Array.from(state.connections.entries()).map(([id, info]) => ({ id, ...info, connected: true })),
@@ -6037,7 +6051,7 @@
         ];
 
         // Filter by current room members if in a room
-        if (state.currentRoom && state.currentRoom.members) {
+        if (state.currentRoom.members) {
             allPeers = allPeers.filter(peer => {
                 const peerUsername = peer.name || peer.username;
                 return state.currentRoom.members.includes(peerUsername);
@@ -6051,7 +6065,7 @@
         if (allPeers.length === 0) {
             elements.peersList.innerHTML = `
                 <div style="color:#64748b;font-size:0.85rem;text-align:center;padding:20px;">
-                    ${state.currentRoom ? 'Aucun membre du salon connecté' : 'Aucun participant connecté'}
+                    Aucun membre du salon connecté
                 </div>
             `;
         } else {
