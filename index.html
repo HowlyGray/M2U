@@ -5637,9 +5637,10 @@
         
         showToast(`Vous êtes banni du salon pour ${durationText} : ${reason || 'Bannissement par administrateur'}`, 'error');
         
-        // If we're in that room, show the join request view (can't send messages)
+        // If we're in that room, disable message input but stay in the room
         if (state.currentRoom && state.currentRoom.id === roomId) {
-            showRoomJoinRequestView(state.currentRoom);
+            disableChatInput(`Banni pour ${durationText}`);
+            updateParticipantsList(); // Refresh the participants list to show admin badges
         }
     }
 
@@ -5712,9 +5713,16 @@
         const now = Date.now();
         
         if (now > banInfo.expiryTime) {
-            // Ban has expired, remove it
+            // Ban has expired, remove it and re-enable chat
             roomBans.delete(peerId);
             console.log(`[BAN] Ban expired for user ${peerId}`);
+            
+            // If this is the current user, re-enable chat input
+            if (peerId === state.myPeerId && state.currentRoom && state.currentRoom.id === roomId) {
+                enableChat();
+                showToast('Bannissement terminé ! Vous pouvez maintenant envoyer des messages.', 'success');
+            }
+            
             return false;
         }
         
@@ -6739,6 +6747,17 @@
         elements.messageInput.disabled = false;
         elements.messageInput.placeholder = 'Tapez votre message...';
         elements.sendBtn.disabled = false;
+    }
+
+    function disableChatInput(reason) {
+        elements.messageInput.disabled = true;
+        elements.messageInput.placeholder = reason || 'Impossible d\'envoyer des messages';
+        elements.sendBtn.disabled = true;
+        
+        // Disable file attachment button if it exists
+        if (elements.attachBtn) {
+            elements.attachBtn.disabled = true;
+        }
     }
 
     function updateStatusBar(status, message) {
