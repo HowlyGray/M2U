@@ -1756,15 +1756,28 @@
             justify-content: center;
             transition: all 0.2s;
             opacity: 0;
+            position: relative;
+            z-index: 10;
         }
 
         .dm-contact:hover .dm-delete-btn {
             opacity: 1;
         }
 
+        /* Make delete button always visible on touch devices */
+        @media (hover: none) and (pointer: coarse) {
+            .dm-delete-btn {
+                opacity: 0.7;
+            }
+            .dm-delete-btn:active {
+                opacity: 1;
+            }
+        }
+
         .dm-delete-btn:hover {
             background: rgba(239, 68, 68, 0.2);
             color: #ef4444;
+            opacity: 1;
         }
 
         /* Friends section in sidebar */
@@ -4672,6 +4685,10 @@
                 handleAdminRevoke(data);
                 break;
 
+            case 'admin-notification':
+                handleAdminNotification(data);
+                break;
+
             case 'join-request':
                 handleJoinRequest(data);
                 break;
@@ -5059,14 +5076,20 @@
     }
 
     function handleAdminAssign(data) {
-        const { targetPeerId, adminId } = data;
+        const { targetPeerId, targetUsername, creatorId, creatorUsername, admins } = data;
         const targetInfo = state.connections.get(targetPeerId);
-        const adminInfo = state.connections.get(adminId);
+        const adminInfo = state.connections.get(creatorId);
 
         if (!targetInfo || !adminInfo) return;
 
         // Update role
         targetInfo.role = 'admin';
+
+        // Update room admins list if provided
+        if (admins && state.currentRoom) {
+            state.currentRoom.admins = admins;
+            savePrivateRooms();
+        }
 
         // Store admin
         const roomId = state.currentRoom?.id;
@@ -5083,7 +5106,7 @@
     }
 
     function handleAdminRevoke(data) {
-        const { targetPeerId, revokerId } = data;
+        const { targetPeerId, targetUsername, revokerId, revokerUsername, admins } = data;
         const targetInfo = state.connections.get(targetPeerId);
         const revokerInfo = state.connections.get(revokerId);
 
@@ -5091,6 +5114,12 @@
 
         // Update role
         targetInfo.role = 'participant';
+
+        // Update room admins list if provided
+        if (admins && state.currentRoom) {
+            state.currentRoom.admins = admins;
+            savePrivateRooms();
+        }
 
         // Remove from admins
         const roomId = state.currentRoom?.id;
@@ -5101,6 +5130,24 @@
         appendSystemMessage(`⚠️ ${revokerInfo.name} a révoqué les droits d'admin de ${targetInfo.name}`, 'warning');
         showToast(`${targetInfo.name} n'est plus administrateur`, 'warning');
         updatePeersList();
+    }
+
+    function handleAdminNotification(data) {
+        const { notificationType, roomName, roomId, fromUsername } = data;
+
+        if (notificationType === 'promoted') {
+            showToast(`🎉 Vous avez été promu administrateur du salon "${roomName}"`, 'success');
+            // Update local state if we're in that room
+            if (state.currentRoom && state.currentRoom.id === roomId) {
+                state.myRole = 'admin';
+            }
+        } else if (notificationType === 'revoked') {
+            showToast(`⚠️ Vos droits d'administrateur ont été révoqués dans "${roomName}"`, 'warning');
+            // Update local state if we're in that room
+            if (state.currentRoom && state.currentRoom.id === roomId) {
+                state.myRole = 'participant';
+            }
+        }
     }
 
     // Helper functions
@@ -5950,23 +5997,42 @@
             return;
         }
 
-        broadcastMessage({
-            type: 'admin-assign',
-            targetPeerId: peerId,
-            creatorId: state.myPeerId
-        });
-
-        // Update locally
-        peerInfo.role = 'admin';
+        // Update room admins list
         if (state.currentRoom) {
             if (!state.currentRoom.admins.includes(peerInfo.name)) {
                 state.currentRoom.admins.push(peerInfo.name);
             }
+            savePrivateRooms();
         }
+
+        // Broadcast admin assignment with updated admins list
+        broadcastMessage({
+            type: 'admin-assign',
+            targetPeerId: peerId,
+            targetUsername: peerInfo.name,
+            creatorId: state.myPeerId,
+            creatorUsername: state.myName,
+            admins: state.currentRoom.admins
+        });
+
+        // Update locally
+        peerInfo.role = 'admin';
 
         updateParticipantsList();
         showToast(`${peerInfo.name} promu administrateur`, 'success');
         appendSystemMessage(`👑 ${peerInfo.name} est maintenant administrateur`);
+
+        // Send direct notification to promoted user
+        const targetConnection = state.connections.get(peerId);
+        if (targetConnection && targetConnection.conn.open) {
+            targetConnection.conn.send({
+                type: 'admin-notification',
+                notificationType: 'promoted',
+                roomName: state.currentRoom.name,
+                roomId: state.currentRoom.id,
+                fromUsername: state.myName
+            });
+        }
     };
 
     window.revokeAdmin = function(peerId) {
@@ -5985,24 +6051,42 @@
             return;
         }
 
-        broadcastMessage({
-            type: 'admin-revoke',
-            targetPeerId: peerId,
-            creatorId: state.myPeerId
-        });
-
-        // Update locally
-        peerInfo.role = 'participant';
+        // Update room admins list
         if (state.currentRoom) {
             const adminIndex = state.currentRoom.admins.indexOf(peerInfo.name);
             if (adminIndex > -1) {
                 state.currentRoom.admins.splice(adminIndex, 1);
             }
+            savePrivateRooms();
         }
+
+        broadcastMessage({
+            type: 'admin-revoke',
+            targetPeerId: peerId,
+            targetUsername: peerInfo.name,
+            creatorId: state.myPeerId,
+            creatorUsername: state.myName,
+            admins: state.currentRoom.admins
+        });
+
+        // Update locally
+        peerInfo.role = 'participant';
 
         updateParticipantsList();
         showToast(`Droits d'admin retirés à ${peerInfo.name}`, 'success');
         appendSystemMessage(`${peerInfo.name} n'est plus administrateur`);
+
+        // Send direct notification to revoked user
+        const targetConnection = state.connections.get(peerId);
+        if (targetConnection && targetConnection.conn.open) {
+            targetConnection.conn.send({
+                type: 'admin-notification',
+                notificationType: 'revoked',
+                roomName: state.currentRoom.name,
+                roomId: state.currentRoom.id,
+                fromUsername: state.myName
+            });
+        }
     };
 
     function enableChat() {
@@ -7642,16 +7726,22 @@
 
         if (!confirm(`Êtes-vous sûr de vouloir supprimer la conversation avec ${name} ?`)) return;
 
-        state.directMessages.delete(peerId);
-        saveDirectMessages();
-        updateDmContactsList();
+        // Supprimer de l'état AVANT de mettre à jour l'interface
+        const wasDeleted = state.directMessages.delete(peerId);
 
-        // Si c'est la conversation actuelle, revenir à la liste
-        if (state.activeDMConversation === peerId) {
-            backToDmList();
+        if (wasDeleted) {
+            saveDirectMessages();
+            updateDmContactsList();
+
+            // Si c'était la conversation actuelle, revenir à la liste
+            if (state.activeDMConversation === peerId) {
+                backToDmList();
+            }
+
+            showToast('Conversation supprimée', 'success');
+        } else {
+            showToast('Conversation introuvable', 'warning');
         }
-
-        showToast('Conversation supprimée', 'success');
     }
 
     function openDmConversation(peerId) {
