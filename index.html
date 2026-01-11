@@ -2289,13 +2289,21 @@
                             <polyline points="17 11 19 13 23 9"></polyline>
                         </svg>
                         Amis
-                        <button class="refresh-icon-btn" id="refresh-friends-btn" title="Synchroniser les amis" style="margin-left:auto;">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M23 4v6h-6"></path>
-                                <path d="M1 20v-6h6"></path>
-                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                            </svg>
-                        </button>
+                        <div style="margin-left:auto;display:flex;gap:4px;align-items:center;">
+                            <button class="refresh-icon-btn" id="debug-friends-btn" title="Déboguer les amis" style="opacity:0.7;">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                                </svg>
+                            </button>
+                            <button class="refresh-icon-btn" id="refresh-friends-btn" title="Synchroniser les amis">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M23 4v6h-6"></path>
+                                    <path d="M1 20v-6h6"></path>
+                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                                </svg>
+                            </button>
+                        </div>
                     </h3>
                     <div class="friends-list" id="friends-list">
                         <div style="color:#64748b;font-size:0.85rem;text-align:center;padding:20px;">
@@ -3124,6 +3132,7 @@
         // Friends elements
         friendsList: document.getElementById('friends-list'),
         refreshFriendsBtn: document.getElementById('refresh-friends-btn'),
+        debugFriendsBtn: document.getElementById('debug-friends-btn'),
         acceptDMToggle: document.getElementById('accept-dm-toggle'),
         // Multi-select room elements
         toggleSelectModeBtn: document.getElementById('toggle-select-mode-btn'),
@@ -3321,6 +3330,12 @@
         elements.refreshFriendsBtn.addEventListener('click', () => {
             updateFriendsList();
             syncFriendsWithPeers();
+        });
+
+        // Debug friends
+        elements.debugFriendsBtn.addEventListener('click', () => {
+            debugFriendState();
+            clearFriendCache();
         });
 
         // DM settings toggle
@@ -7571,7 +7586,7 @@
     }
 
     // Handle friend synchronization message
-    // This ensures both sides have consistent friend lists when reconnecting
+    // This checks for inconsistencies in friend lists and informs the user
     function handleFriendSync(data, peerId) {
         const { friends, myPeerId: senderPeerId } = data;
         const peerInfo = state.connections.get(peerId);
@@ -7583,19 +7598,23 @@
         }
 
         console.log(`[FRIENDS] Received friend-sync from ${senderUsername}:`, friends);
+        console.log(`[FRIENDS] Our friend list:`, state.friends);
+        console.log(`[FRIENDS] My username:`, state.myName);
 
-        // If they consider us a friend but we don't have them, add them
+        // Check for inconsistencies and inform user without auto-adding
+        // They think we're friends but we don't have them
         if (friends.includes(state.myName) && !state.friends.includes(senderUsername)) {
-            state.friends.push(senderUsername);
-            saveFriends();
-            updateFriendsList();
+            console.log(`[FRIENDS] Inconsistency detected: ${senderUsername} thinks we're friends but we don't have them`);
+            // Just log it, don't auto-add. User can manually add them via UI
+            showToast(`Note: ${senderUsername} vous considère comme ami`, 'info');
+            // Force UI update to ensure buttons are correct
             updateConnectedUsersList(true);
-            console.log(`[FRIENDS] Added ${senderUsername} to friends list (sync)`);
-            showToast(`${senderUsername} est maintenant votre ami (synchronisation)`, 'info');
         }
 
-        // If we consider them a friend but they don't have us, send them a sync message
+        // We think they're friends but they don't have us
         if (state.friends.includes(senderUsername) && !friends.includes(state.myName)) {
+            console.log(`[FRIENDS] Inconsistency detected: We consider ${senderUsername} a friend but they don't have us`);
+            // Send a sync message to remind them
             const connection = state.connections.get(peerId);
             if (connection && connection.conn && connection.conn.open) {
                 connection.conn.send({
@@ -7661,6 +7680,7 @@
     // This function can be called to fix inconsistencies in friend lists
     function syncFriendsWithPeers() {
         console.log('[FRIENDS] Starting friend synchronization with all connected peers...');
+        console.log('[FRIENDS] Current friends list:', state.friends);
         let syncCount = 0;
 
         state.connections.forEach((peerInfo, peerId) => {
@@ -7676,6 +7696,32 @@
 
         console.log(`[FRIENDS] Sent sync messages to ${syncCount} connected peers`);
         showToast(`Synchronisation envoyée à ${syncCount} ami(s) connecté(s)`, 'info');
+    }
+
+    // Debug function: Log current state of friends and connections
+    function debugFriendState() {
+        console.log('=== FRIENDS DEBUG ===');
+        console.log('My username:', state.myName);
+        console.log('My friends:', state.friends);
+        console.log('Connected users:');
+        state.connections.forEach((info, peerId) => {
+            const username = info.name || info.username;
+            const isFriend = state.friends.includes(username);
+            console.log(`  - ${username} (${peerId}): ${isFriend ? 'FRIEND' : 'NOT FRIEND'}`);
+        });
+        console.log('====================');
+        showToast('Informations de débogage dans la console', 'info');
+    }
+
+    // Function to remove non-friend users from localStorage cache
+    // This can help if there are old/cached friend entries
+    function clearFriendCache() {
+        console.log('[FRIENDS] Clearing friend cache and reloading from localStorage...');
+        state.friends = JSON.parse(localStorage.getItem('friends') || '[]');
+        saveFriends();
+        updateFriendsList();
+        updateConnectedUsersList(true);
+        showToast('Cache des amis nettoyé', 'success');
     }
 
     // Update friends list (by username)
