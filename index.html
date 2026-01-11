@@ -2290,7 +2290,7 @@
                         </svg>
                         Amis
                         <div style="margin-left:auto;display:flex;gap:4px;align-items:center;">
-                            <button class="refresh-icon-btn" id="debug-friends-btn" title="Déboguer les amis" style="opacity:0.7;">
+                            <button class="refresh-icon-btn" id="debug-friends-btn" title="Nettoyer et synchroniser les amis" style="opacity:0.7;">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <circle cx="12" cy="12" r="3"></circle>
                                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
@@ -3336,6 +3336,7 @@
         elements.debugFriendsBtn.addEventListener('click', () => {
             debugFriendState();
             clearFriendCache();
+            cleanupOneSidedFriendships();
         });
 
         // DM settings toggle
@@ -4784,6 +4785,14 @@
 
             case 'friend-sync':
                 handleFriendSync(data, peerId);
+                break;
+
+            case 'friend-query':
+                handleFriendQuery(data, peerId);
+                break;
+
+            case 'friend-query-response':
+                handleFriendQueryResponse(data, peerId);
                 break;
         }
     }
@@ -7586,7 +7595,7 @@
     }
 
     // Handle friend synchronization message
-    // This checks for inconsistencies in friend lists and informs the user
+    // This checks for inconsistencies in friend lists and informs the user once
     function handleFriendSync(data, peerId) {
         const { friends, myPeerId: senderPeerId } = data;
         const peerInfo = state.connections.get(peerId);
@@ -7597,35 +7606,54 @@
             return;
         }
 
-        console.log(`[FRIENDS] Received friend-sync from ${senderUsername}:`, friends);
-        console.log(`[FRIENDS] Our friend list:`, state.friends);
-        console.log(`[FRIENDS] My username:`, state.myName);
+        // Log the sync (but limit console spam)
+        const now = Date.now();
+        if (!this.lastSyncLog || now - this.lastSyncLog > 5000) {
+            console.log(`[FRIENDS] Received friend-sync from ${senderUsername}:`, friends);
+            console.log(`[FRIENDS] Our friend list:`, state.friends);
+            console.log(`[FRIENDS] My username:`, state.myName);
+            this.lastSyncLog = now;
+        }
 
         // Check for inconsistencies and inform user without auto-adding
         // They think we're friends but we don't have them
         if (friends.includes(state.myName) && !state.friends.includes(senderUsername)) {
-            console.log(`[FRIENDS] Inconsistency detected: ${senderUsername} thinks we're friends but we don't have them`);
+            console.log(`[FRIENDS] Note: ${senderUsername} considers us a friend but we don't have them`);
             // Just log it, don't auto-add. User can manually add them via UI
-            showToast(`Note: ${senderUsername} vous considère comme ami`, 'info');
-            // Force UI update to ensure buttons are correct
-            updateConnectedUsersList(true);
+            // Use a debounce to avoid toast spam
+            if (!this.lastToastTime || now - this.lastToastTime > 3000) {
+                showToast(`Note: ${senderUsername} vous considère comme ami`, 'info');
+                this.lastToastTime = now;
+            }
         }
 
         // We think they're friends but they don't have us
         if (state.friends.includes(senderUsername) && !friends.includes(state.myName)) {
-            console.log(`[FRIENDS] Inconsistency detected: We consider ${senderUsername} a friend but they don't have us`);
-            // Send a sync message to remind them
-            const connection = state.connections.get(peerId);
-            if (connection && connection.conn && connection.conn.open) {
-                connection.conn.send({
-                    type: 'friend-sync',
-                    friends: [state.myName],
-                    myPeerId: state.myPeerId
-                });
-                console.log(`[FRIENDS] Sent friend-sync reply to ${senderUsername}`);
+            console.log(`[FRIENDS] Note: We consider ${senderUsername} a friend but they don't have us`);
+            // Only send sync reply if we haven't sent one recently (avoid infinite loop)
+            const lastSentSync = this.lastSentSyncs ? this.lastSentSyncs.get(peerId) : 0;
+            if (!lastSentSync || now - lastSentSync > 10000) { // Wait 10s before resending
+                const connection = state.connections.get(peerId);
+                if (connection && connection.conn && connection.conn.open) {
+                    connection.conn.send({
+                        type: 'friend-sync',
+                        friends: [state.myName],
+                        myPeerId: state.myPeerId
+                    });
+                    console.log(`[FRIENDS] Sent friend-sync reply to ${senderUsername}`);
+                    if (!this.lastSentSyncs) this.lastSentSyncs = new Map();
+                    this.lastSentSyncs.set(peerId, now);
+                }
+            } else {
+                console.log(`[FRIENDS] Skipping sync reply to ${senderUsername} (too recent)`);
             }
         }
     }
+
+    // Add state tracking for handleFriendSync
+    handleFriendSync.lastSyncLog = 0;
+    handleFriendSync.lastToastTime = 0;
+    handleFriendSync.lastSentSyncs = new Map();
 
     // Handle when our friend request is accepted
     function handleFriendAccepted(data) {
@@ -7722,6 +7750,92 @@
         updateFriendsList();
         updateConnectedUsersList(true);
         showToast('Cache des amis nettoyé', 'success');
+    }
+
+    // Function to clean up one-sided friendships
+    // Removes users from our friend list if they don't have us in theirs
+    function cleanupOneSidedFriendships() {
+        let removedCount = 0;
+        const initialFriends = [...state.friends];
+
+        // We need to check each friend's list by sending a query
+        // For now, just log the friends we have
+        console.log('[FRIENDS] Cleaning up one-sided friendships...');
+        console.log('[FRIENDS] Current friends:', state.friends);
+
+        // Send a query to each friend to check their friend list
+        state.connections.forEach((peerInfo, peerId) => {
+            const username = peerInfo.name || peerInfo.username;
+            if (state.friends.includes(username) && peerInfo.conn && peerInfo.conn.open) {
+                peerInfo.conn.send({
+                    type: 'friend-query',
+                    fromUsername: state.myName,
+                    fromPeerId: state.myPeerId
+                });
+                console.log(`[FRIENDS] Sent friend-query to ${username}`);
+            }
+        });
+
+        showToast(`Requête envoyée aux amis connectés (${state.connections.size})`, 'info');
+    }
+
+    // Function to completely reset friends list
+    // Use this if friend list is completely corrupted
+    function resetFriendList() {
+        if (!confirm('ATTENTION: Cela va supprimer TOUTES vos amitiés. Continuer ?')) {
+            return;
+        }
+
+        console.log('[FRIENDS] Resetting friend list...');
+        state.friends = [];
+        state.friendRequestsReceived = [];
+        state.friendRequestsSent = [];
+        saveFriends();
+        saveFriendRequests();
+        saveFriendRequestsSent();
+        updateFriendsList();
+        updateFriendRequestsList();
+        updateConnectedUsersList(true);
+        showToast('Liste d\'amis réinitialisée', 'success');
+    }
+
+    // Handle friend query response
+    function handleFriendQuery(data, peerId) {
+        const { fromUsername, fromPeerId } = data;
+        const peerInfo = state.connections.get(peerId);
+
+        if (peerInfo && peerInfo.conn && peerInfo.conn.open) {
+            // Send back our friend list
+            peerInfo.conn.send({
+                type: 'friend-query-response',
+                fromUsername: state.myName,
+                fromPeerId: state.myPeerId,
+                friends: state.friends
+            });
+            console.log(`[FRIENDS] Responded to friend-query from ${fromUsername}`);
+        }
+    }
+
+    // Handle friend query response
+    function handleFriendQueryResponse(data, peerId) {
+        const { fromUsername, fromPeerId, friends } = data;
+        console.log(`[FRIENDS] Friend query response from ${fromUsername}:`, friends);
+
+        // Check if they have us in their list
+        const theyHaveUs = friends.includes(state.myName);
+        const weHaveThem = state.friends.includes(fromUsername);
+
+        if (weHaveThem && !theyHaveUs) {
+            console.log(`[FRIENDS] Removing ${fromUsername} from friends list (one-sided)`);
+            const index = state.friends.indexOf(fromUsername);
+            if (index > -1) {
+                state.friends.splice(index, 1);
+                saveFriends();
+                updateFriendsList();
+                updateConnectedUsersList(true);
+                showToast(`${fromUsername} retiré de la liste d'amis (amitié unilatérale)`, 'warning');
+            }
+        }
     }
 
     // Update friends list (by username)
