@@ -1756,15 +1756,28 @@
             justify-content: center;
             transition: all 0.2s;
             opacity: 0;
+            position: relative;
+            z-index: 10;
         }
 
         .dm-contact:hover .dm-delete-btn {
             opacity: 1;
         }
 
+        /* Make delete button always visible on touch devices */
+        @media (hover: none) and (pointer: coarse) {
+            .dm-delete-btn {
+                opacity: 0.7;
+            }
+            .dm-delete-btn:active {
+                opacity: 1;
+            }
+        }
+
         .dm-delete-btn:hover {
             background: rgba(239, 68, 68, 0.2);
             color: #ef4444;
+            opacity: 1;
         }
 
         /* Friends section in sidebar */
@@ -2610,21 +2623,11 @@
                                 </svg>
                                 Copier mon ID
                             </button>
-                            <button class="share-btn" id="share-id-btn" aria-label="Partager mon ID" style="display:none;">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="18" cy="5" r="3"></circle>
-                                    <circle cx="6" cy="12" r="3"></circle>
-                                    <circle cx="18" cy="19" r="3"></circle>
-                                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                                </svg>
-                                Partager
-                            </button>
                         </div>
                     </div>
 
                     <!-- DM Settings -->
-                    <div style="padding:20px;">
+                    <div style="padding:20px;border-bottom:1px solid rgba(255, 255, 255, 0.1);">
                         <h3 style="color:#94a3b8;font-size:0.85rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="12" cy="12" r="3"></circle>
@@ -2639,6 +2642,33 @@
                                 <span class="toggle-label">Accepter les messages de non-amis</span>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Share Section -->
+                    <div style="padding:20px;border-bottom:1px solid rgba(255, 255, 255, 0.1);">
+                        <h3 style="color:#94a3b8;font-size:0.85rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="18" cy="5" r="3"></circle>
+                                <circle cx="6" cy="12" r="3"></circle>
+                                <circle cx="18" cy="19" r="3"></circle>
+                                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                            </svg>
+                            Partage
+                        </h3>
+                        <p style="color:#64748b;font-size:0.8rem;margin-bottom:12px;line-height:1.4;">
+                            Partagez votre ID pour permettre aux autres de vous contacter directement ou de rejoindre vos salons privés.
+                        </p>
+                        <button class="btn btn-primary share-btn" id="share-id-btn" aria-label="Partager mon ID" style="width:100%;justify-content:center;display:none;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px;">
+                                <circle cx="18" cy="5" r="3"></circle>
+                                <circle cx="6" cy="12" r="3"></circle>
+                                <circle cx="18" cy="19" r="3"></circle>
+                                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                            </svg>
+                            Partager mon ID
+                        </button>
                     </div>
 
                     <!-- ID Generation Settings -->
@@ -4655,6 +4685,10 @@
                 handleAdminRevoke(data);
                 break;
 
+            case 'admin-notification':
+                handleAdminNotification(data);
+                break;
+
             case 'join-request':
                 handleJoinRequest(data);
                 break;
@@ -5046,10 +5080,9 @@
     }
 
     function handleAdminAssign(data) {
-        const { targetPeerId, targetUsername, roomId, creatorId } = data;
-        const isMe = targetPeerId === state.myPeerId;
-        const targetName = targetUsername || (isMe ? state.myName : state.connections.get(targetPeerId)?.name);
-        const creatorInfo = state.connections.get(creatorId);
+        const { targetPeerId, targetUsername, creatorId, creatorUsername, admins } = data;
+        const targetInfo = state.connections.get(targetPeerId);
+        const adminInfo = state.connections.get(creatorId);
 
         if (!targetName) return;
 
@@ -5060,7 +5093,14 @@
             savePrivateRooms();
         }
 
-        // Store admin in roomAdmins map
+        // Update room admins list if provided
+        if (admins && state.currentRoom) {
+            state.currentRoom.admins = admins;
+            savePrivateRooms();
+        }
+
+        // Store admin
+        const roomId = state.currentRoom?.id;
         if (roomId) {
             if (!state.roomAdmins.has(roomId)) {
                 state.roomAdmins.set(roomId, new Set());
@@ -5095,10 +5135,9 @@
     }
 
     function handleAdminRevoke(data) {
-        const { targetPeerId, targetUsername, roomId, creatorId } = data;
-        const isMe = targetPeerId === state.myPeerId;
-        const targetName = targetUsername || (isMe ? state.myName : state.connections.get(targetPeerId)?.name);
-        const creatorInfo = state.connections.get(creatorId);
+        const { targetPeerId, targetUsername, revokerId, revokerUsername, admins } = data;
+        const targetInfo = state.connections.get(targetPeerId);
+        const revokerInfo = state.connections.get(revokerId);
 
         if (!targetName) return;
 
@@ -5112,7 +5151,14 @@
             }
         }
 
-        // Remove from roomAdmins map
+        // Update room admins list if provided
+        if (admins && state.currentRoom) {
+            state.currentRoom.admins = admins;
+            savePrivateRooms();
+        }
+
+        // Remove from admins
+        const roomId = state.currentRoom?.id;
         if (roomId && state.roomAdmins.has(roomId)) {
             state.roomAdmins.get(roomId).delete(targetPeerId);
         }
@@ -5137,6 +5183,24 @@
             showToast(`${targetName} n'est plus administrateur`, 'warning');
         }
         updatePeersList();
+    }
+
+    function handleAdminNotification(data) {
+        const { notificationType, roomName, roomId, fromUsername } = data;
+
+        if (notificationType === 'promoted') {
+            showToast(`🎉 Vous avez été promu administrateur du salon "${roomName}"`, 'success');
+            // Update local state if we're in that room
+            if (state.currentRoom && state.currentRoom.id === roomId) {
+                state.myRole = 'admin';
+            }
+        } else if (notificationType === 'revoked') {
+            showToast(`⚠️ Vos droits d'administrateur ont été révoqués dans "${roomName}"`, 'warning');
+            // Update local state if we're in that room
+            if (state.currentRoom && state.currentRoom.id === roomId) {
+                state.myRole = 'participant';
+            }
+        }
     }
 
     // Helper functions
@@ -5986,39 +6050,42 @@
             return;
         }
 
-        if (!state.currentRoom) {
-            showToast('Aucun salon actif', 'error');
-            return;
+        // Update room admins list
+        if (state.currentRoom) {
+            if (!state.currentRoom.admins.includes(peerInfo.name)) {
+                state.currentRoom.admins.push(peerInfo.name);
+            }
+            savePrivateRooms();
         }
 
+        // Broadcast admin assignment with updated admins list
         broadcastMessage({
             type: 'admin-assign',
             targetPeerId: peerId,
             targetUsername: peerInfo.name,
-            roomId: state.currentRoom.id,
-            creatorId: state.myPeerId
+            creatorId: state.myPeerId,
+            creatorUsername: state.myName,
+            admins: state.currentRoom.admins
         });
 
         // Update locally
         peerInfo.role = 'admin';
-        if (!state.currentRoom.admins.includes(peerInfo.name)) {
-            state.currentRoom.admins.push(peerInfo.name);
-            savePrivateRooms();
-        }
-
-        // Send pending join requests to the new admin
-        const pendingRequests = state.pendingJoinRequests.get(state.currentRoom.id) || [];
-        if (pendingRequests.length > 0 && peerInfo.conn && peerInfo.conn.open) {
-            peerInfo.conn.send({
-                type: 'sync-join-requests',
-                roomId: state.currentRoom.id,
-                requests: pendingRequests
-            });
-        }
 
         updateParticipantsList();
         showToast(`${peerInfo.name} promu administrateur`, 'success');
         appendSystemMessage(`👑 ${peerInfo.name} est maintenant administrateur`);
+
+        // Send direct notification to promoted user
+        const targetConnection = state.connections.get(peerId);
+        if (targetConnection && targetConnection.conn.open) {
+            targetConnection.conn.send({
+                type: 'admin-notification',
+                notificationType: 'promoted',
+                roomName: state.currentRoom.name,
+                roomId: state.currentRoom.id,
+                fromUsername: state.myName
+            });
+        }
     };
 
     window.revokeAdmin = function(peerId) {
@@ -6037,30 +6104,42 @@
             return;
         }
 
-        if (!state.currentRoom) {
-            showToast('Aucun salon actif', 'error');
-            return;
+        // Update room admins list
+        if (state.currentRoom) {
+            const adminIndex = state.currentRoom.admins.indexOf(peerInfo.name);
+            if (adminIndex > -1) {
+                state.currentRoom.admins.splice(adminIndex, 1);
+            }
+            savePrivateRooms();
         }
 
         broadcastMessage({
             type: 'admin-revoke',
             targetPeerId: peerId,
             targetUsername: peerInfo.name,
-            roomId: state.currentRoom.id,
-            creatorId: state.myPeerId
+            creatorId: state.myPeerId,
+            creatorUsername: state.myName,
+            admins: state.currentRoom.admins
         });
 
         // Update locally
         peerInfo.role = 'participant';
-        const adminIndex = state.currentRoom.admins.indexOf(peerInfo.name);
-        if (adminIndex > -1) {
-            state.currentRoom.admins.splice(adminIndex, 1);
-            savePrivateRooms();
-        }
 
         updateParticipantsList();
         showToast(`Droits d'admin retirés à ${peerInfo.name}`, 'success');
         appendSystemMessage(`${peerInfo.name} n'est plus administrateur`);
+
+        // Send direct notification to revoked user
+        const targetConnection = state.connections.get(peerId);
+        if (targetConnection && targetConnection.conn.open) {
+            targetConnection.conn.send({
+                type: 'admin-notification',
+                notificationType: 'revoked',
+                roomName: state.currentRoom.name,
+                roomId: state.currentRoom.id,
+                fromUsername: state.myName
+            });
+        }
     };
 
     function enableChat() {
@@ -6629,19 +6708,16 @@
             }
         });
 
-        // Leave rooms where user is not creator
+        // Leave rooms where user is not creator - remove them from the list entirely
         roomsToLeave.forEach(room => {
-            const memberIndex = room.members.indexOf(state.myName);
-            if (memberIndex > -1) {
-                room.members.splice(memberIndex, 1);
-            }
-            const adminIndex = room.admins.indexOf(state.myName);
-            if (adminIndex > -1) {
-                room.admins.splice(adminIndex, 1);
+            const roomIndex = state.privateRooms.findIndex(r => r.id === room.id);
+            if (roomIndex > -1) {
+                state.privateRooms.splice(roomIndex, 1);
             }
         });
 
         savePrivateRooms();
+        updatePrivateRoomsList();
         cancelRoomSelectMode();
 
         let message = '';
@@ -7703,16 +7779,22 @@
 
         if (!confirm(`Êtes-vous sûr de vouloir supprimer la conversation avec ${name} ?`)) return;
 
-        state.directMessages.delete(peerId);
-        saveDirectMessages();
-        updateDmContactsList();
+        // Supprimer de l'état AVANT de mettre à jour l'interface
+        const wasDeleted = state.directMessages.delete(peerId);
 
-        // Si c'est la conversation actuelle, revenir à la liste
-        if (state.activeDMConversation === peerId) {
-            backToDmList();
+        if (wasDeleted) {
+            saveDirectMessages();
+            updateDmContactsList();
+
+            // Si c'était la conversation actuelle, revenir à la liste
+            if (state.activeDMConversation === peerId) {
+                backToDmList();
+            }
+
+            showToast('Conversation supprimée', 'success');
+        } else {
+            showToast('Conversation introuvable', 'warning');
         }
-
-        showToast('Conversation supprimée', 'success');
     }
 
     function openDmConversation(peerId) {
