@@ -2610,21 +2610,11 @@
                                 </svg>
                                 Copier mon ID
                             </button>
-                            <button class="share-btn" id="share-id-btn" aria-label="Partager mon ID" style="display:none;">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="18" cy="5" r="3"></circle>
-                                    <circle cx="6" cy="12" r="3"></circle>
-                                    <circle cx="18" cy="19" r="3"></circle>
-                                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                                </svg>
-                                Partager
-                            </button>
                         </div>
                     </div>
 
                     <!-- DM Settings -->
-                    <div style="padding:20px;">
+                    <div style="padding:20px;border-bottom:1px solid rgba(255, 255, 255, 0.1);">
                         <h3 style="color:#94a3b8;font-size:0.85rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="12" cy="12" r="3"></circle>
@@ -2639,6 +2629,33 @@
                                 <span class="toggle-label">Accepter les messages de non-amis</span>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Share Section -->
+                    <div style="padding:20px;border-bottom:1px solid rgba(255, 255, 255, 0.1);">
+                        <h3 style="color:#94a3b8;font-size:0.85rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="18" cy="5" r="3"></circle>
+                                <circle cx="6" cy="12" r="3"></circle>
+                                <circle cx="18" cy="19" r="3"></circle>
+                                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                            </svg>
+                            Partage
+                        </h3>
+                        <p style="color:#64748b;font-size:0.8rem;margin-bottom:12px;line-height:1.4;">
+                            Partagez votre ID pour permettre aux autres de vous contacter directement ou de rejoindre vos salons privés.
+                        </p>
+                        <button class="btn btn-primary share-btn" id="share-id-btn" aria-label="Partager mon ID" style="width:100%;justify-content:center;display:none;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px;">
+                                <circle cx="18" cy="5" r="3"></circle>
+                                <circle cx="6" cy="12" r="3"></circle>
+                                <circle cx="18" cy="19" r="3"></circle>
+                                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                            </svg>
+                            Partager mon ID
+                        </button>
                     </div>
 
                     <!-- ID Generation Settings -->
