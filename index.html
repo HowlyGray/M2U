@@ -449,6 +449,49 @@
             min-width: 0;
         }
 
+        .peer-actions {
+            display: flex;
+            gap: 4px;
+            margin-left: 8px;
+        }
+
+        .peer-action-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #94a3b8;
+            padding: 6px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+        }
+
+        .peer-action-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: #e2e8f0;
+            transform: scale(1.1);
+        }
+
+        .peer-action-btn[title="Se connecter"]:hover {
+            background: rgba(99, 179, 237, 0.3);
+            color: #63b3ed;
+        }
+
+        .peer-action-btn[title="Ajouter en ami"]:hover {
+            background: rgba(52, 211, 153, 0.3);
+            color: #34d399;
+        }
+
+        .peer-action-btn[title="Message privé"]:hover {
+            background: rgba(167, 139, 250, 0.3);
+            color: #a78bfa;
+        }
+
         .peer-name {
             color: #e2e8f0;
             font-weight: 500;
@@ -4488,16 +4531,8 @@
         console.log(`📊 state.discoveredPeers content:`, Array.from(state.discoveredPeers.entries()));
 
         const now = Date.now();
-        const allPeersBeforeFilter = Array.from(state.discoveredPeers.entries());
-        console.log(`📋 All peers before filter:`, allPeersBeforeFilter);
-
-        const allPeers = allPeersBeforeFilter
-            .filter(([peerId, info]) => {
-                const timeDiff = now - info.lastSeen;
-                const isRecent = timeDiff < 60000; // Active in last 60s
-                console.log(`⏰ Peer ${peerId}: lastSeen=${info.lastSeen}, timeDiff=${timeDiff}ms, isRecent=${isRecent}`);
-                return isRecent;
-            })
+        const allPeers = Array.from(state.discoveredPeers.entries())
+            .filter(([peerId, info]) => now - info.lastSeen < 60000)
             .map(([peerId, info]) => ({
                 peerId,
                 name: info.name,
@@ -4506,70 +4541,111 @@
                 lastSeen: info.lastSeen
             }))
             .sort((a, b) => {
-                // Sort: connected first, then by last seen
                 if (a.connected && !b.connected) return -1;
                 if (!a.connected && b.connected) return 1;
                 return b.lastSeen - a.lastSeen;
             });
 
-        console.log(`📋 All peers after filter and map:`, allPeers);
         console.log(`🔢 Number of peers to display:`, allPeers.length);
 
         // Update the main users list
         const usersListElement = document.getElementById('main-connected-users-list');
-        console.log(`🎯 users-list element found:`, !!usersListElement);
-
+        
         if (usersListElement) {
             if (allPeers.length === 0) {
-                console.log(`📝 Setting users-list to empty state message`);
                 usersListElement.innerHTML = `
                     <div style="color:#64748b;font-size:0.85rem;text-align:center;padding:20px;">
                         🔍 Recherche d'utilisateurs en ligne...<br>
                         <small style="margin-top:8px;display:block;">Découverte automatique active</small>
                     </div>
                 `;
-                console.log(`✅ Empty state HTML set`);
             } else {
-                console.log(`📝 Setting users-list with ${allPeers.length} peer(s)`);
-                usersListElement.innerHTML = allPeers.map(peer => `
-                    <div class="peer-item ${peer.connected ? 'connected' : ''}" style="cursor:pointer;" onclick="window.connectToPeer('${peer.peerId}')">
-                        <div class="peer-avatar">${(peer.name || '?')[0].toUpperCase()}</div>
-                        <div class="peer-details">
-                            <div class="peer-name">${escapeHtml(peer.name || 'Utilisateur')}</div>
-                            <div class="peer-status ${peer.connected ? 'online' : ''}">
-                                <span class="status-dot"></span>
-                                ${peer.connected ? 'Connecté' : peer.pending ? 'Connexion...' : 'En ligne'}
+                usersListElement.innerHTML = allPeers.map(peer => {
+                    const isMe = peer.peerId === state.myPeerId;
+                    const isFriend = state.friends.includes(peer.name);
+                    const hasFriendRequestSent = state.friendRequestsSent.some(req => req.peerId === peer.peerId);
+                    const hasFriendRequestReceived = state.friendRequestsReceived.some(req => req.peerId === peer.peerId);
+                    
+                    return `
+                        <div class="peer-item ${peer.connected ? 'connected' : ''}">
+                            <div class="peer-avatar">${(peer.name || '?')[0].toUpperCase()}</div>
+                            <div class="peer-details">
+                                <div class="peer-name">${escapeHtml(peer.name || 'Utilisateur')}</div>
+                                <div class="peer-status ${peer.connected ? 'online' : ''}">
+                                    <span class="status-dot"></span>
+                                    ${peer.connected ? 'Connecté' : peer.pending ? 'Connexion...' : 'En ligne'}
+                                </div>
+                            </div>
+                            <div class="peer-actions">
+                                ${!isMe && !peer.connected && !peer.pending ? `
+                                    <button class="peer-action-btn" onclick="event.stopPropagation(); window.connectToPeer('${peer.peerId}')" title="Se connecter">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                            <polyline points="15 3 21 3 21 9"></polyline>
+                                            <line x1="10" y1="14" x2="21" y2="3"></line>
+                                        </svg>
+                                    </button>
+                                ` : ''}
+                                
+                                ${!isMe && !isFriend && !hasFriendRequestSent && !hasFriendRequestReceived ? `
+                                    <button class="peer-action-btn" onclick="event.stopPropagation(); sendFriendRequestFromList('${peer.peerId}')" title="Ajouter en ami">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                            <circle cx="8.5" cy="7" r="4"></circle>
+                                            <line x1="20" y1="8" x2="20" y2="14"></line>
+                                            <line x1="23" y1="11" x2="17" y2="11"></line>
+                                        </svg>
+                                    </button>
+                                ` : ''}
+                                
+                                ${!isMe && hasFriendRequestSent ? `
+                                    <button class="peer-action-btn" style="color:#fbbf24;" title="Demande envoyée">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                        </svg>
+                                    </button>
+                                ` : ''}
+                                
+                                ${!isMe && hasFriendRequestReceived ? `
+                                    <button class="peer-action-btn" style="color:#34d399;" title="Demande reçue">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                        </svg>
+                                    </button>
+                                ` : ''}
+                                
+                                ${!isMe && isFriend ? `
+                                    <button class="peer-action-btn" style="color:#34d399;" title="Ami">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                            <circle cx="12" cy="7" r="4"></circle>
+                                        </svg>
+                                    </button>
+                                ` : ''}
+                                
+                                ${!isMe && peer.connected ? `
+                                    <button class="peer-action-btn" onclick="event.stopPropagation(); startDirectMessage('${peer.name}')" title="Message privé">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                        </svg>
+                                    </button>
+                                ` : ''}
                             </div>
                         </div>
-                        ${!peer.connected && !peer.pending ? `
-                            <button class="peer-action-btn" onclick="event.stopPropagation(); window.connectToPeer('${peer.peerId}')" title="Se connecter">
-                                ➕
-                            </button>
-                        ` : ''}
-                    </div>
-                `).join('');
-                console.log(`✅ Peer list HTML set successfully`);
+                    `;
+                }).join('');
             }
         } else {
             console.error(`❌ users-list element NOT FOUND in DOM!`);
         }
 
-        // Update header with peer count
         const onlineCount = allPeers.length;
         const connectedCount = allPeers.filter(p => p.connected).length;
-
-        console.log(`📊 Peer counts: online=${onlineCount}, connected=${connectedCount}`);
-
+        
         const statusElement = document.getElementById('discovery-status');
-        console.log(`🎯 discovery-status element found:`, !!statusElement);
-
         if (statusElement) {
-            const statusText = `${onlineCount} en ligne • ${connectedCount} connecté(s)`;
-            console.log(`📝 Setting status text: "${statusText}"`);
-            statusElement.textContent = statusText;
-            console.log(`✅ Status text updated`);
-        } else {
-            console.error(`❌ discovery-status element NOT FOUND in DOM!`);
+            statusElement.textContent = `${onlineCount} en ligne • ${connectedCount} connecté(s)`;
         }
 
         console.log(`✅ updateDiscoveredPeersList() completed`);
@@ -7310,12 +7386,18 @@
         const users = Array.from(state.connections.entries());
 
         // Create cache key based on users, friend status, and sent requests
-        const currentCacheKey = users.map(([peerId, info]) => {
-            const username = info.name || info.username || peerId;
-            const isFriend = state.friends.includes(username);
-            const hasSentRequest = state.friendRequestsSent.some(r => r.username === username);
-            return `${peerId}:${isFriend}:${hasSentRequest}`;
-        }).join('|');
+        //const currentCacheKey = users.map(([peerId, info]) => {
+        //    const username = info.name || info.username || peerId;
+        //    const isFriend = state.friends.includes(username);
+        //    const hasSentRequest = state.friendRequestsSent.some(r => r.username === username);
+        //    return `${peerId}:${isFriend}:${hasSentRequest}`;
+        //}).join('|');
+
+        // --- DEBUT CORRECTION ---
+        // Forcer le recalcul en ignorant le cache pour garantir l'affichage des boutons
+        // On génère un cache unique basé sur l'heure pour forcer le rafraîchissement
+        const currentCacheKey = Date.now().toString();
+        // --- FIN CORRECTION ---
 
         // Skip update if nothing changed (unless forced)
         if (!forceUpdate && cachedUsersList === currentCacheKey) {
@@ -7485,6 +7567,82 @@
 
         // Force update after a short delay to allow UI to respond
         setTimeout(() => updateConnectedUsersList(true), 100);
+    }
+
+    function sendFriendRequestFromList(peerId) {
+        if (peerId === state.myPeerId) {
+            showToast('Vous ne pouvez pas vous ajouter vous-même', 'error');
+            return;
+        }
+
+        const peerInfo = state.connections.get(peerId);
+        const discoveredPeer = state.discoveredPeers.get(peerId);
+        
+        if (!peerInfo && !discoveredPeer) {
+            showToast('Impossible de trouver cet utilisateur', 'error');
+            return;
+        }
+
+        const username = peerInfo ? peerInfo.name : discoveredPeer.name;
+        
+        if (state.friends.includes(username)) {
+            showToast(`${username} est déjà votre ami`, 'warning');
+            return;
+        }
+
+        if (state.friendRequestsSent.some(req => req.peerId === peerId || req.username === username)) {
+            showToast('Demande d\'ami déjà envoyée', 'warning');
+            return;
+        }
+
+        const friendRequest = {
+            username,
+            peerId,
+            timestamp: Date.now()
+        };
+        
+        state.friendRequestsSent.push(friendRequest);
+        localStorage.setItem('friendRequestsSent', JSON.stringify(state.friendRequestsSent));
+        
+        if (peerInfo && peerInfo.conn) {
+            peerInfo.conn.send({
+                type: 'friend-request',
+                fromUsername: state.myName,
+                fromPeerId: state.myPeerId,
+                timestamp: Date.now()
+            });
+            showToast(`Demande d'ami envoyée à ${username}`, 'success');
+        } else {
+            showToast(`Demande d'ami enregistrée pour ${username}`, 'info');
+        }
+        
+        updateDiscoveredPeersList();
+        updateFriendRequestsList();
+    }
+
+    function startDirectMessage(username) {
+        if (!username || username === state.myName) {
+            showToast('Action invalide', 'error');
+            return;
+        }
+        
+        if (!state.connectionsByUsername.has(username)) {
+            showToast(`${username} n'est pas connecté`, 'warning');
+            return;
+        }
+        
+        switchTab('dm');
+        
+        setTimeout(() => {
+            const contactElement = Array.from(document.querySelectorAll('.dm-contact'))
+                .find(el => el.querySelector('.dm-contact-name')?.textContent === username);
+            
+            if (contactElement) {
+                contactElement.click();
+            } else {
+                showToast('Conversation non trouvée', 'warning');
+            }
+        }, 100);
     }
 
     // Handle received friend request
@@ -8422,6 +8580,8 @@
 
     // Expose connect function for manual connection
     window.connectToPeer = connectToPeer;
+    window.sendFriendRequestFromList = sendFriendRequestFromList;
+    window.startDirectMessage = startDirectMessage;
 
     // ============================================
     // NEW FEATURES IMPLEMENTATION
