@@ -6050,17 +6050,22 @@
             ...Array.from(state.pendingConnections.entries()).map(([id, info]) => ({ id, ...info, connected: false }))
         ];
 
-        // Filter by current room members if in a room
-        if (state.currentRoom.members) {
+        // Check if current user can moderate
+        const canMod = canModerate();
+        const isCreator = state.myRole === 'creator';
+        const isAdmin = state.myRole === 'admin';
+
+        // For creators and admins: show ALL connected peers (don't filter by members list)
+        // For regular participants: filter by current room members only
+        if (isCreator || isAdmin) {
+            // Admins and creators can see all participants, no filtering needed
+        } else if (state.currentRoom.members) {
+            // Regular participants only see peers that are in the members list
             allPeers = allPeers.filter(peer => {
                 const peerUsername = peer.name || peer.username;
                 return state.currentRoom.members.includes(peerUsername);
             });
         }
-
-        // Check if current user can moderate
-        const canMod = canModerate();
-        const isCreator = state.myRole === 'creator';
 
         if (allPeers.length === 0) {
             elements.peersList.innerHTML = `
