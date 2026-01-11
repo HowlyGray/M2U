@@ -4720,6 +4720,10 @@
             case 'dmRead':
                 handleDmRead(data);
                 break;
+
+            case 'sync-join-requests':
+                handleSyncJoinRequests(data);
+                break;
         }
     }
 
@@ -5080,10 +5084,14 @@
         const targetInfo = state.connections.get(targetPeerId);
         const adminInfo = state.connections.get(creatorId);
 
-        if (!targetInfo || !adminInfo) return;
+        if (!targetName) return;
 
-        // Update role
-        targetInfo.role = 'admin';
+        // Find the room in our local storage and update admins list
+        const room = state.privateRooms.find(r => r.id === roomId);
+        if (room && !room.admins.includes(targetName)) {
+            room.admins.push(targetName);
+            savePrivateRooms();
+        }
 
         // Update room admins list if provided
         if (admins && state.currentRoom) {
@@ -5100,8 +5108,29 @@
             state.roomAdmins.get(roomId).add(targetPeerId);
         }
 
-        appendSystemMessage(`👑 ${adminInfo.name} a nommé ${targetInfo.name} administrateur`, 'success');
-        showToast(`${targetInfo.name} est maintenant administrateur`, 'success');
+        if (isMe) {
+            // I was promoted to admin
+            if (state.currentRoom && state.currentRoom.id === roomId) {
+                state.myRole = 'admin';
+                updateParticipantsList();
+                // Show join requests section if there are pending requests
+                const pendingRequests = state.pendingJoinRequests.get(roomId) || [];
+                if (pendingRequests.length > 0) {
+                    elements.joinRequestsSection.style.display = 'block';
+                    updateJoinRequestsList(roomId);
+                }
+            }
+            const creatorName = creatorInfo ? creatorInfo.name : 'Le créateur';
+            appendSystemMessage(`👑 ${creatorName} vous a promu administrateur`, 'success');
+            showToast('Vous êtes maintenant administrateur !', 'success');
+        } else {
+            // Someone else was promoted
+            const targetInfo = state.connections.get(targetPeerId);
+            if (targetInfo) targetInfo.role = 'admin';
+            const creatorName = creatorInfo ? creatorInfo.name : 'Le créateur';
+            appendSystemMessage(`👑 ${creatorName} a nommé ${targetName} administrateur`, 'success');
+            showToast(`${targetName} est maintenant administrateur`, 'success');
+        }
         updatePeersList();
     }
 
@@ -5110,10 +5139,17 @@
         const targetInfo = state.connections.get(targetPeerId);
         const revokerInfo = state.connections.get(revokerId);
 
-        if (!targetInfo || !revokerInfo) return;
+        if (!targetName) return;
 
-        // Update role
-        targetInfo.role = 'participant';
+        // Find the room in our local storage and update admins list
+        const room = state.privateRooms.find(r => r.id === roomId);
+        if (room) {
+            const adminIndex = room.admins.indexOf(targetName);
+            if (adminIndex > -1) {
+                room.admins.splice(adminIndex, 1);
+                savePrivateRooms();
+            }
+        }
 
         // Update room admins list if provided
         if (admins && state.currentRoom) {
@@ -5127,8 +5163,25 @@
             state.roomAdmins.get(roomId).delete(targetPeerId);
         }
 
-        appendSystemMessage(`⚠️ ${revokerInfo.name} a révoqué les droits d'admin de ${targetInfo.name}`, 'warning');
-        showToast(`${targetInfo.name} n'est plus administrateur`, 'warning');
+        if (isMe) {
+            // I was revoked
+            if (state.currentRoom && state.currentRoom.id === roomId) {
+                state.myRole = 'participant';
+                updateParticipantsList();
+                // Hide join requests section
+                elements.joinRequestsSection.style.display = 'none';
+            }
+            const creatorName = creatorInfo ? creatorInfo.name : 'Le créateur';
+            appendSystemMessage(`⚠️ ${creatorName} vous a retiré les droits d'administrateur`, 'warning');
+            showToast('Vous n\'êtes plus administrateur', 'warning');
+        } else {
+            // Someone else was revoked
+            const targetInfo = state.connections.get(targetPeerId);
+            if (targetInfo) targetInfo.role = 'participant';
+            const creatorName = creatorInfo ? creatorInfo.name : 'Le créateur';
+            appendSystemMessage(`⚠️ ${creatorName} a révoqué les droits d'admin de ${targetName}`, 'warning');
+            showToast(`${targetName} n'est plus administrateur`, 'warning');
+        }
         updatePeersList();
     }
 
@@ -7956,6 +8009,38 @@
         // Handler for when our join request is rejected
         const { roomId, reason } = data;
         showToast(`Demande refusée : ${reason || 'Accès refusé'}`, 'warning');
+    }
+
+    function handleSyncJoinRequests(data) {
+        // Handler for syncing join requests to newly promoted admins
+        const { roomId, requests } = data;
+
+        if (!roomId || !requests || !Array.isArray(requests)) return;
+
+        // Verify we are admin of this room
+        const room = state.privateRooms.find(r => r.id === roomId);
+        if (!room) return;
+
+        const isAdmin = room.creatorUsername === state.myName || room.admins.includes(state.myName);
+        if (!isAdmin) return;
+
+        // Merge with existing requests (avoid duplicates)
+        const existingRequests = state.pendingJoinRequests.get(roomId) || [];
+        const existingPeerIds = new Set(existingRequests.map(r => r.peerId));
+
+        for (const request of requests) {
+            if (!existingPeerIds.has(request.peerId)) {
+                existingRequests.push(request);
+            }
+        }
+
+        state.pendingJoinRequests.set(roomId, existingRequests);
+
+        // Update UI if we're viewing this room
+        if (state.currentRoom && state.currentRoom.id === roomId && existingRequests.length > 0) {
+            elements.joinRequestsSection.style.display = 'block';
+            updateJoinRequestsList(roomId);
+        }
     }
 
     async function handleDirectMessage(data) {
