@@ -7108,6 +7108,7 @@
         state.currentRoom = null;
         document.getElementById('rooms-list-view').style.display = 'block';
         elements.roomDetail.classList.remove('active');
+        updateParticipantsList(); // Reset participants list to show "Rejoignez un salon..."
     }
 
     function copyRoomAccessId() {
