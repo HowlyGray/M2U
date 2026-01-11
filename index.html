@@ -6554,19 +6554,16 @@
             }
         });
 
-        // Leave rooms where user is not creator
+        // Leave rooms where user is not creator - remove them from the list entirely
         roomsToLeave.forEach(room => {
-            const memberIndex = room.members.indexOf(state.myName);
-            if (memberIndex > -1) {
-                room.members.splice(memberIndex, 1);
-            }
-            const adminIndex = room.admins.indexOf(state.myName);
-            if (adminIndex > -1) {
-                room.admins.splice(adminIndex, 1);
+            const roomIndex = state.privateRooms.findIndex(r => r.id === room.id);
+            if (roomIndex > -1) {
+                state.privateRooms.splice(roomIndex, 1);
             }
         });
 
         savePrivateRooms();
+        updatePrivateRoomsList();
         cancelRoomSelectMode();
 
         let message = '';
