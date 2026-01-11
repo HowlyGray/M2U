@@ -4860,16 +4860,16 @@
                         timestamp: Date.now()
                     });
 
-                    // If this peer is our friend, send them a friend-sync message
-                    // to ensure both sides have consistent friend lists
-                    if (state.friends.includes(username)) {
-                        conn.send({
-                            type: 'friend-sync',
-                            friends: [state.myName],
-                            myPeerId: state.myPeerId
-                        });
-                        console.log(`[FRIENDS] Sent friend-sync to ${username}`);
-                    }
+                    // DISABLED: Automatic friend-sync on connection causes infinite loops
+                    // Friend synchronization should only happen on explicit user actions (accept, send request)
+                    // if (state.friends.includes(username)) {
+                    //     conn.send({
+                    //         type: 'friend-sync',
+                    //         friends: [state.myName],
+                    //         myPeerId: state.myPeerId
+                    //     });
+                    //     console.log(`[FRIENDS] Sent friend-sync to ${username}`);
+                    // }
                 }, 500);
 
                 // If we're the room creator, share the peer list
