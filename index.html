@@ -3742,7 +3742,7 @@
 
                 // Start automatic peer discovery (Ares/RetroShare style)
                 discoverPeers();
-                setInterval(discoverPeers, 10000); // Discover from server every 10s
+                setInterval(discoverPeers, 30000); // Discover from server every 30s
 
                 // Try bootstrap peers immediately (helps with cold start)
                 setTimeout(tryBootstrapPeers, 2000);
