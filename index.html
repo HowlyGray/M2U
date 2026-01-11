@@ -7631,17 +7631,25 @@
             return;
         }
         
+        // Get peerId from connectionsByUsername
+        const connectionInfo = state.connectionsByUsername.get(username);
+        if (!connectionInfo || !connectionInfo.peerId) {
+            showToast(`Impossible de trouver l'ID de ${username}`, 'error');
+            return;
+        }
+        
+        const peerId = connectionInfo.peerId;
+        
+        // Create conversation if it doesn't exist
+        if (!state.directMessages.has(peerId)) {
+            state.directMessages.set(peerId, []);
+            saveDirectMessages();
+        }
+        
         switchTab('dm');
         
         setTimeout(() => {
-            const contactElement = Array.from(document.querySelectorAll('.dm-contact'))
-                .find(el => el.querySelector('.dm-contact-name')?.textContent === username);
-            
-            if (contactElement) {
-                contactElement.click();
-            } else {
-                showToast('Conversation non trouvée', 'warning');
-            }
+            openDmConversation(peerId);
         }, 100);
     }
 
