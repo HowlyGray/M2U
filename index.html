@@ -2178,6 +2178,113 @@
             animation: pulse 2s infinite;
         }
 
+        /* Ban dialog styles */
+        .ban-dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            backdrop-filter: blur(5px);
+        }
+
+        .ban-dialog {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 1px solid rgba(248, 113, 113, 0.3);
+            border-radius: 16px;
+            padding: 0;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        .ban-dialog-header {
+            background: rgba(248, 113, 113, 0.1);
+            padding: 20px;
+            border-bottom: 1px solid rgba(248, 113, 113, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ban-dialog-header h3 {
+            margin: 0;
+            color: #f87171;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ban-dialog-close {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .ban-dialog-close:hover {
+            background: rgba(148, 163, 184, 0.1);
+            color: #e2e8f0;
+        }
+
+        .ban-dialog-content {
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .ban-dialog-content p {
+            margin: 0 0 20px 0;
+            color: #e2e8f0;
+            font-size: 1rem;
+        }
+
+        .ban-countdown-container {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .ban-countdown-label {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .ban-countdown-timer {
+            color: #f87171;
+            font-size: 2.5rem;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 0 10px rgba(248, 113, 113, 0.3);
+        }
+
+        .ban-dialog-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: center;
+        }
+
         /* Mobile: Minimize animations */
         @media (max-width: 768px) {
             .message {
@@ -2370,6 +2477,26 @@
                     </div>
                 </div>
 
+            </div>
+
+            <!-- Ban countdown dialog -->
+            <div class="ban-dialog-overlay" id="ban-dialog-overlay" style="display:none;">
+                <div class="ban-dialog">
+                    <div class="ban-dialog-header">
+                        <h3>⛔ Vous êtes banni</h3>
+                        <button class="ban-dialog-close" onclick="closeBanDialog()">&times;</button>
+                    </div>
+                    <div class="ban-dialog-content">
+                        <p id="ban-reason-text">Raison du bannissement</p>
+                        <div class="ban-countdown-container">
+                            <div class="ban-countdown-label">Temps restant :</div>
+                            <div class="ban-countdown-timer" id="ban-countdown-timer">00:00:00</div>
+                        </div>
+                    </div>
+                    <div class="ban-dialog-footer">
+                        <button class="btn btn-primary" onclick="closeBanDialog()">Compris</button>
+                    </div>
+                </div>
             </div>
 
             <!-- Main area with tabs -->
@@ -5516,6 +5643,60 @@
         }
     }
 
+    let banCountdownInterval = null;
+
+    function showBanDialog(roomId, reason) {
+        const overlay = document.getElementById('ban-dialog-overlay');
+        const reasonText = document.getElementById('ban-reason-text');
+        const timerElement = document.getElementById('ban-countdown-timer');
+        
+        // Get ban info
+        const banInfo = state.bannedUsers.get(roomId)?.get(state.myPeerId);
+        if (!banInfo) return;
+        
+        // Set reason text
+        reasonText.textContent = `Raison : ${reason || 'Bannissement par administrateur'}`;
+        
+        // Show dialog
+        overlay.style.display = 'flex';
+        
+        // Start countdown
+        function updateCountdown() {
+            const now = Date.now();
+            const remainingTime = Math.max(0, banInfo.expiryTime - now);
+            
+            if (remainingTime <= 0) {
+                // Ban expired
+                clearInterval(banCountdownInterval);
+                overlay.style.display = 'none';
+                showToast('Bannissement terminé ! Vous pouvez maintenant envoyer des messages.', 'success');
+                return;
+            }
+            
+            // Format as HH:MM:SS
+            const hours = Math.floor(remainingTime / (1000 * 60 * 60));
+            const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
+            
+            timerElement.textContent = 
+                `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        // Update immediately and then every second
+        updateCountdown();
+        banCountdownInterval = setInterval(updateCountdown, 1000);
+    }
+
+    function closeBanDialog() {
+        const overlay = document.getElementById('ban-dialog-overlay');
+        overlay.style.display = 'none';
+        
+        if (banCountdownInterval) {
+            clearInterval(banCountdownInterval);
+            banCountdownInterval = null;
+        }
+    }
+
     // Helper functions
     function isUserBanned(peerId, roomId) {
         if (!roomId || !state.bannedUsers.has(roomId)) {
@@ -5564,20 +5745,8 @@
             const roomId = state.currentRoom.id;
             if (isUserBanned(state.myPeerId, roomId)) {
                 const banInfo = state.bannedUsers.get(roomId).get(state.myPeerId);
-                const now = Date.now();
-                const remainingTime = Math.max(0, banInfo.expiryTime - now);
-                const minutesRemaining = Math.ceil(remainingTime / (60 * 1000));
-                
-                let durationText;
-                if (minutesRemaining < 60) {
-                    durationText = `${minutesRemaining} minute${minutesRemaining > 1 ? 's' : ''}`;
-                } else if (minutesRemaining < 1440) {
-                    durationText = `${Math.ceil(minutesRemaining / 60)} heure${Math.ceil(minutesRemaining / 60) > 1 ? 's' : ''}`;
-                } else {
-                    durationText = `${Math.ceil(minutesRemaining / 1440)} jour${Math.ceil(minutesRemaining / 1440) > 1 ? 's' : ''}`;
-                }
-                
-                showToast(`Vous êtes banni de ce salon pour ${durationText}`, 'error');
+                // Show ban dialog with countdown
+                showBanDialog(roomId, banInfo.reason);
                 return;
             }
         }
