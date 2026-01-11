@@ -5238,38 +5238,44 @@
     }
 
     function handleAdminAssign(data) {
-        const { targetPeerId, targetUsername, creatorId, creatorUsername, admins } = data;
+        const { targetPeerId, targetUsername, creatorId, creatorUsername, admins, roomId } = data;
         const targetInfo = state.connections.get(targetPeerId);
         const adminInfo = state.connections.get(creatorId);
 
-        if (!targetName) return;
+        console.log(`[ADMIN ASSIGN] Received: targetPeerId=${targetPeerId}, targetUsername=${targetUsername}, roomId=${roomId}`);
+        console.log(`[ADMIN ASSIGN] isMe=${targetPeerId === state.myPeerId}, myPeerId=${state.myPeerId}`);
+        console.log(`[ADMIN ASSIGN] state.currentRoom=${state.currentRoom ? state.currentRoom.id : null}, state.myRole=${state.myRole}`);
+
+        if (!targetUsername) return;
+
+        // Check if this is me (I was promoted to admin)
+        const isMe = targetPeerId === state.myPeerId;
 
         // Find the room in our local storage and update admins list
-        const room = state.privateRooms.find(r => r.id === roomId);
-        if (room && !room.admins.includes(targetName)) {
-            room.admins.push(targetName);
-            savePrivateRooms();
-        }
-
-        // Update room admins list if provided
-        if (admins && state.currentRoom) {
-            state.currentRoom.admins = admins;
-            savePrivateRooms();
-        }
-
-        // Store admin
-        const roomId = state.currentRoom?.id;
         if (roomId) {
+            const room = state.privateRooms.find(r => r.id === roomId);
+            if (room && !room.admins.includes(targetUsername)) {
+                room.admins.push(targetUsername);
+                savePrivateRooms();
+            }
+
+            // Update room admins list if provided
+            if (admins && state.currentRoom && state.currentRoom.id === roomId) {
+                state.currentRoom.admins = admins;
+                savePrivateRooms();
+            }
+
+            // Store admin in roomAdmins
             if (!state.roomAdmins.has(roomId)) {
                 state.roomAdmins.set(roomId, new Set());
             }
             state.roomAdmins.get(roomId).add(targetPeerId);
-        }
 
-        if (isMe) {
-            // I was promoted to admin
-            if (state.currentRoom && state.currentRoom.id === roomId) {
+            // If I was promoted and this is the current room, update my role
+            if (isMe && state.currentRoom && state.currentRoom.id === roomId) {
+                console.log(`[ADMIN ASSIGN] Promoting myself to admin! Previous role: ${state.myRole}`);
                 state.myRole = 'admin';
+                console.log(`[ADMIN ASSIGN] New role: ${state.myRole}`);
                 updateParticipantsList();
                 // Show join requests section if there are pending requests
                 const pendingRequests = state.pendingJoinRequests.get(roomId) || [];
@@ -5278,69 +5284,77 @@
                     updateJoinRequestsList(roomId);
                 }
             }
+        }
+
+        if (isMe) {
             const creatorName = creatorInfo ? creatorInfo.name : 'Le créateur';
             appendSystemMessage(`👑 ${creatorName} vous a promu administrateur`, 'success');
             showToast('Vous êtes maintenant administrateur !', 'success');
         } else {
             // Someone else was promoted
-            const targetInfo = state.connections.get(targetPeerId);
             if (targetInfo) targetInfo.role = 'admin';
             const creatorName = creatorInfo ? creatorInfo.name : 'Le créateur';
-            appendSystemMessage(`👑 ${creatorName} a nommé ${targetName} administrateur`, 'success');
-            showToast(`${targetName} est maintenant administrateur`, 'success');
+            appendSystemMessage(`👑 ${creatorName} a nommé ${targetUsername} administrateur`, 'success');
+            showToast(`${targetUsername} est maintenant administrateur`, 'success');
         }
         updatePeersList();
+        updateParticipantsList();
     }
 
     function handleAdminRevoke(data) {
-        const { targetPeerId, targetUsername, revokerId, revokerUsername, admins } = data;
+        const { targetPeerId, targetUsername, revokerId, revokerUsername, admins, roomId } = data;
         const targetInfo = state.connections.get(targetPeerId);
         const revokerInfo = state.connections.get(revokerId);
 
-        if (!targetName) return;
+        if (!targetUsername) return;
 
-        // Find the room in our local storage and update admins list
-        const room = state.privateRooms.find(r => r.id === roomId);
-        if (room) {
-            const adminIndex = room.admins.indexOf(targetName);
-            if (adminIndex > -1) {
-                room.admins.splice(adminIndex, 1);
+        // Check if this is me (I was revoked from admin)
+        const isMe = targetPeerId === state.myPeerId;
+
+        if (roomId) {
+            // Find the room in our local storage and update admins list
+            const room = state.privateRooms.find(r => r.id === roomId);
+            if (room) {
+                const adminIndex = room.admins.indexOf(targetUsername);
+                if (adminIndex > -1) {
+                    room.admins.splice(adminIndex, 1);
+                    savePrivateRooms();
+                }
+            }
+
+            // Update room admins list if provided
+            if (admins && state.currentRoom && state.currentRoom.id === roomId) {
+                state.currentRoom.admins = admins;
                 savePrivateRooms();
             }
-        }
 
-        // Update room admins list if provided
-        if (admins && state.currentRoom) {
-            state.currentRoom.admins = admins;
-            savePrivateRooms();
-        }
+            // Remove from roomAdmins
+            if (state.roomAdmins.has(roomId)) {
+                state.roomAdmins.get(roomId).delete(targetPeerId);
+            }
 
-        // Remove from admins
-        const roomId = state.currentRoom?.id;
-        if (roomId && state.roomAdmins.has(roomId)) {
-            state.roomAdmins.get(roomId).delete(targetPeerId);
-        }
-
-        if (isMe) {
-            // I was revoked
-            if (state.currentRoom && state.currentRoom.id === roomId) {
+            // If I was revoked and this is the current room, update my role
+            if (isMe && state.currentRoom && state.currentRoom.id === roomId) {
                 state.myRole = 'participant';
                 updateParticipantsList();
                 // Hide join requests section
                 elements.joinRequestsSection.style.display = 'none';
             }
-            const creatorName = creatorInfo ? creatorInfo.name : 'Le créateur';
+        }
+
+        if (isMe) {
+            const creatorName = revokerInfo ? revokerInfo.name : 'Le créateur';
             appendSystemMessage(`⚠️ ${creatorName} vous a retiré les droits d'administrateur`, 'warning');
             showToast('Vous n\'êtes plus administrateur', 'warning');
         } else {
             // Someone else was revoked
-            const targetInfo = state.connections.get(targetPeerId);
             if (targetInfo) targetInfo.role = 'participant';
-            const creatorName = creatorInfo ? creatorInfo.name : 'Le créateur';
-            appendSystemMessage(`⚠️ ${creatorName} a révoqué les droits d'admin de ${targetName}`, 'warning');
-            showToast(`${targetName} n'est plus administrateur`, 'warning');
+            const creatorName = revokerInfo ? revokerInfo.name : 'Le créateur';
+            appendSystemMessage(`⚠️ ${creatorName} a révoqué les droits d'admin de ${targetUsername}`, 'warning');
+            showToast(`${targetUsername} n'est plus administrateur`, 'warning');
         }
         updatePeersList();
+        updateParticipantsList();
     }
 
     function handleAdminNotification(data) {
@@ -5351,12 +5365,14 @@
             // Update local state if we're in that room
             if (state.currentRoom && state.currentRoom.id === roomId) {
                 state.myRole = 'admin';
+                updateParticipantsList();
             }
         } else if (notificationType === 'revoked') {
             showToast(`⚠️ Vos droits d'administrateur ont été révoqués dans "${roomName}"`, 'warning');
             // Update local state if we're in that room
             if (state.currentRoom && state.currentRoom.id === roomId) {
                 state.myRole = 'participant';
+                updateParticipantsList();
             }
         }
     }
@@ -6055,16 +6071,22 @@
         const isCreator = state.myRole === 'creator';
         const isAdmin = state.myRole === 'admin';
 
+        console.log(`[UPDATE PARTICIPANTS] state.myRole=${state.myRole}, isCreator=${isCreator}, isAdmin=${isAdmin}`);
+        console.log(`[UPDATE PARTICIPANTS] Total peers before filter: ${allPeers.length}`);
+
         // For creators and admins: show ALL connected peers (don't filter by members list)
         // For regular participants: filter by current room members only
         if (isCreator || isAdmin) {
             // Admins and creators can see all participants, no filtering needed
+            console.log(`[UPDATE PARTICIPANTS] Admin/Creator mode - showing ALL peers`);
         } else if (state.currentRoom.members) {
             // Regular participants only see peers that are in the members list
+            console.log(`[UPDATE PARTICIPANTS] Participant mode - filtering by members list: ${state.currentRoom.members}`);
             allPeers = allPeers.filter(peer => {
                 const peerUsername = peer.name || peer.username;
                 return state.currentRoom.members.includes(peerUsername);
             });
+            console.log(`[UPDATE PARTICIPANTS] Peers after filter: ${allPeers.length}`);
         }
 
         if (allPeers.length === 0) {
@@ -6242,6 +6264,7 @@
             targetUsername: peerInfo.name,
             creatorId: state.myPeerId,
             creatorUsername: state.myName,
+            roomId: state.currentRoom.id,
             admins: state.currentRoom.admins
         });
 
@@ -6296,6 +6319,7 @@
             targetUsername: peerInfo.name,
             creatorId: state.myPeerId,
             creatorUsername: state.myName,
+            roomId: state.currentRoom.id,
             admins: state.currentRoom.admins
         });
 
@@ -6477,13 +6501,25 @@
 
         if (!confirm(`Voulez-vous nommer ${peerInfo.name} administrateur ?`)) return;
 
+        // Update room admins list
+        if (state.currentRoom) {
+            if (!state.currentRoom.admins.includes(peerInfo.name)) {
+                state.currentRoom.admins.push(peerInfo.name);
+            }
+            savePrivateRooms();
+        }
+
         appendSystemMessage(`👑 Vous avez nommé ${peerInfo.name} administrateur`, 'success');
         showToast(`${peerInfo.name} est maintenant administrateur`, 'success');
 
         broadcastMessage({
             type: 'admin-assign',
             targetPeerId: peerId,
-            adminId: state.myPeerId
+            targetUsername: peerInfo.name,
+            creatorId: state.myPeerId,
+            creatorUsername: state.myName,
+            roomId: state.currentRoom.id,
+            admins: state.currentRoom.admins
         });
 
         // Update local
@@ -6496,6 +6532,7 @@
             state.roomAdmins.get(roomId).add(peerId);
         }
         updatePeersList();
+        updateParticipantsList();
     }
 
     function revokeAdmin(peerId) {
