@@ -3037,7 +3037,7 @@
         // Moderation system
         roomAdmins: new Map(), // roomId -> Set<username>
         activeVotes: new Map(), // voteId -> { targetUsername, votes: Set<username>, expiresAt }
-        bannedUsers: new Map(), // roomId -> Set<username>
+        bannedUsers: new Map(), // roomId -> Map<peerId, { banCount, expiryTime }>
         reportedUsers: new Map(), // roomId -> Map<username, { reporterUsername, reason, count }>
         myRole: 'participant', // 'creator', 'admin', 'participant'
         // Room system (private only)
@@ -4823,6 +4823,14 @@
                 handleAdminNotification(data);
                 break;
 
+            case 'kicked':
+                handleKicked(data);
+                break;
+
+            case 'banned':
+                handleBanned(data);
+                break;
+
             case 'join-request':
                 handleJoinRequest(data);
                 break;
@@ -5028,7 +5036,7 @@
     // MODERATION HANDLERS
     // ============================================
     function handleKickUser(data) {
-        const { targetPeerId, initiatorId, reason } = data;
+        const { targetPeerId, initiatorId, roomId, reason } = data;
 
         // Check if we have permission
         if (!canModerate()) {
@@ -5041,20 +5049,62 @@
             appendSystemMessage(`🚪 ${peerInfo.name} a été expulsé par l'administrateur`, 'warning');
             showToast(`${peerInfo.name} expulsé`, 'info');
 
+            // Remove from room members
+            if (roomId) {
+                // Remove from current room's members list
+                if (state.currentRoom && state.currentRoom.id === roomId) {
+                    const memberIndex = state.currentRoom.members.indexOf(peerInfo.name);
+                    if (memberIndex > -1) {
+                        state.currentRoom.members.splice(memberIndex, 1);
+                    }
+                    // Remove from admin list if present
+                    const adminIndex = state.currentRoom.admins.indexOf(peerInfo.name);
+                    if (adminIndex > -1) {
+                        state.currentRoom.admins.splice(adminIndex, 1);
+                    }
+                }
+
+                // Remove from privateRooms storage
+                const room = state.privateRooms.find(r => r.id === roomId);
+                if (room) {
+                    const roomMemberIndex = room.members.indexOf(peerInfo.name);
+                    if (roomMemberIndex > -1) {
+                        room.members.splice(roomMemberIndex, 1);
+                    }
+                    const roomAdminIndex = room.admins.indexOf(peerInfo.name);
+                    if (roomAdminIndex > -1) {
+                        room.admins.splice(roomAdminIndex, 1);
+                    }
+                    savePrivateRooms();
+                }
+
+                // Remove from roomAdmins map
+                if (state.roomAdmins.has(roomId)) {
+                    state.roomAdmins.get(roomId).delete(targetPeerId);
+                }
+
+                // Notify the kicked user
+                peerInfo.conn.send({
+                    type: 'kicked',
+                    roomId: roomId,
+                    reason: reason || 'Expulsion par administrateur',
+                    initiatorId
+                });
+            }
+
             // Disconnect the user
-            peerInfo.conn.send({
-                type: 'kicked',
-                reason: reason || 'Expulsion par administrateur',
-                initiatorId
-            });
             peerInfo.conn.close();
             state.connections.delete(targetPeerId);
             updatePeersList();
+            updateParticipantsList();
+
+            // Log for debugging
+            console.log(`[KICK] User ${peerInfo.name} kicked from room ${roomId}`);
         }
     }
 
     function handleBanUser(data) {
-        const { targetPeerId, initiatorId, reason } = data;
+        const { targetPeerId, initiatorId, roomId, banDurationMinutes, expiryTime, reason } = data;
 
         // Check if we have permission
         if (!canModerate()) {
@@ -5064,27 +5114,47 @@
 
         const peerInfo = state.connections.get(targetPeerId);
         if (peerInfo) {
-            appendSystemMessage(`🚫 ${peerInfo.name} a été banni du salon`, 'error');
+            // Format duration for display
+            let durationText;
+            if (banDurationMinutes < 60) {
+                durationText = `${banDurationMinutes} minute${banDurationMinutes > 1 ? 's' : ''}`;
+            } else if (banDurationMinutes < 1440) {
+                durationText = `${banDurationMinutes / 60} heure${banDurationMinutes / 60 > 1 ? 's' : ''}`;
+            } else {
+                durationText = `${banDurationMinutes / 1440} jour${banDurationMinutes / 1440 > 1 ? 's' : ''}`;
+            }
+
+            appendSystemMessage(`🚫 ${peerInfo.name} a été banni pour ${durationText}`, 'error');
             showToast(`${peerInfo.name} banni`, 'error');
 
-            // Add to banned list
-            const roomId = state.currentRoom?.id;
-            if (roomId && !state.bannedUsers.has(roomId)) {
-                state.bannedUsers.set(roomId, new Set());
-            }
+            // Add to banned list with expiry time
             if (roomId) {
-                state.bannedUsers.get(roomId).add(targetPeerId);
-            }
+                if (!state.bannedUsers.has(roomId)) {
+                    state.bannedUsers.set(roomId, new Map());
+                }
+                const roomBans = state.bannedUsers.get(roomId);
+                const existingBan = roomBans.get(targetPeerId);
+                const banCount = existingBan ? existingBan.banCount + 1 : 1;
+                roomBans.set(targetPeerId, {
+                    banCount,
+                    expiryTime,
+                    initiatorId,
+                    reason
+                });
 
-            // Disconnect the user
-            peerInfo.conn.send({
-                type: 'banned',
-                reason: reason || 'Bannissement par administrateur',
-                initiatorId
-            });
-            peerInfo.conn.close();
-            state.connections.delete(targetPeerId);
-            updatePeersList();
+                // Notify banned user
+                peerInfo.conn.send({
+                    type: 'banned',
+                    roomId: roomId,
+                    banDurationMinutes,
+                    expiryTime,
+                    reason: reason || 'Bannissement par administrateur',
+                    initiatorId
+                });
+
+                // Log for debugging
+                console.log(`[BAN] User ${peerInfo.name} banned for ${durationText} (${expiryTime})`);
+            }
         }
     }
 
@@ -5377,7 +5447,99 @@
         }
     }
 
+    function handleKicked(data) {
+        const { roomId, reason, initiatorId } = data;
+        
+        // Find the room and remove ourselves from it
+        const room = state.privateRooms.find(r => r.id === roomId);
+        if (!room) return;
+        
+        // Remove ourselves from room members
+        const memberIndex = room.members.indexOf(state.myName);
+        if (memberIndex > -1) {
+            room.members.splice(memberIndex, 1);
+        }
+        
+        // Remove from admin list if present
+        const adminIndex = room.admins.indexOf(state.myName);
+        if (adminIndex > -1) {
+            room.admins.splice(adminIndex, 1);
+        }
+        
+        savePrivateRooms();
+        
+        // If we're currently viewing this room, go back to rooms list
+        if (state.currentRoom && state.currentRoom.id === roomId) {
+            backToRoomsList();
+            showToast(`Vous avez été expulsé du salon : ${reason || 'Expulsion par administrateur'}`, 'error');
+        } else {
+            showToast(`Vous avez été expulsé du salon "${room.name}"`, 'error');
+        }
+        
+        updatePrivateRoomsList();
+    }
+
+    function handleBanned(data) {
+        const { roomId, banDurationMinutes, expiryTime, reason, initiatorId } = data;
+        
+        // Format duration for display
+        let durationText;
+        if (banDurationMinutes < 60) {
+            durationText = `${banDurationMinutes} minute${banDurationMinutes > 1 ? 's' : ''}`;
+        } else if (banDurationMinutes < 1440) {
+            durationText = `${banDurationMinutes / 60} heure${banDurationMinutes / 60 > 1 ? 's' : ''}`;
+        } else {
+            durationText = `${banDurationMinutes / 1440} jour${banDurationMinutes / 1440 > 1 ? 's' : ''}`;
+        }
+        
+        // Add to banned list
+        if (roomId) {
+            if (!state.bannedUsers.has(roomId)) {
+                state.bannedUsers.set(roomId, new Map());
+            }
+            const roomBans = state.bannedUsers.get(roomId);
+            const existingBan = roomBans.get(state.myPeerId);
+            const banCount = existingBan ? existingBan.banCount + 1 : 1;
+            roomBans.set(state.myPeerId, {
+                banCount,
+                expiryTime,
+                initiatorId,
+                reason
+            });
+        }
+        
+        showToast(`Vous êtes banni du salon pour ${durationText} : ${reason || 'Bannissement par administrateur'}`, 'error');
+        
+        // If we're in that room, show the join request view (can't send messages)
+        if (state.currentRoom && state.currentRoom.id === roomId) {
+            showRoomJoinRequestView(state.currentRoom);
+        }
+    }
+
     // Helper functions
+    function isUserBanned(peerId, roomId) {
+        if (!roomId || !state.bannedUsers.has(roomId)) {
+            return false;
+        }
+        
+        const roomBans = state.bannedUsers.get(roomId);
+        if (!roomBans.has(peerId)) {
+            return false;
+        }
+        
+        const banInfo = roomBans.get(peerId);
+        const now = Date.now();
+        
+        if (now > banInfo.expiryTime) {
+            // Ban has expired, remove it
+            roomBans.delete(peerId);
+            console.log(`[BAN] Ban expired for user ${peerId}`);
+            return false;
+        }
+        
+        return true;
+    }
+
     function canModerate() {
         return state.myRole === 'creator' || state.myRole === 'admin';
     }
@@ -5396,6 +5558,29 @@
     async function sendMessage() {
         const content = elements.messageInput.value.trim();
         if (!content || state.connections.size === 0) return;
+
+        // Check if user is banned from current room
+        if (state.currentRoom && state.currentTab === 'rooms') {
+            const roomId = state.currentRoom.id;
+            if (isUserBanned(state.myPeerId, roomId)) {
+                const banInfo = state.bannedUsers.get(roomId).get(state.myPeerId);
+                const now = Date.now();
+                const remainingTime = Math.max(0, banInfo.expiryTime - now);
+                const minutesRemaining = Math.ceil(remainingTime / (60 * 1000));
+                
+                let durationText;
+                if (minutesRemaining < 60) {
+                    durationText = `${minutesRemaining} minute${minutesRemaining > 1 ? 's' : ''}`;
+                } else if (minutesRemaining < 1440) {
+                    durationText = `${Math.ceil(minutesRemaining / 60)} heure${Math.ceil(minutesRemaining / 60) > 1 ? 's' : ''}`;
+                } else {
+                    durationText = `${Math.ceil(minutesRemaining / 1440)} jour${Math.ceil(minutesRemaining / 1440) > 1 ? 's' : ''}`;
+                }
+                
+                showToast(`Vous êtes banni de ce salon pour ${durationText}`, 'error');
+                return;
+            }
+        }
 
         const timestamp = new Date().toISOString();
         const messageData = {
@@ -6180,10 +6365,13 @@
         const reason = prompt(`Expulser ${peerInfo.name} ?\nRaison (optionnel):`);
         if (reason === null) return; // User canceled
 
+        const roomId = state.currentRoom?.id;
+        
         broadcastMessage({
             type: 'kick-user',
             targetPeerId: peerId,
             initiatorId: state.myPeerId,
+            roomId: roomId,
             reason: reason || 'Expulsion par modérateur'
         });
 
@@ -6191,6 +6379,7 @@
         handleKickUser({
             targetPeerId: peerId,
             initiatorId: state.myPeerId,
+            roomId: roomId,
             reason: reason || 'Expulsion par modérateur'
         });
 
@@ -6209,17 +6398,48 @@
             return;
         }
 
-        if (!confirm(`Bannir définitivement ${peerInfo.name} ?\nIl ne pourra plus rejoindre ce salon.`)) {
+        const roomId = state.currentRoom?.id;
+        if (!roomId) {
+            showToast('Aucun salon actif', 'error');
             return;
         }
 
-        const reason = prompt('Raison du bannissement (optionnel):');
+        // Get current ban count for this user
+        const banCount = state.bannedUsers.has(roomId) && state.bannedUsers.get(roomId).has(peerId)
+            ? state.bannedUsers.get(roomId).get(peerId).banCount
+            : 0;
+
+        // Durées de bannissement en minutes
+        const banDurations = [5, 15, 30, 60, 240, 480, 1440]; // 5min, 15min, 30min, 1h, 4h, 8h, 24h
+        const banDurationIndex = Math.min(banCount, banDurations.length - 1);
+        const banDurationMinutes = banDurations[banDurationIndex];
+
+        // Format duration for display
+        let durationText;
+        if (banDurationMinutes < 60) {
+            durationText = `${banDurationMinutes} minute${banDurationMinutes > 1 ? 's' : ''}`;
+        } else if (banDurationMinutes < 1440) {
+            durationText = `${banDurationMinutes / 60} heure${banDurationMinutes / 60 > 1 ? 's' : ''}`;
+        } else {
+            durationText = `${banDurationMinutes / 1440} jour${banDurationMinutes / 1440 > 1 ? 's' : ''}`;
+        }
+
+        if (!confirm(`Bannir temporairement ${peerInfo.name} pour ${durationText} ?\n\nIl ne pourra pas envoyer de messages dans ce salon pendant cette durée.`)) {
+            return;
+        }
+
+        const reason = prompt(`Raison du bannissement de ${peerInfo.name} (optionnel):`);
         if (reason === null) return; // User canceled
+
+        const expiryTime = Date.now() + (banDurationMinutes * 60 * 1000);
 
         broadcastMessage({
             type: 'ban-user',
             targetPeerId: peerId,
             initiatorId: state.myPeerId,
+            roomId: roomId,
+            banDurationMinutes,
+            expiryTime,
             reason: reason || 'Bannissement par modérateur'
         });
 
@@ -6227,10 +6447,13 @@
         handleBanUser({
             targetPeerId: peerId,
             initiatorId: state.myPeerId,
+            roomId: roomId,
+            banDurationMinutes,
+            expiryTime,
             reason: reason || 'Bannissement par modérateur'
         });
 
-        showToast(`${peerInfo.name} banni`, 'success');
+        showToast(`${peerInfo.name} banni pour ${durationText}`, 'success');
     };
 
     window.promoteToAdmin = function(peerId) {
