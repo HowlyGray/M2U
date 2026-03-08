@@ -2336,6 +2336,207 @@
         .message.swiping .swipe-indicator {
             width: 60px;
         }
+
+        /* ============================================ */
+        /* CUSTOM MODAL SYSTEM                          */
+        /* ============================================ */
+        .custom-modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7); display: flex; align-items: center;
+            justify-content: center; z-index: 10000; opacity: 0;
+            transition: opacity 0.2s; pointer-events: none;
+        }
+        .custom-modal-overlay.show { opacity: 1; pointer-events: all; }
+        .custom-modal-box {
+            background: #1e293b; border-radius: 16px; padding: 24px;
+            max-width: 420px; width: 90%; border: 1px solid rgba(99,179,237,0.2);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5); transform: scale(0.95);
+            transition: transform 0.2s;
+        }
+        .custom-modal-overlay.show .custom-modal-box { transform: scale(1); }
+        .custom-modal-title {
+            font-size: 1.1rem; font-weight: 600; color: #e2e8f0;
+            margin-bottom: 12px;
+        }
+        .custom-modal-message {
+            color: #94a3b8; font-size: 0.9rem; margin-bottom: 20px; line-height: 1.5;
+        }
+        .custom-modal-input {
+            width: 100%; padding: 10px 14px; border-radius: 10px;
+            border: 1px solid rgba(99,179,237,0.3); background: rgba(15,23,42,0.8);
+            color: #e2e8f0; font-size: 0.9rem; margin-bottom: 16px; outline: none;
+        }
+        .custom-modal-input:focus { border-color: #63b3ed; box-shadow: 0 0 0 3px rgba(99,179,237,0.2); }
+        .custom-modal-actions {
+            display: flex; gap: 10px; justify-content: flex-end;
+        }
+        .custom-modal-btn {
+            padding: 8px 20px; border-radius: 10px; border: none;
+            cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.2s;
+        }
+        .custom-modal-btn.cancel {
+            background: rgba(100,116,139,0.3); color: #94a3b8;
+        }
+        .custom-modal-btn.cancel:hover { background: rgba(100,116,139,0.5); }
+        .custom-modal-btn.confirm {
+            background: linear-gradient(135deg, #3b82f6, #6366f1); color: white;
+        }
+        .custom-modal-btn.confirm:hover { opacity: 0.9; }
+        .custom-modal-btn.danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626); color: white;
+        }
+        .custom-modal-btn.danger:hover { opacity: 0.9; }
+
+        /* ============================================ */
+        /* THEME TOGGLE                                 */
+        /* ============================================ */
+        body.light-theme { background: #f0f4f8; color: #1e293b; }
+        body.light-theme .container {
+            background: rgba(255,255,255,0.95); border-color: rgba(0,0,0,0.1);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
+        }
+        body.light-theme header { background: rgba(248,250,252,0.95); border-color: rgba(99,179,237,0.2); }
+        body.light-theme h1 { -webkit-text-fill-color: initial; background: none; color: #1e293b; }
+        body.light-theme .subtitle { color: #64748b; }
+        body.light-theme .sidebar { background: rgba(248,250,252,0.95); border-color: rgba(0,0,0,0.08); }
+        body.light-theme .message.received { background: rgba(99,179,237,0.1); color: #1e293b; }
+        body.light-theme .message.sent { background: rgba(99,102,241,0.1); color: #1e293b; }
+        body.light-theme .message.system { background: rgba(0,0,0,0.05); color: #64748b; }
+        body.light-theme .input-field, body.light-theme .custom-modal-input {
+            background: rgba(248,250,252,0.9); color: #1e293b; border-color: rgba(0,0,0,0.15);
+        }
+        body.light-theme .custom-modal-box { background: #ffffff; border-color: rgba(0,0,0,0.1); }
+        body.light-theme .custom-modal-title { color: #1e293b; }
+        body.light-theme .custom-modal-message { color: #64748b; }
+        body.light-theme .main-area { background: rgba(255,255,255,0.5); }
+        body.light-theme .tab-btn { color: #64748b; }
+        body.light-theme .tab-btn.active { color: #3b82f6; border-color: #3b82f6; }
+        body.light-theme .peer-item { background: rgba(0,0,0,0.03); }
+        body.light-theme .room-card { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.08); }
+        body.light-theme .settings-content { background: #ffffff; }
+        body.light-theme .badge { background: rgba(99,179,237,0.1); color: #3b82f6; }
+        body.light-theme .status-bar { background: rgba(248,250,252,0.9); color: #64748b; }
+        body.light-theme textarea { background: rgba(248,250,252,0.9); color: #1e293b; border-color: rgba(0,0,0,0.15); }
+        .theme-toggle-btn {
+            position: absolute; top: 20px; right: 60px;
+            background: none; border: none; cursor: pointer; color: #94a3b8;
+            padding: 6px; border-radius: 8px; transition: all 0.2s;
+        }
+        .theme-toggle-btn:hover { color: #63b3ed; background: rgba(99,179,237,0.1); }
+
+        /* ============================================ */
+        /* MESSAGE SEARCH                               */
+        /* ============================================ */
+        .search-bar {
+            display: none; padding: 8px 12px;
+            background: rgba(15,23,42,0.8); border-bottom: 1px solid rgba(99,179,237,0.15);
+        }
+        .search-bar.show { display: flex; align-items: center; gap: 8px; }
+        .search-bar input {
+            flex: 1; padding: 6px 12px; border-radius: 8px;
+            border: 1px solid rgba(99,179,237,0.2); background: rgba(15,23,42,0.9);
+            color: #e2e8f0; font-size: 0.85rem; outline: none;
+        }
+        .search-bar input:focus { border-color: #63b3ed; }
+        .search-bar .search-count { color: #64748b; font-size: 0.8rem; white-space: nowrap; }
+        .search-bar button { background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; }
+        .message.search-highlight { box-shadow: 0 0 0 2px #fbbf24; }
+        body.light-theme .search-bar { background: rgba(248,250,252,0.9); }
+        body.light-theme .search-bar input { background: white; color: #1e293b; border-color: rgba(0,0,0,0.15); }
+
+        /* ============================================ */
+        /* MESSAGE REACTIONS                            */
+        /* ============================================ */
+        .message-reactions {
+            display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px;
+        }
+        .reaction-badge {
+            display: inline-flex; align-items: center; gap: 3px;
+            padding: 2px 8px; border-radius: 12px; font-size: 0.75rem;
+            background: rgba(99,179,237,0.1); border: 1px solid rgba(99,179,237,0.2);
+            cursor: pointer; transition: all 0.2s; user-select: none;
+        }
+        .reaction-badge:hover { background: rgba(99,179,237,0.2); }
+        .reaction-badge.mine { background: rgba(99,102,241,0.2); border-color: rgba(99,102,241,0.3); }
+        .reaction-badge .count { color: #94a3b8; font-size: 0.7rem; }
+        .reaction-picker {
+            position: absolute; bottom: 100%; right: 0;
+            background: #1e293b; border-radius: 12px; padding: 8px;
+            display: none; gap: 4px; flex-wrap: wrap; width: 200px;
+            border: 1px solid rgba(99,179,237,0.2); box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            z-index: 100;
+        }
+        .reaction-picker.show { display: flex; }
+        .reaction-picker button {
+            background: none; border: none; font-size: 1.2rem;
+            cursor: pointer; padding: 4px 6px; border-radius: 6px; transition: background 0.2s;
+        }
+        .reaction-picker button:hover { background: rgba(99,179,237,0.2); }
+        .message-action-bar {
+            position: absolute; top: -8px; right: 8px; display: none;
+            gap: 2px; background: #1e293b; border-radius: 8px; padding: 2px;
+            border: 1px solid rgba(99,179,237,0.15); box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .message:hover .message-action-bar { display: flex; }
+        .message-action-bar button {
+            background: none; border: none; color: #94a3b8; cursor: pointer;
+            padding: 4px 6px; border-radius: 6px; font-size: 0.8rem; transition: all 0.2s;
+        }
+        .message-action-bar button:hover { background: rgba(99,179,237,0.2); color: #63b3ed; }
+        body.light-theme .message-action-bar { background: #fff; border-color: rgba(0,0,0,0.1); }
+        body.light-theme .reaction-picker { background: #fff; border-color: rgba(0,0,0,0.1); }
+
+        /* ============================================ */
+        /* READ RECEIPTS                                */
+        /* ============================================ */
+        .message-status {
+            display: inline-flex; align-items: center; gap: 3px; margin-left: 6px;
+        }
+        .message-status svg { width: 12px; height: 12px; }
+        .message-status.sent svg { color: #64748b; }
+        .message-status.delivered svg { color: #94a3b8; }
+        .message-status.read svg { color: #34d399; }
+
+        /* ============================================ */
+        /* ONBOARDING                                   */
+        /* ============================================ */
+        .onboarding-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85); display: flex; align-items: center;
+            justify-content: center; z-index: 20000;
+        }
+        .onboarding-card {
+            background: #1e293b; border-radius: 20px; padding: 40px;
+            max-width: 500px; width: 90%; text-align: center;
+            border: 1px solid rgba(99,179,237,0.2);
+        }
+        .onboarding-card h2 { color: #e2e8f0; margin-bottom: 16px; font-size: 1.5rem; }
+        .onboarding-card p { color: #94a3b8; margin-bottom: 20px; line-height: 1.6; }
+        .onboarding-steps { display: flex; gap: 8px; justify-content: center; margin-bottom: 24px; }
+        .onboarding-step {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: rgba(99,179,237,0.3); transition: all 0.3s;
+        }
+        .onboarding-step.active { background: #63b3ed; width: 24px; border-radius: 4px; }
+        .onboarding-feature {
+            display: flex; align-items: center; gap: 12px; text-align: left;
+            padding: 12px; background: rgba(99,179,237,0.05); border-radius: 12px;
+            margin-bottom: 10px;
+        }
+        .onboarding-feature svg { flex-shrink: 0; color: #63b3ed; }
+        .onboarding-feature span { color: #cbd5e1; font-size: 0.9rem; }
+        .onboarding-name-input {
+            width: 100%; padding: 12px 16px; border-radius: 12px;
+            border: 2px solid rgba(99,179,237,0.3); background: rgba(15,23,42,0.8);
+            color: #e2e8f0; font-size: 1rem; text-align: center; margin-bottom: 20px;
+        }
+        .onboarding-name-input:focus { border-color: #63b3ed; outline: none; }
+        .lang-selector { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; }
+        .lang-btn {
+            padding: 8px 20px; border-radius: 10px; border: 1px solid rgba(99,179,237,0.3);
+            background: transparent; color: #94a3b8; cursor: pointer; font-size: 0.9rem; transition: all 0.2s;
+        }
+        .lang-btn.active { background: rgba(99,179,237,0.2); color: #63b3ed; border-color: #63b3ed; }
     </style>
 </head>
 <body>
@@ -2346,6 +2547,11 @@
                     <line x1="3" y1="12" x2="21" y2="12"></line>
                     <line x1="3" y1="6" x2="21" y2="6"></line>
                     <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+            <button class="theme-toggle-btn" id="theme-toggle-btn" title="Toggle theme" aria-label="Toggle theme">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" id="theme-icon-path"></path>
                 </svg>
             </button>
             <button class="settings-btn" id="settings-btn" title="Paramètres de connexion" aria-label="Ouvrir les paramètres">
@@ -2484,7 +2690,7 @@
                 <div class="ban-dialog">
                     <div class="ban-dialog-header">
                         <h3>⛔ Vous êtes banni</h3>
-                        <button class="ban-dialog-close" onclick="closeBanDialog()">&times;</button>
+                        <button class="ban-dialog-close close-ban-dialog-btn">&times;</button>
                     </div>
                     <div class="ban-dialog-content">
                         <p id="ban-reason-text">Raison du bannissement</p>
@@ -2494,7 +2700,7 @@
                         </div>
                     </div>
                     <div class="ban-dialog-footer">
-                        <button class="btn btn-primary" onclick="closeBanDialog()">Compris</button>
+                        <button class="btn btn-primary close-ban-dialog-btn">Compris</button>
                     </div>
                 </div>
             </div>
@@ -2657,6 +2863,15 @@
                                     </svg>
                                 </button>
                             </div>
+                        </div>
+
+                        <!-- Search bar -->
+                        <div class="search-bar" id="search-bar">
+                            <input type="text" id="search-input" placeholder="Search messages...">
+                            <span class="search-count" id="search-count"></span>
+                            <button id="search-prev-btn" title="Previous">&#9650;</button>
+                            <button id="search-next-btn" title="Next">&#9660;</button>
+                            <button id="search-close-btn" title="Close">&times;</button>
                         </div>
 
                         <!-- Chat area in room -->
@@ -3128,7 +3343,7 @@
         try {
             signalingConfig = JSON.parse(savedSignalingConfig);
         } catch (e) {
-            console.error('Error parsing signaling config:', e);
+            Logger.error('Error parsing signaling config:', e);
         }
     }
 
@@ -3146,6 +3361,20 @@
     };
 
     // ============================================
+    // SAFE STORAGE HELPERS
+    // ============================================
+    function safeJsonParse(key, fallback = '[]') {
+        try {
+            const val = localStorage.getItem(key);
+            return val ? JSON.parse(val) : JSON.parse(fallback);
+        } catch (e) {
+            console.warn(`Corrupted localStorage key "${key}", resetting to default`);
+            localStorage.removeItem(key);
+            return JSON.parse(fallback);
+        }
+    }
+
+    // ============================================
     // STATE
     // ============================================
     const state = {
@@ -3154,51 +3383,332 @@
         myName: localStorage.getItem('peerName') || 'Anonyme',
         currentRoom: null,
         isRoomCreator: false,
-        connections: new Map(), // peerId -> { conn, name, publicKey, sharedKey, role, username }
+        connections: new Map(),
         pendingConnections: new Map(),
         myKeyPair: null,
         typingPeers: new Set(),
         typingTimer: null,
         isTyping: false,
-        fileTransfers: new Map(), // transferId -> { chunks, metadata }
+        fileTransfers: new Map(),
         // Moderation system
-        roomAdmins: new Map(), // roomId -> Set<username>
-        activeVotes: new Map(), // voteId -> { targetUsername, votes: Set<username>, expiresAt }
-        bannedUsers: new Map(), // roomId -> Map<peerId, { banCount, expiryTime }>
-        reportedUsers: new Map(), // roomId -> Map<username, { reporterUsername, reason, count }>
-        myRole: 'participant', // 'creator', 'admin', 'participant'
+        roomAdmins: new Map(),
+        activeVotes: new Map(),
+        bannedUsers: new Map(),
+        reportedUsers: new Map(),
+        myRole: 'participant',
         // Room system (private only)
-        privateRooms: JSON.parse(localStorage.getItem('privateRooms') || '[]'), // Array of room objects
-        currentTab: 'rooms', // 'rooms' or 'dm'
+        privateRooms: safeJsonParse('privateRooms', '[]'),
+        currentTab: 'rooms',
         // Friends & DM system
-        friends: JSON.parse(localStorage.getItem('friends') || '[]'), // Array of usernames
-        friendRequestsReceived: JSON.parse(localStorage.getItem('friendRequestsReceived') || '[]'), // Array<{username, peerId, timestamp}>
-        friendRequestsSent: JSON.parse(localStorage.getItem('friendRequestsSent') || '[]'), // Array<{username, peerId, timestamp}>
-        pendingJoinRequests: new Map(), // roomId -> Array<{username, peerId, timestamp}>
+        friends: safeJsonParse('friends', '[]'),
+        friendRequestsReceived: safeJsonParse('friendRequestsReceived', '[]'),
+        friendRequestsSent: safeJsonParse('friendRequestsSent', '[]'),
+        pendingJoinRequests: new Map(),
         allowDMFromNonFriends: localStorage.getItem('allowDMFromNonFriends') !== 'false',
         // Direct messages
-        directMessages: new Map(), // username -> Array<{content, timestamp, fromMe}>
-        activeDMConversation: null, // username of current DM conversation
+        directMessages: new Map(),
+        activeDMConversation: null,
         // Identity & discovery system
-        usernameToPeerId: new Map(), // username -> current peerId
-        peerIdToUsername: new Map(), // peerId -> username
-        myPreviousPeerIds: JSON.parse(localStorage.getItem('myPreviousPeerIds') || '[]'), // Array of old peerIds
+        usernameToPeerId: new Map(),
+        peerIdToUsername: new Map(),
+        myPreviousPeerIds: safeJsonParse('myPreviousPeerIds', '[]'),
         // Connections by username for easy lookup
-        connectionsByUsername: new Map(), // username -> { conn, name, publicKey, sharedKey, role, peerId }
-        // Enhanced peer discovery (Ares/RetroShare style)
-        discoveredPeers: new Map(), // peerId -> {name, lastSeen, lastHeartbeat, connectable, via}
-        peerListVersion: 0, // Incremented when peer list changes
-        lastPeerBroadcast: 0, // Timestamp of last broadcast
-        // Bootstrap peers - known peers that help start the network
-        bootstrapPeers: JSON.parse(localStorage.getItem('bootstrapPeers') || '[]'), // Array of peerIds
+        connectionsByUsername: new Map(),
+        // Enhanced peer discovery
+        discoveredPeers: new Map(),
+        peerListVersion: 0,
+        lastPeerBroadcast: 0,
+        // Bootstrap peers
+        bootstrapPeers: safeJsonParse('bootstrapPeers', '[]'),
         lastBootstrapAttempt: 0,
         // Room multi-select mode
         roomSelectMode: false,
-        selectedRooms: new Set(), // Set of room IDs
+        selectedRooms: new Set(),
         // ID generation settings
-        autoGenerateId: localStorage.getItem('autoGenerateId') !== 'false', // true by default
-        savedPeerId: localStorage.getItem('savedPeerId') || null // Saved peer ID when auto-generate is off
+        autoGenerateId: localStorage.getItem('autoGenerateId') !== 'false',
+        savedPeerId: localStorage.getItem('savedPeerId') || null,
+        // Theme
+        theme: localStorage.getItem('theme') || 'dark',
+        // i18n
+        lang: localStorage.getItem('lang') || (navigator.language.startsWith('fr') ? 'fr' : 'en'),
+        // Onboarding
+        onboardingComplete: localStorage.getItem('onboardingComplete') === 'true',
+        // Message reactions
+        messageReactions: new Map()
     };
+
+    // ============================================
+    // RATE LIMITER
+    // ============================================
+    const RateLimiter = {
+        _buckets: new Map(),
+        _config: {
+            message: { maxTokens: 20, refillRate: 2, refillInterval: 1000 },
+            file: { maxTokens: 5, refillRate: 1, refillInterval: 2000 },
+            discovery: { maxTokens: 30, refillRate: 5, refillInterval: 1000 },
+            default: { maxTokens: 50, refillRate: 10, refillInterval: 1000 }
+        },
+        _getBucket(peerId, type) {
+            const key = `${peerId}:${type}`;
+            if (!this._buckets.has(key)) {
+                const config = this._config[type] || this._config.default;
+                this._buckets.set(key, { tokens: config.maxTokens, lastRefill: Date.now(), config });
+            }
+            return this._buckets.get(key);
+        },
+        allow(peerId, type = 'default') {
+            const bucket = this._getBucket(peerId, type);
+            const now = Date.now();
+            const elapsed = now - bucket.lastRefill;
+            const refills = Math.floor(elapsed / bucket.config.refillInterval);
+            if (refills > 0) {
+                bucket.tokens = Math.min(bucket.config.maxTokens, bucket.tokens + refills * bucket.config.refillRate);
+                bucket.lastRefill = now;
+            }
+            if (bucket.tokens > 0) {
+                bucket.tokens--;
+                return true;
+            }
+            return false;
+        },
+        cleanup() {
+            const now = Date.now();
+            for (const [key, bucket] of this._buckets) {
+                if (now - bucket.lastRefill > 60000) this._buckets.delete(key);
+            }
+        }
+    };
+    setInterval(() => RateLimiter.cleanup(), 30000);
+
+    // ============================================
+    // LOGGING
+    // ============================================
+    const LOG_LEVEL = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'debug' : 'warn';
+    const Logger = {
+        debug(...args) { if (LOG_LEVEL === 'debug') console.log(...args); },
+        info(...args) { if (LOG_LEVEL === 'debug' || LOG_LEVEL === 'info') console.info(...args); },
+        warn(...args) { console.warn(...args); },
+        error(...args) { console.error(...args); }
+    };
+
+    // ============================================
+    // CUSTOM MODAL SYSTEM
+    // ============================================
+    const Modal = {
+        _overlay: null,
+        _resolve: null,
+        _init() {
+            this._overlay = document.getElementById('custom-modal-overlay');
+            this._overlay.addEventListener('click', (e) => {
+                if (e.target === this._overlay) this._close(null);
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && this._overlay.classList.contains('show')) {
+                    this._close(null);
+                }
+            });
+        },
+        _show(title, message, inputConfig, buttons) {
+            return new Promise((resolve) => {
+                this._resolve = resolve;
+                const titleEl = document.getElementById('custom-modal-title');
+                const msgEl = document.getElementById('custom-modal-message');
+                const inputEl = document.getElementById('custom-modal-input');
+                const actionsEl = document.getElementById('custom-modal-actions');
+                titleEl.textContent = title;
+                msgEl.textContent = message;
+                if (inputConfig) {
+                    inputEl.style.display = 'block';
+                    inputEl.value = inputConfig.default || '';
+                    inputEl.placeholder = inputConfig.placeholder || '';
+                    setTimeout(() => inputEl.focus(), 100);
+                    inputEl.onkeydown = (e) => {
+                        if (e.key === 'Enter') {
+                            const btn = actionsEl.querySelector('.confirm, .danger');
+                            if (btn) btn.click();
+                        }
+                    };
+                } else {
+                    inputEl.style.display = 'none';
+                }
+                actionsEl.innerHTML = '';
+                buttons.forEach(btn => {
+                    const b = document.createElement('button');
+                    b.className = `custom-modal-btn ${btn.class || 'confirm'}`;
+                    b.textContent = btn.label;
+                    b.addEventListener('click', () => {
+                        const val = inputConfig ? inputEl.value : true;
+                        this._close(btn.value !== undefined ? btn.value : val);
+                    });
+                    actionsEl.appendChild(b);
+                });
+                this._overlay.classList.add('show');
+            });
+        },
+        _close(value) {
+            this._overlay.classList.remove('show');
+            if (this._resolve) { this._resolve(value); this._resolve = null; }
+        },
+        async alert(title, message) {
+            return this._show(title, message, null, [
+                { label: 'OK', class: 'confirm', value: true }
+            ]);
+        },
+        async confirm(title, message, dangerMode = false) {
+            return this._show(title, message, null, [
+                { label: i18n('cancel'), class: 'cancel', value: false },
+                { label: i18n('confirm'), class: dangerMode ? 'danger' : 'confirm', value: true }
+            ]);
+        },
+        async prompt(title, message, defaultValue = '', placeholder = '') {
+            return this._show(title, message, { default: defaultValue, placeholder }, [
+                { label: i18n('cancel'), class: 'cancel', value: null },
+                { label: 'OK', class: 'confirm' }
+            ]);
+        }
+    };
+
+    // ============================================
+    // i18n SYSTEM
+    // ============================================
+    const translations = {
+        en: {
+            // General
+            cancel: 'Cancel', confirm: 'Confirm', ok: 'OK', close: 'Close',
+            error: 'Error', success: 'Success', warning: 'Warning',
+            // Header
+            appSubtitle: 'End-to-end encrypted P2P messaging',
+            e2eBadge: 'E2E AES-256 Encryption', p2pBadge: 'WebRTC P2P',
+            fileBadge: 'File Transfer', roomsBadge: 'Multi-user Rooms',
+            e2eActive: 'E2E encryption active',
+            // Tabs
+            rooms: 'Rooms', users: 'Users', dm: 'DM', profile: 'Profile',
+            // Sidebar
+            friendRequests: 'Friend Requests', friends: 'Friends', noFriends: 'No friends',
+            participants: 'Room Participants', joinRoomToSee: 'Join a room to see participants',
+            // Rooms
+            noRooms: 'No rooms. Create one or join an existing room.',
+            createRoom: 'Create Room', joinRoom: 'Join Room',
+            roomName: 'Room name', enterRoomName: 'Please enter a room name',
+            roomCreated: 'Room created successfully!', roomDeleted: 'Room deleted',
+            creator: 'Creator', admin: 'Admin', member: 'Member',
+            // Messages
+            typeMessage: 'Type your message...', encrypted: 'E2E encrypted',
+            encryptedFile: 'E2E encrypted file', download: 'Download',
+            // Moderation
+            kick: 'Kick', ban: 'Ban', promote: 'Promote to admin', revoke: 'Revoke admin',
+            kickReason: 'Kick reason (optional):', banConfirm: 'Temporarily ban',
+            banReason: 'Ban reason (optional):',
+            promoteConfirm: 'Promote as administrator?',
+            revokeConfirm: 'Revoke admin rights?',
+            voteKickReason: 'Reason for kick vote:',
+            voteKickConfirm: 'Launch a kick vote? Participants will vote with /yes or /no',
+            reportReason: 'Report reason:',
+            kickedFromRoom: 'You have been kicked',
+            bannedFromRoom: 'You are banned',
+            // Settings
+            settings: 'Connection Settings', connectionSettings: 'Connection settings',
+            // Search
+            searchMessages: 'Search messages...', noResults: 'No results',
+            // Onboarding
+            welcome: 'Welcome to PeerText!',
+            onboardingDesc: 'A fully decentralized, end-to-end encrypted P2P messaging app.',
+            onboardingFeature1: 'All messages are encrypted end-to-end with AES-256',
+            onboardingFeature2: 'Direct peer-to-peer connection, no central server',
+            onboardingFeature3: 'Create rooms, share files, and chat securely',
+            chooseName: 'Choose your display name',
+            getStarted: 'Get Started',
+            next: 'Next', skip: 'Skip',
+            // Theme
+            lightMode: 'Light mode', darkMode: 'Dark mode',
+            // Leave/Delete
+            leaveRoom: 'Leave room', deleteRoom: 'Delete room',
+            leaveConfirm: 'Are you sure you want to leave this room?',
+            deleteConfirm: 'Are you sure you want to permanently delete this room? This action is irreversible.',
+            // DM
+            dmFrom: 'Message from',
+            // Status
+            connecting: 'Connecting...', connected: 'Connected', online: 'Online',
+            offline: 'Offline', noConnectedUsers: 'Searching for online users...',
+            // Reactions
+            react: 'React',
+            // Multi-select
+            selected: 'selected',
+            deleteSelected: 'Delete selected',
+            // Misc
+            idCopied: 'ID copied!', roomIdCopied: 'Room ID copied!',
+            insufficientPerms: 'Insufficient permissions',
+            participantNotFound: 'Participant not found',
+            noActiveRoom: 'No active room',
+            onlyCreatorPromote: 'Only the creator can promote admins',
+            onlyCreatorRevoke: 'Only the creator can revoke admins',
+            understood: 'Understood',
+            voteAccepted: 'Vote accepted - proceeding with kick',
+            voteRejected: 'Vote rejected by administrator',
+        },
+        fr: {
+            cancel: 'Annuler', confirm: 'Confirmer', ok: 'OK', close: 'Fermer',
+            error: 'Erreur', success: 'Succès', warning: 'Attention',
+            appSubtitle: 'Messagerie P2P chiffrée de bout en bout',
+            e2eBadge: 'Chiffrement E2E AES-256', p2pBadge: 'WebRTC P2P',
+            fileBadge: 'Transfert de fichiers', roomsBadge: 'Salons multi-utilisateurs',
+            e2eActive: 'Chiffrement E2E actif',
+            rooms: 'Salons', users: 'Utilisateurs', dm: 'Messages', profile: 'Profil',
+            friendRequests: 'Demandes d\'ami', friends: 'Amis', noFriends: 'Aucun ami',
+            participants: 'Participants du salon', joinRoomToSee: 'Rejoignez un salon pour voir les participants',
+            noRooms: 'Aucun salon. Créez-en un ou rejoignez un salon existant.',
+            createRoom: 'Créer un salon', joinRoom: 'Rejoindre',
+            roomName: 'Nom du salon', enterRoomName: 'Veuillez entrer un nom pour le salon',
+            roomCreated: 'Salon créé avec succès !', roomDeleted: 'Salon supprimé',
+            creator: 'Créateur', admin: 'Admin', member: 'Membre',
+            typeMessage: 'Tapez votre message...', encrypted: 'Chiffré E2E',
+            encryptedFile: 'Fichier chiffré E2E', download: 'Télécharger',
+            kick: 'Expulser', ban: 'Bannir', promote: 'Promouvoir admin', revoke: 'Retirer admin',
+            kickReason: 'Raison de l\'expulsion (optionnel) :',
+            banConfirm: 'Bannir temporairement',
+            banReason: 'Raison du bannissement (optionnel) :',
+            promoteConfirm: 'Promouvoir en tant qu\'administrateur ?',
+            revokeConfirm: 'Retirer les droits d\'administrateur ?',
+            voteKickReason: 'Raison du vote d\'expulsion :',
+            voteKickConfirm: 'Lancer un vote d\'expulsion ? Les participants voteront avec /oui ou /non',
+            reportReason: 'Raison du signalement :',
+            kickedFromRoom: 'Vous avez été expulsé',
+            bannedFromRoom: 'Vous êtes banni',
+            settings: 'Paramètres de connexion', connectionSettings: 'Paramètres de connexion',
+            searchMessages: 'Rechercher des messages...', noResults: 'Aucun résultat',
+            welcome: 'Bienvenue sur PeerText !',
+            onboardingDesc: 'Une messagerie P2P entièrement décentralisée et chiffrée de bout en bout.',
+            onboardingFeature1: 'Tous les messages sont chiffrés de bout en bout avec AES-256',
+            onboardingFeature2: 'Connexion peer-to-peer directe, aucun serveur central',
+            onboardingFeature3: 'Créez des salons, partagez des fichiers et discutez en sécurité',
+            chooseName: 'Choisissez votre nom d\'affichage',
+            getStarted: 'Commencer',
+            next: 'Suivant', skip: 'Passer',
+            lightMode: 'Mode clair', darkMode: 'Mode sombre',
+            leaveRoom: 'Quitter le salon', deleteRoom: 'Supprimer le salon',
+            leaveConfirm: 'Êtes-vous sûr de vouloir quitter ce salon ?',
+            deleteConfirm: 'Êtes-vous sûr de vouloir supprimer définitivement ce salon ?\n\nCette action est irréversible.',
+            dmFrom: 'Message de',
+            connecting: 'Connexion...', connected: 'Connecté', online: 'En ligne',
+            offline: 'Hors ligne', noConnectedUsers: 'Recherche d\'utilisateurs en ligne...',
+            react: 'Réagir',
+            selected: 'sélectionné(s)',
+            deleteSelected: 'Supprimer la sélection',
+            idCopied: 'ID copié !', roomIdCopied: 'ID du salon copié !',
+            insufficientPerms: 'Permissions insuffisantes',
+            participantNotFound: 'Participant non trouvé',
+            noActiveRoom: 'Aucun salon actif',
+            onlyCreatorPromote: 'Seul le créateur peut promouvoir des admins',
+            onlyCreatorRevoke: 'Seul le créateur peut révoquer des admins',
+            understood: 'Compris',
+            voteAccepted: 'Vote accepté - Expulsion en cours',
+            voteRejected: 'Expulsion rejetée par l\'administrateur',
+        }
+    };
+
+    function i18n(key) {
+        return (translations[state.lang] || translations.en)[key] || (translations.en)[key] || key;
+    }
 
     // ============================================
     // DOM ELEMENTS
@@ -3531,7 +4041,7 @@
                 showToast('Veuillez d\'abord sélectionner une conversation', 'warning');
                 return;
             }
-            console.log('DM file attach clicked, activeDMConversation:', state.activeDMConversation);
+            Logger.debug('DM file attach clicked, activeDMConversation:', state.activeDMConversation);
             elements.fileInput.dataset.context = 'dm';
             elements.fileInput.dataset.recipient = state.activeDMConversation;
             elements.fileInput.click();
@@ -3620,7 +4130,7 @@
             const now = Date.now();
             state.connections.forEach((info, peerId) => {
                 if (info.lastSeen && now - info.lastSeen > 60000) {
-                    console.log(`Peer ${peerId} appears disconnected`);
+                    Logger.debug(`Peer ${peerId} appears disconnected`);
                     appendSystemMessage(`${info.name || 'Un utilisateur'} semble déconnecté`);
                 }
             });
@@ -3804,8 +4314,8 @@
         showToast('Serveur ICE supprimé', 'success');
     };
 
-    function resetIceServers() {
-        if (confirm('Voulez-vous vraiment réinitialiser aux serveurs par défaut ?')) {
+    async function resetIceServers() {
+        if (await Modal.confirm(i18n('settings'), state.lang === 'fr' ? 'Réinitialiser aux serveurs par défaut ?' : 'Reset to default servers?')) {
             localStorage.removeItem('customIceServers');
             CONFIG.peerOptions.config.iceServers = [...defaultIceServers];
             renderIceServersList();
@@ -3835,7 +4345,7 @@
                 elements.signalingPort.value = config.port || '443';
                 elements.signalingPath.value = config.path || '/';
             } catch (e) {
-                console.error('Error loading signaling config:', e);
+                Logger.error('Error loading signaling config:', e);
             }
         }
     }
@@ -3858,8 +4368,8 @@
         showToast('Actualisez la page pour appliquer les changements', 'warning');
     }
 
-    function resetSignalingConfig() {
-        if (confirm('Voulez-vous vraiment réinitialiser au serveur par défaut ?')) {
+    async function resetSignalingConfig() {
+        if (await Modal.confirm(i18n('settings'), state.lang === 'fr' ? 'Réinitialiser au serveur par défaut ?' : 'Reset to default server?')) {
             localStorage.removeItem('signalingConfig');
             elements.signalingHost.value = '';
             elements.signalingPort.value = '443';
@@ -3932,7 +4442,7 @@
             state.peer.on('connection', handleIncomingConnection);
             state.peer.on('error', handlePeerError);
             state.peer.on('disconnected', () => {
-                console.log('Peer disconnected from signaling server');
+                Logger.debug('Peer disconnected from signaling server');
                 updateStatusBar('warning', 'Connexion serveur perdue. Reconnexion...');
                 appendSystemMessage('⚠️ Connexion au serveur de signalisation perdue. Tentative de reconnexion...');
                 // P2P connections remain active even if signaling server is lost
@@ -3940,16 +4450,16 @@
                 setTimeout(() => {
                     try {
                         state.peer.reconnect();
-                        console.log('Reconnecting to signaling server...');
+                        Logger.debug('Reconnecting to signaling server...');
                     } catch (e) {
-                        console.error('Reconnect error:', e);
+                        Logger.error('Reconnect error:', e);
                         appendSystemMessage('❌ Impossible de se reconnecter au serveur. Essayez de rafraîchir la page.');
                     }
                 }, 2000);
             });
 
         } catch (error) {
-            console.error('Init error:', error);
+            Logger.error('Init error:', error);
             updateStatusBar('error', 'Erreur d\'initialisation');
             appendSystemMessage('❌ Erreur d\'initialisation: ' + error.message);
             appendSystemMessage('💡 Astuce: Vérifiez votre connexion internet et les paramètres du serveur de signalisation ⚙️');
@@ -3980,12 +4490,12 @@
     // Initialiser Firebase si activé
     function initFirebase() {
         if (!FIREBASE_ENABLED) {
-            console.log('ℹ️ Firebase désactivé. Voir FIREBASE_SETUP.md pour activer la découverte automatique');
+            Logger.debug('ℹ️ Firebase désactivé. Voir FIREBASE_SETUP.md pour activer la découverte automatique');
             return;
         }
 
         if (typeof firebase === 'undefined') {
-            console.error('❌ Firebase SDK non chargé');
+            Logger.error('❌ Firebase SDK non chargé');
             return;
         }
 
@@ -3996,7 +4506,7 @@
             }
             firebaseDb = firebase.database();
 
-            console.log('✅ Firebase initialisé - Découverte automatique activée!');
+            Logger.debug('✅ Firebase initialisé - Découverte automatique activée!');
             appendSystemMessage('🔥 Firebase: Découverte automatique des peers activée');
 
             // IMPORTANT: Écouter AVANT de s'enregistrer pour capturer les peers existants
@@ -4006,7 +4516,7 @@
             registerInFirebase();
 
         } catch (error) {
-            console.error('❌ Erreur initialisation Firebase:', error);
+            Logger.error('❌ Erreur initialisation Firebase:', error);
             appendSystemMessage('⚠️ Erreur Firebase: ' + error.message);
         }
     }
@@ -4028,10 +4538,10 @@
         // S'enregistrer
         firebaseMyRef.set(peerData)
             .then(() => {
-                console.log('🔥 Firebase: Enregistré avec succès');
+                Logger.debug('🔥 Firebase: Enregistré avec succès');
             })
             .catch(error => {
-                console.error('❌ Firebase register error:', error);
+                Logger.error('❌ Firebase register error:', error);
             });
 
         // Auto-cleanup à la déconnexion
@@ -4051,71 +4561,71 @@
     // Écouter l'ajout de nouveaux peers
     async function listenForFirebasePeers() {
         if (!firebaseDb) {
-            console.error('❌ Firebase DB not initialized');
+            Logger.error('❌ Firebase DB not initialized');
             return;
         }
 
-        console.log('👂 Firebase: Starting to listen for peers...');
-        console.log('🆔 My Peer ID:', state.myPeerId);
+        Logger.debug('👂 Firebase: Starting to listen for peers...');
+        Logger.debug('🆔 My Peer ID:', state.myPeerId);
 
         const peersRef = firebaseDb.ref('peers');
 
         // Charger tous les peers existants
-        console.log('📖 Loading existing peers from Firebase...');
+        Logger.debug('📖 Loading existing peers from Firebase...');
         try {
             const snapshot = await peersRef.once('value');
             const existingPeers = snapshot.val() || {};
             const peerIds = Object.keys(existingPeers);
 
-            console.log(`📊 Found ${peerIds.length} peer(s) in Firebase:`, peerIds);
+            Logger.debug(`📊 Found ${peerIds.length} peer(s) in Firebase:`, peerIds);
 
             // Traiter chaque peer existant
             for (const peerId of peerIds) {
                 const data = existingPeers[peerId];
 
                 if (peerId === state.myPeerId) {
-                    console.log(`⏭️  Skipping self in initial load (${peerId})`);
+                    Logger.debug(`⏭️  Skipping self in initial load (${peerId})`);
                     continue;
                 }
                 if (!peerId.startsWith('PT-')) {
-                    console.log(`⏭️  Skipping invalid peer ID in initial load (${peerId})`);
+                    Logger.debug(`⏭️  Skipping invalid peer ID in initial load (${peerId})`);
                     continue;
                 }
 
-                console.log(`🔥 Firebase (initial): Peer discovered: ${data.name} (${peerId})`);
+                Logger.debug(`🔥 Firebase (initial): Peer discovered: ${data.name} (${peerId})`);
                 handleFirebasePeerDiscovered(peerId, data);
             }
 
-            console.log('✅ Initial peer load complete');
+            Logger.debug('✅ Initial peer load complete');
         } catch (error) {
-            console.error('❌ Error loading initial peers:', error);
+            Logger.error('❌ Error loading initial peers:', error);
         }
 
         // Ensuite, écouter les nouveaux peers qui s'ajoutent
-        console.log('👂 Now listening for new peers...');
+        Logger.debug('👂 Now listening for new peers...');
         peersRef.on('child_added', (snapshot) => {
             const peerId = snapshot.key;
             const data = snapshot.val();
 
-            console.log(`📥 Firebase child_added event:`, { peerId, data });
+            Logger.debug(`📥 Firebase child_added event:`, { peerId, data });
 
             // Si c'est un peer qu'on a déjà chargé dans le initial load, on skip
             const existing = state.discoveredPeers.get(peerId);
             if (existing && existing.via === 'firebase') {
-                console.log(`⏭️  Peer already loaded (${peerId})`);
+                Logger.debug(`⏭️  Peer already loaded (${peerId})`);
                 return;
             }
 
             if (peerId === state.myPeerId) {
-                console.log(`⏭️  Skipping self (${peerId})`);
+                Logger.debug(`⏭️  Skipping self (${peerId})`);
                 return; // Nous-mêmes
             }
             if (!peerId.startsWith('PT-')) {
-                console.log(`⏭️  Skipping invalid peer ID (${peerId})`);
+                Logger.debug(`⏭️  Skipping invalid peer ID (${peerId})`);
                 return;
             }
 
-            console.log(`🔥 Firebase (new): Peer découvert: ${data.name} (${peerId})`);
+            Logger.debug(`🔥 Firebase (new): Peer découvert: ${data.name} (${peerId})`);
 
             handleFirebasePeerDiscovered(peerId, data);
         });
@@ -4138,7 +4648,7 @@
         // Peer supprimé (déconnexion)
         peersRef.on('child_removed', (snapshot) => {
             const peerId = snapshot.key;
-            console.log(`🔥 Firebase: Peer déconnecté: ${peerId}`);
+            Logger.debug(`🔥 Firebase: Peer déconnecté: ${peerId}`);
 
             const existing = state.discoveredPeers.get(peerId);
             if (existing) {
@@ -4148,18 +4658,18 @@
             }
         });
 
-        console.log('🔥 Firebase: Écoute des peers activée');
+        Logger.debug('🔥 Firebase: Écoute des peers activée');
     }
 
     // Gérer un peer découvert via Firebase
     async function handleFirebasePeerDiscovered(peerId, data) {
-        console.log(`🔍 handleFirebasePeerDiscovered called:`, { peerId, data });
+        Logger.debug(`🔍 handleFirebasePeerDiscovered called:`, { peerId, data });
 
         const now = Date.now();
 
         // Ajouter aux discovered peers
         const existing = state.discoveredPeers.get(peerId);
-        console.log(`📊 Existing peer in state?`, existing ? 'Yes' : 'No');
+        Logger.debug(`📊 Existing peer in state?`, existing ? 'Yes' : 'No');
 
         if (!existing) {
             const peerInfo = {
@@ -4171,13 +4681,13 @@
                 via: 'firebase'
             };
 
-            console.log(`➕ Adding new peer to state.discoveredPeers:`, peerInfo);
+            Logger.debug(`➕ Adding new peer to state.discoveredPeers:`, peerInfo);
             state.discoveredPeers.set(peerId, peerInfo);
-            console.log(`📈 Total discovered peers:`, state.discoveredPeers.size);
+            Logger.debug(`📈 Total discovered peers:`, state.discoveredPeers.size);
 
             showToast(`${data.name || 'Nouvel utilisateur'} en ligne!`, 'info');
 
-            console.log(`🖥️  Calling updateDiscoveredPeersList()...`);
+            Logger.debug(`🖥️  Calling updateDiscoveredPeersList()...`);
             updateDiscoveredPeersList();
 
             // Sauvegarder comme bootstrap peer
@@ -4186,12 +4696,12 @@
             // Connexion automatique si pas déjà connecté
             if (!state.connections.has(peerId) && !state.pendingConnections.has(peerId)) {
                 setTimeout(() => {
-                    console.log(`🔗 Firebase: Connexion automatique à ${peerId}`);
+                    Logger.debug(`🔗 Firebase: Connexion automatique à ${peerId}`);
                     connectToPeer(peerId);
                 }, 1000);
             }
         } else {
-            console.log(`🔄 Updating existing peer`);
+            Logger.debug(`🔄 Updating existing peer`);
             existing.lastSeen = now;
             existing.online = true;
             existing.connectable = true;
@@ -4233,7 +4743,7 @@
                 apiUrl = 'https://0.peerjs.com/peerjs/peers';
             }
 
-            // console.log('🔍 Trying server discovery from:', apiUrl);
+            // Logger.debug('🔍 Trying server discovery from:', apiUrl);
 
             const response = await fetch(apiUrl, {
                 method: 'GET',
@@ -4265,7 +4775,7 @@
                 }
 
                 if (newPeersFound > 0) {
-                    console.log(`✅ Server discovery: ${newPeersFound} peer(s) found`);
+                    Logger.debug(`✅ Server discovery: ${newPeersFound} peer(s) found`);
                     updateDiscoveredPeersList();
 
                     // Auto-connect to newly discovered peers
@@ -4275,7 +4785,7 @@
                     );
 
                     for (const peerId of peersToConnect.slice(0, 3)) {
-                        console.log('🔗 Auto-connecting to:', peerId);
+                        Logger.debug('🔗 Auto-connecting to:', peerId);
                         await connectToPeer(peerId);
                         await new Promise(resolve => setTimeout(resolve, 500));
                     }
@@ -4315,7 +4825,7 @@
             try {
                 conn.send(announcement);
             } catch (err) {
-                console.warn('Failed to send discovery announcement:', err);
+                Logger.warn('Failed to send discovery announcement:', err);
             }
         });
 
@@ -4337,7 +4847,7 @@
         if (peerId === state.myPeerId) return;
         if (!peerId || !peerId.startsWith('PT-')) return;
 
-        console.log(`📡 Discovered peer via announcement: ${name} (${peerId})`);
+        Logger.debug(`📡 Discovered peer via announcement: ${name} (${peerId})`);
 
         const existing = state.discoveredPeers.get(peerId);
         if (!existing) {
@@ -4358,7 +4868,7 @@
             // Try to connect if not already connected
             if (!state.connections.has(peerId) && !state.pendingConnections.has(peerId)) {
                 setTimeout(() => {
-                    console.log(`🔗 Attempting connection to discovered peer: ${peerId}`);
+                    Logger.debug(`🔗 Attempting connection to discovered peer: ${peerId}`);
                     connectToPeer(peerId);
                 }, 1000);
             }
@@ -4381,11 +4891,11 @@
 
         // If we already have connections, no need for bootstrap
         if (state.connections.size > 0) {
-            console.log('Already connected to peers, skipping bootstrap');
+            Logger.debug('Already connected to peers, skipping bootstrap');
             return;
         }
 
-        console.log(`🥾 Attempting bootstrap connection (${state.bootstrapPeers.length} known peers)...`);
+        Logger.debug(`🥾 Attempting bootstrap connection (${state.bootstrapPeers.length} known peers)...`);
 
         // Try to connect to saved bootstrap peers
         for (const peerId of state.bootstrapPeers) {
@@ -4393,19 +4903,19 @@
             if (state.connections.has(peerId)) continue;
             if (state.pendingConnections.has(peerId)) continue;
 
-            console.log(`🔗 Bootstrap: connecting to ${peerId}`);
+            Logger.debug(`🔗 Bootstrap: connecting to ${peerId}`);
             await connectToPeer(peerId);
             await new Promise(resolve => setTimeout(resolve, 1000));
 
             // If we got a connection, stop trying more
             if (state.connections.size > 0) {
-                console.log('✅ Bootstrap successful, network joined!');
+                Logger.debug('✅ Bootstrap successful, network joined!');
                 return;
             }
         }
 
         if (state.connections.size === 0) {
-            console.log('⚠️ No bootstrap peers available. Waiting for manual connection or server discovery...');
+            Logger.debug('⚠️ No bootstrap peers available. Waiting for manual connection or server discovery...');
         }
     }
 
@@ -4422,12 +4932,12 @@
         }
 
         localStorage.setItem('bootstrapPeers', JSON.stringify(state.bootstrapPeers));
-        console.log(`💾 Saved ${peerId} as bootstrap peer`);
+        Logger.debug(`💾 Saved ${peerId} as bootstrap peer`);
     }
 
     // Handle discovery request - send all known peers to requester
     function handleDiscoveryRequest(fromPeerId) {
-        console.log(`📨 Received discovery request from ${fromPeerId}`);
+        Logger.debug(`📨 Received discovery request from ${fromPeerId}`);
 
         const peerInfo = state.connections.get(fromPeerId);
         if (!peerInfo) return;
@@ -4462,9 +4972,9 @@
                 peers: peersToSend,
                 timestamp: now
             });
-            console.log(`📤 Sent ${peersToSend.length} peers to ${fromPeerId}`);
+            Logger.debug(`📤 Sent ${peersToSend.length} peers to ${fromPeerId}`);
         } catch (err) {
-            console.warn('Failed to send discovery response:', err);
+            Logger.warn('Failed to send discovery response:', err);
         }
     }
 
@@ -4475,7 +4985,7 @@
         const now = Date.now();
         let newPeersFound = 0;
 
-        console.log(`📥 Received discovery response from ${fromPeerId} with ${data.peers.length} peers`);
+        Logger.debug(`📥 Received discovery response from ${fromPeerId} with ${data.peers.length} peers`);
 
         for (const peerInfo of data.peers) {
             const { peerId, name, lastSeen } = peerInfo;
@@ -4505,7 +5015,7 @@
         }
 
         if (newPeersFound > 0) {
-            console.log(`✨ Discovered ${newPeersFound} new peer(s) via ${fromPeerId}`);
+            Logger.debug(`✨ Discovered ${newPeersFound} new peer(s) via ${fromPeerId}`);
             showToast(`${newPeersFound} nouvel(s) utilisateur(s) découvert(s)!`, 'info');
             updateDiscoveredPeersList();
 
@@ -4517,7 +5027,7 @@
             );
 
             for (const peerId of peersToConnect.slice(0, 3)) {
-                console.log(`🔗 Connecting to discovered peer: ${peerId}`);
+                Logger.debug(`🔗 Connecting to discovered peer: ${peerId}`);
                 await connectToPeer(peerId);
                 await new Promise(resolve => setTimeout(resolve, 800));
             }
@@ -4550,11 +5060,11 @@
                     sender: state.myName
                 });
             } catch (err) {
-                console.warn('Failed to broadcast peer list:', err);
+                Logger.warn('Failed to broadcast peer list:', err);
             }
         });
 
-        console.log(`📡 Broadcasted peer list (${peerList.length} peers) to ${state.connections.size} connections`);
+        Logger.debug(`📡 Broadcasted peer list (${peerList.length} peers) to ${state.connections.size} connections`);
     }
 
     // Handle received peer list from other peers
@@ -4594,7 +5104,7 @@
         });
 
         if (newPeersFound > 0) {
-            console.log(`📬 Received ${newPeersFound} new peer(s) from ${fromPeerId}`);
+            Logger.debug(`📬 Received ${newPeersFound} new peer(s) from ${fromPeerId}`);
             state.peerListVersion++;
             updateDiscoveredPeersList();
         }
@@ -4613,7 +5123,7 @@
                     peerId: state.myPeerId
                 });
             } catch (err) {
-                console.warn('Heartbeat send failed:', err);
+                Logger.warn('Heartbeat send failed:', err);
             }
         });
 
@@ -4653,9 +5163,9 @@
 
     // Update UI with all discovered peers
     function updateDiscoveredPeersList() {
-        console.log(`🔄 updateDiscoveredPeersList() called`);
-        console.log(`📊 state.discoveredPeers size:`, state.discoveredPeers.size);
-        console.log(`📊 state.discoveredPeers content:`, Array.from(state.discoveredPeers.entries()));
+        Logger.debug(`🔄 updateDiscoveredPeersList() called`);
+        Logger.debug(`📊 state.discoveredPeers size:`, state.discoveredPeers.size);
+        Logger.debug(`📊 state.discoveredPeers content:`, Array.from(state.discoveredPeers.entries()));
 
         const now = Date.now();
         const allPeers = Array.from(state.discoveredPeers.entries())
@@ -4673,7 +5183,7 @@
                 return b.lastSeen - a.lastSeen;
             });
 
-        console.log(`🔢 Number of peers to display:`, allPeers.length);
+        Logger.debug(`🔢 Number of peers to display:`, allPeers.length);
 
         // Update the main users list
         const usersListElement = document.getElementById('main-connected-users-list');
@@ -4764,7 +5274,7 @@
                 }).join('');
             }
         } else {
-            console.error(`❌ users-list element NOT FOUND in DOM!`);
+            Logger.error(`❌ users-list element NOT FOUND in DOM!`);
         }
 
         const onlineCount = allPeers.length;
@@ -4775,14 +5285,14 @@
             statusElement.textContent = `${onlineCount} en ligne • ${connectedCount} connecté(s)`;
         }
 
-        console.log(`✅ updateDiscoveredPeersList() completed`);
+        Logger.debug(`✅ updateDiscoveredPeersList() completed`);
     }
 
     // ============================================
     // CONNECTION HANDLING
     // ============================================
     async function handleIncomingConnection(conn) {
-        console.log('Incoming connection from:', conn.peer);
+        Logger.debug('Incoming connection from:', conn.peer);
 
         if (state.connections.has(conn.peer)) {
             conn.close();
@@ -4804,7 +5314,7 @@
             });
             setupConnection(conn);
         } catch (error) {
-            console.error('Connection error:', error);
+            Logger.error('Connection error:', error);
         }
     }
 
@@ -4834,19 +5344,19 @@
         });
 
         conn.on('error', (err) => {
-            console.error('Connection error:', err);
-            console.error('Connection error details for peer', peerId, ':', {
+            Logger.error('Connection error:', err);
+            Logger.error('Connection error details for peer', peerId, ':', {
                 type: err.type,
                 message: err.message
             });
             // Don't immediately disconnect on data channel errors during file transfer
             if (err.type === 'data-channel-error' && state.fileTransfers.size > 0) {
-                console.log('Data channel error during file transfer - ignoring');
+                Logger.debug('Data channel error during file transfer - ignoring');
                 return;
             }
             // Don't disconnect on peer-unavailable if we have active file transfers
             if (err.type === 'peer-unavailable' && state.fileTransfers.size > 0) {
-                console.warn('Peer unavailable during file transfer - may be temporary');
+                Logger.warn('Peer unavailable during file transfer - may be temporary');
                 return;
             }
             handlePeerDisconnect(peerId);
@@ -4855,6 +5365,17 @@
 
     async function handleIncomingData(conn, data) {
         const peerId = conn.peer;
+
+        // Rate limit incoming messages by type category
+        const rateLimitType = ['encrypted', 'dm'].includes(data.type) ? 'message'
+            : ['file-start', 'file-chunk', 'file-end'].includes(data.type) ? 'file'
+            : ['discovery_announcement', 'discovery_request', 'discovery_response', 'peer_list', 'heartbeat'].includes(data.type) ? 'discovery'
+            : 'default';
+
+        if (!RateLimiter.allow(peerId, rateLimitType)) {
+            Logger.warn(`Rate limited ${data.type} from ${peerId}`);
+            return;
+        }
 
         // Directly process JSON messages (no binary parsing needed)
         switch (data.type) {
@@ -5005,6 +5526,18 @@
             case 'friend-query-response':
                 handleFriendQueryResponse(data, peerId);
                 break;
+
+            case 'reaction':
+                Reactions.handleRemote(data.messageId, data.emoji, data.sender);
+                break;
+
+            case 'delivery-receipt':
+                ReadReceipts.setStatus(data.messageId, 'delivered');
+                break;
+
+            case 'read-receipt':
+                ReadReceipts.setStatus(data.messageId, 'read');
+                break;
         }
     }
 
@@ -5089,7 +5622,7 @@
                     //         friends: [state.myName],
                     //         myPeerId: state.myPeerId
                     //     });
-                    //     console.log(`[FRIENDS] Sent friend-sync to ${username}`);
+                    //     Logger.debug(`[FRIENDS] Sent friend-sync to ${username}`);
                     // }
                 }, 500);
 
@@ -5113,12 +5646,12 @@
                 updatePeersList();
             } else {
                 // Invalid handshake - no connection and no public key
-                console.warn('Invalid handshake: no existing connection and no public key');
+                Logger.warn('Invalid handshake: no existing connection and no public key');
                 conn.close();
             }
 
         } catch (error) {
-            console.error('Handshake error:', error);
+            Logger.error('Handshake error:', error);
             conn.close();
         }
     }
@@ -5226,7 +5759,7 @@
             updateParticipantsList();
 
             // Log for debugging
-            console.log(`[KICK] User ${peerInfo.name} kicked from room ${roomId}`);
+            Logger.debug(`[KICK] User ${peerInfo.name} kicked from room ${roomId}`);
         }
     }
 
@@ -5280,7 +5813,7 @@
                 });
 
                 // Log for debugging
-                console.log(`[BAN] User ${peerInfo.name} banned for ${durationText} (${expiryTime})`);
+                Logger.debug(`[BAN] User ${peerInfo.name} banned for ${durationText} (${expiryTime})`);
             }
         }
     }
@@ -5385,7 +5918,7 @@
         }
     }
 
-    function handleVoteResult(data) {
+    async function handleVoteResult(data) {
         const { voteId, result, targetPeerId } = data;
 
         if (!canModerate()) {
@@ -5400,7 +5933,8 @@
         // Admin/creator - veto authority
         if (result === 'accepted') {
             const targetInfo = state.connections.get(targetPeerId);
-            if (confirm(`Le vote pour expulser ${targetInfo?.name || 'ce participant'} a réussi. Voulez-vous l'accepter ou le veto ?`)) {
+            const accepted = await Modal.confirm(i18n('kick'), `${i18n('voteAccepted')} (${targetInfo?.name || '?'})`);
+            if (accepted) {
                 // Accept vote
                 appendSystemMessage(`✅ Vote accepté - ${targetInfo?.name || 'Participant'} expulsé`, 'warning');
                 if (targetInfo) {
@@ -5439,9 +5973,9 @@
         const targetInfo = state.connections.get(targetPeerId);
         const adminInfo = state.connections.get(creatorId);
 
-        console.log(`[ADMIN ASSIGN] Received: targetPeerId=${targetPeerId}, targetUsername=${targetUsername}, roomId=${roomId}`);
-        console.log(`[ADMIN ASSIGN] isMe=${targetPeerId === state.myPeerId}, myPeerId=${state.myPeerId}`);
-        console.log(`[ADMIN ASSIGN] state.currentRoom=${state.currentRoom ? state.currentRoom.id : null}, state.myRole=${state.myRole}`);
+        Logger.debug(`[ADMIN ASSIGN] Received: targetPeerId=${targetPeerId}, targetUsername=${targetUsername}, roomId=${roomId}`);
+        Logger.debug(`[ADMIN ASSIGN] isMe=${targetPeerId === state.myPeerId}, myPeerId=${state.myPeerId}`);
+        Logger.debug(`[ADMIN ASSIGN] state.currentRoom=${state.currentRoom ? state.currentRoom.id : null}, state.myRole=${state.myRole}`);
 
         if (!targetUsername) return;
 
@@ -5470,9 +6004,9 @@
 
             // If I was promoted and this is the current room, update my role
             if (isMe && state.currentRoom && state.currentRoom.id === roomId) {
-                console.log(`[ADMIN ASSIGN] Promoting myself to admin! Previous role: ${state.myRole}`);
+                Logger.debug(`[ADMIN ASSIGN] Promoting myself to admin! Previous role: ${state.myRole}`);
                 state.myRole = 'admin';
-                console.log(`[ADMIN ASSIGN] New role: ${state.myRole}`);
+                Logger.debug(`[ADMIN ASSIGN] New role: ${state.myRole}`);
                 updateParticipantsList();
                 // Show join requests section if there are pending requests
                 const pendingRequests = state.pendingJoinRequests.get(roomId) || [];
@@ -5715,7 +6249,7 @@
         if (now > banInfo.expiryTime) {
             // Ban has expired, remove it and re-enable chat
             roomBans.delete(peerId);
-            console.log(`[BAN] Ban expired for user ${peerId}`);
+            Logger.debug(`[BAN] Ban expired for user ${peerId}`);
             
             // If this is the current user, re-enable chat input
             if (peerId === state.myPeerId && state.currentRoom && state.currentRoom.id === roomId) {
@@ -5760,11 +6294,13 @@
         }
 
         const timestamp = new Date().toISOString();
+        const msgId = 'msg-' + generateId(8);
         const messageData = {
             type: 'message',
             content,
             sender: state.myName,
-            timestamp
+            timestamp,
+            messageId: msgId
         };
 
         // Encrypt and send to all peers
@@ -5773,12 +6309,13 @@
                 const encrypted = await Crypto.encrypt(sharedKey, messageData);
                 conn.send({ type: 'encrypted', payload: encrypted });
             } catch (error) {
-                console.error('Encryption error:', error);
+                Logger.error('Encryption error:', error);
             }
         }
 
         // Display locally
-        appendMessage(content, 'sent', state.myName, timestamp, true);
+        appendMessage(content, 'sent', state.myName, timestamp, true, msgId);
+        ReadReceipts.setStatus(msgId, 'sent');
 
         // Clear input
         elements.messageInput.value = '';
@@ -5796,35 +6333,83 @@
             const decrypted = await Crypto.decrypt(peerInfo.sharedKey, data.payload);
 
             if (decrypted.type === 'message') {
-                appendMessage(decrypted.content, 'received', decrypted.sender, decrypted.timestamp, true);
+                appendMessage(decrypted.content, 'received', decrypted.sender, decrypted.timestamp, true, decrypted.messageId);
+                // Send delivery receipt
+                if (decrypted.messageId && peerInfo.conn) {
+                    ReadReceipts.sendDeliveryReceipt(peerInfo.conn, decrypted.messageId);
+                }
                 playNotificationSound();
             }
         } catch (error) {
-            console.error('Decryption error:', error);
+            Logger.error('Decryption error:', error);
         }
     }
 
-    function appendMessage(content, type, sender, timestamp, encrypted = false) {
+    function appendMessage(content, type, sender, timestamp, encrypted = false, messageId = null) {
+        const msgId = messageId || ('msg-' + generateId(8));
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${type}`;
+        messageDiv.setAttribute('data-msg-id', msgId);
+        messageDiv.style.position = 'relative';
 
         const time = timestamp ? formatTime(new Date(timestamp)) : formatTime(new Date());
 
         if (type === 'system') {
             messageDiv.textContent = content;
         } else {
+            const statusHtml = type === 'sent' ? `<span class="message-status sent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg></span>` : '';
             messageDiv.innerHTML = `
+                <div class="message-action-bar">
+                    <button class="react-btn" title="${i18n('react')}">😊</button>
+                </div>
                 <div class="message-header">
                     <span class="message-sender">${escapeHtml(sender)}</span>
-                    <span class="message-time">${time}</span>
+                    <span class="message-time">${time}${statusHtml}</span>
                 </div>
                 <div class="message-content">${escapeHtml(content)}</div>
-                ${encrypted ? '<div class="message-encryption"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> Chiffré E2E</div>' : ''}
+                ${encrypted ? `<div class="message-encryption"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> ${i18n('encrypted')}</div>` : ''}
+                <div class="message-reactions"></div>
             `;
+
+            // Reaction button
+            const reactBtn = messageDiv.querySelector('.react-btn');
+            if (reactBtn) {
+                reactBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    // Show/toggle reaction picker
+                    let picker = messageDiv.querySelector('.reaction-picker');
+                    if (picker) {
+                        picker.classList.toggle('show');
+                    } else {
+                        picker = document.createElement('div');
+                        picker.className = 'reaction-picker show';
+                        REACTION_EMOJIS.forEach(emoji => {
+                            const btn = document.createElement('button');
+                            btn.textContent = emoji;
+                            btn.addEventListener('click', (ev) => {
+                                ev.stopPropagation();
+                                Reactions.toggle(msgId, emoji);
+                                picker.classList.remove('show');
+                            });
+                            picker.appendChild(btn);
+                        });
+                        messageDiv.querySelector('.message-action-bar').appendChild(picker);
+                    }
+                });
+            }
         }
 
         elements.messagesContainer.appendChild(messageDiv);
         scrollToBottom();
+
+        // Persist to IndexedDB if in a room
+        if (state.currentRoom && type !== 'system') {
+            MessageDB.saveMessage(state.currentRoom.id, {
+                content, type, sender, timestamp: timestamp || new Date().toISOString(), encrypted, messageId: msgId
+            });
+        }
+
+        return msgId;
     }
 
     function appendSystemMessage(content) {
@@ -5842,7 +6427,7 @@
         const context = e.target.dataset.context;
         const recipient = e.target.dataset.recipient;
 
-        console.log('handleFileSelect - context:', context, 'recipient:', recipient);
+        Logger.debug('handleFileSelect - context:', context, 'recipient:', recipient);
 
         for (const file of files) {
             if (file.size > CONFIG.maxFileSize) {
@@ -5852,11 +6437,11 @@
 
             if (context === 'dm' && recipient) {
                 // Send file via DM
-                console.log('Sending file via DM to:', recipient);
+                Logger.debug('Sending file via DM to:', recipient);
                 try {
                     await sendFileViaDM(file, recipient);
                 } catch (error) {
-                    console.error('Error sending file via DM:', error);
+                    Logger.error('Error sending file via DM:', error);
                     showToast('Erreur lors de l\'envoi du fichier via DM', 'error');
                 }
             } else {
@@ -5865,11 +6450,11 @@
                     showToast('Aucun utilisateur connecté', 'warning');
                     continue;
                 }
-                console.log('Sending file to room');
+                Logger.debug('Sending file to room');
                 try {
                     await sendFile(file);
                 } catch (error) {
-                    console.error('Error sending file to room:', error);
+                    Logger.error('Error sending file to room:', error);
                     showToast('Erreur lors de l\'envoi du fichier au salon', 'error');
                 }
             }
@@ -5897,7 +6482,7 @@
             try {
                 // Check if connection is still open
                 if (!conn || !conn.open) {
-                    console.warn(`Skipping peer ${peerId} (${name}): connection not open`);
+                    Logger.warn(`Skipping peer ${peerId} (${name}): connection not open`);
                     peersFailed++;
                     continue;
                 }
@@ -5956,38 +6541,38 @@
                 peersSent++;
 
             } catch (error) {
-                console.error('File send error to peer', peerId, ':', error);
+                Logger.error('File send error to peer', peerId, ':', error);
                 peersFailed++;
             }
         }
         
-        console.log(`File transfer complete: ${peersSent} peers succeeded, ${peersFailed} peers failed`);
+        Logger.debug(`File transfer complete: ${peersSent} peers succeeded, ${peersFailed} peers failed`);
 
         updateFileProgress(messageId, 100, true);
 
         // Create preview and download link for sender
         const blob = new Blob([arrayBuffer], { type: file.type });
-        const url = URL.createObjectURL(blob);
+        const url = safeCreateObjectURL(blob);
         updateFileDownload(messageId, url, file.name, file.type, blob);
     }
 
     async function sendFileViaDM(file, recipient) {
-        console.log('sendFileViaDM called with recipient:', recipient);
-        console.log('Available connections:', Array.from(state.connections.keys()));
+        Logger.debug('sendFileViaDM called with recipient:', recipient);
+        Logger.debug('Available connections:', Array.from(state.connections.keys()));
         
         const connection = state.connections.get(recipient);
         if (!connection) {
-            console.error('Connection not found for recipient:', recipient);
+            Logger.error('Connection not found for recipient:', recipient);
             showToast('Non connecté à ce contact', 'warning');
             return;
         }
         if (!connection.conn.open) {
-            console.error('Connection not open for recipient:', recipient);
+            Logger.error('Connection not open for recipient:', recipient);
             showToast('Connexion fermée avec ce contact', 'warning');
             return;
         }
         
-        console.log('Connection found and open, starting file transfer');
+        Logger.debug('Connection found and open, starting file transfer');
 
         const transferId = generateId(12);
         const arrayBuffer = await file.arrayBuffer();
@@ -6053,7 +6638,7 @@
             updateDmFileDownload(messageId, url, file.name, file.type, blob);
 
         } catch (error) {
-            console.error('File send error:', error);
+            Logger.error('File send error:', error);
             showToast(`Erreur d'envoi de ${file.name}`, 'error');
         }
     }
@@ -6098,7 +6683,7 @@
         } else if (data.data && data.data.byteLength) {
             chunk = new Uint8Array(data.data);
         } else {
-            console.warn('Received file chunk in unknown format', data);
+            Logger.warn('Received file chunk in unknown format', data);
             return;
         }
 
@@ -6149,7 +6734,7 @@
             playNotificationSound();
 
         } catch (error) {
-            console.error('File receive error:', error);
+            Logger.error('File receive error:', error);
             showToast('Erreur de réception du fichier', 'error');
         }
 
@@ -6433,22 +7018,22 @@
         const isCreator = state.myRole === 'creator';
         const isAdmin = state.myRole === 'admin';
 
-        console.log(`[UPDATE PARTICIPANTS] state.myRole=${state.myRole}, isCreator=${isCreator}, isAdmin=${isAdmin}`);
-        console.log(`[UPDATE PARTICIPANTS] Total peers before filter: ${allPeers.length}`);
+        Logger.debug(`[UPDATE PARTICIPANTS] state.myRole=${state.myRole}, isCreator=${isCreator}, isAdmin=${isAdmin}`);
+        Logger.debug(`[UPDATE PARTICIPANTS] Total peers before filter: ${allPeers.length}`);
 
         // For creators and admins: show ALL connected peers (don't filter by members list)
         // For regular participants: filter by current room members only
         if (isCreator || isAdmin) {
             // Admins and creators can see all participants, no filtering needed
-            console.log(`[UPDATE PARTICIPANTS] Admin/Creator mode - showing ALL peers`);
+            Logger.debug(`[UPDATE PARTICIPANTS] Admin/Creator mode - showing ALL peers`);
         } else if (state.currentRoom.members) {
             // Regular participants only see peers that are in the members list
-            console.log(`[UPDATE PARTICIPANTS] Participant mode - filtering by members list: ${state.currentRoom.members}`);
+            Logger.debug(`[UPDATE PARTICIPANTS] Participant mode - filtering by members list: ${state.currentRoom.members}`);
             allPeers = allPeers.filter(peer => {
                 const peerUsername = peer.name || peer.username;
                 return state.currentRoom.members.includes(peerUsername);
             });
-            console.log(`[UPDATE PARTICIPANTS] Peers after filter: ${allPeers.length}`);
+            Logger.debug(`[UPDATE PARTICIPANTS] Peers after filter: ${allPeers.length}`);
         }
 
         if (allPeers.length === 0) {
@@ -6527,20 +7112,20 @@
     // ============================================
     // PARTICIPANT MODERATION ACTIONS
     // ============================================
-    window.kickParticipant = function(peerId) {
+    window.kickParticipant = async function(peerId) {
         if (!canModerate()) {
-            showToast('Permissions insuffisantes', 'error');
+            showToast(i18n('insufficientPerms'), 'error');
             return;
         }
 
         const peerInfo = state.connections.get(peerId);
         if (!peerInfo) {
-            showToast('Participant non trouvé', 'error');
+            showToast(i18n('participantNotFound'), 'error');
             return;
         }
 
-        const reason = prompt(`Expulser ${peerInfo.name} ?\nRaison (optionnel):`);
-        if (reason === null) return; // User canceled
+        const reason = await Modal.prompt(i18n('kick'), `${i18n('kickReason')} (${peerInfo.name})`, '', i18n('kickReason'));
+        if (reason === null) return;
 
         const roomId = state.currentRoom?.id;
         
@@ -6563,35 +7148,32 @@
         showToast(`${peerInfo.name} expulsé`, 'success');
     };
 
-    window.banParticipant = function(peerId) {
+    window.banParticipant = async function(peerId) {
         if (!canModerate()) {
-            showToast('Permissions insuffisantes', 'error');
+            showToast(i18n('insufficientPerms'), 'error');
             return;
         }
 
         const peerInfo = state.connections.get(peerId);
         if (!peerInfo) {
-            showToast('Participant non trouvé', 'error');
+            showToast(i18n('participantNotFound'), 'error');
             return;
         }
 
         const roomId = state.currentRoom?.id;
         if (!roomId) {
-            showToast('Aucun salon actif', 'error');
+            showToast(i18n('noActiveRoom'), 'error');
             return;
         }
 
-        // Get current ban count for this user
         const banCount = state.bannedUsers.has(roomId) && state.bannedUsers.get(roomId).has(peerId)
             ? state.bannedUsers.get(roomId).get(peerId).banCount
             : 0;
 
-        // Durées de bannissement en minutes
-        const banDurations = [5, 15, 30, 60, 240, 480, 1440]; // 5min, 15min, 30min, 1h, 4h, 8h, 24h
+        const banDurations = [5, 15, 30, 60, 240, 480, 1440];
         const banDurationIndex = Math.min(banCount, banDurations.length - 1);
         const banDurationMinutes = banDurations[banDurationIndex];
 
-        // Format duration for display
         let durationText;
         if (banDurationMinutes < 60) {
             durationText = `${banDurationMinutes} minute${banDurationMinutes > 1 ? 's' : ''}`;
@@ -6601,12 +7183,11 @@
             durationText = `${banDurationMinutes / 1440} jour${banDurationMinutes / 1440 > 1 ? 's' : ''}`;
         }
 
-        if (!confirm(`Bannir temporairement ${peerInfo.name} pour ${durationText} ?\n\nIl ne pourra pas envoyer de messages dans ce salon pendant cette durée.`)) {
-            return;
-        }
+        const confirmed = await Modal.confirm(i18n('ban'), `${i18n('banConfirm')} ${peerInfo.name} (${durationText}) ?`, true);
+        if (!confirmed) return;
 
-        const reason = prompt(`Raison du bannissement de ${peerInfo.name} (optionnel):`);
-        if (reason === null) return; // User canceled
+        const reason = await Modal.prompt(i18n('ban'), `${i18n('banReason')} (${peerInfo.name})`, '', i18n('banReason'));
+        if (reason === null) return;
 
         const expiryTime = Date.now() + (banDurationMinutes * 60 * 1000);
 
@@ -6633,21 +7214,20 @@
         showToast(`${peerInfo.name} banni pour ${durationText}`, 'success');
     };
 
-    window.promoteToAdmin = function(peerId) {
+    window.promoteToAdmin = async function(peerId) {
         if (state.myRole !== 'creator') {
-            showToast('Seul le créateur peut promouvoir des admins', 'error');
+            showToast(i18n('onlyCreatorPromote'), 'error');
             return;
         }
 
         const peerInfo = state.connections.get(peerId);
         if (!peerInfo) {
-            showToast('Participant non trouvé', 'error');
+            showToast(i18n('participantNotFound'), 'error');
             return;
         }
 
-        if (!confirm(`Promouvoir ${peerInfo.name} en tant qu'administrateur ?`)) {
-            return;
-        }
+        const confirmed = await Modal.confirm(i18n('promote'), `${i18n('promoteConfirm')} (${peerInfo.name})`);
+        if (!confirmed) return;
 
         // Update room admins list
         if (state.currentRoom) {
@@ -6688,21 +7268,20 @@
         }
     };
 
-    window.revokeAdmin = function(peerId) {
+    window.revokeAdmin = async function(peerId) {
         if (state.myRole !== 'creator') {
-            showToast('Seul le créateur peut révoquer des admins', 'error');
+            showToast(i18n('onlyCreatorRevoke'), 'error');
             return;
         }
 
         const peerInfo = state.connections.get(peerId);
         if (!peerInfo) {
-            showToast('Participant non trouvé', 'error');
+            showToast(i18n('participantNotFound'), 'error');
             return;
         }
 
-        if (!confirm(`Retirer les droits d'administrateur à ${peerInfo.name} ?`)) {
-            return;
-        }
+        const confirmed = await Modal.confirm(i18n('revoke'), `${i18n('revokeConfirm')} (${peerInfo.name})`, true);
+        if (!confirmed) return;
 
         // Update room admins list
         if (state.currentRoom) {
@@ -6788,9 +7367,11 @@
     // ============================================
     function generateId(length) {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        const randomValues = new Uint32Array(length);
+        crypto.getRandomValues(randomValues);
         let result = '';
         for (let i = 0; i < length; i++) {
-            result += chars[Math.floor(Math.random() * chars.length)];
+            result += chars[randomValues[i] % chars.length];
         }
         return result;
     }
@@ -6826,11 +7407,11 @@
     // ============================================
     // MODERATION ACTIONS
     // ============================================
-    function initiateKick(peerId) {
+    async function initiateKick(peerId) {
         const peerInfo = state.connections.get(peerId);
         if (!peerInfo) return;
 
-        const reason = prompt(`Raison de l'expulsion de ${peerInfo.name} :`, 'Comportement inapproprié');
+        const reason = await Modal.prompt(i18n('kick'), i18n('kickReason') + ` (${peerInfo.name})`, '', i18n('kickReason'));
         if (reason === null) return;
 
         broadcastMessage({
@@ -6841,13 +7422,14 @@
         });
     }
 
-    function initiateBan(peerId) {
+    async function initiateBan(peerId) {
         const peerInfo = state.connections.get(peerId);
         if (!peerInfo) return;
 
-        if (!confirm(`Voulez-vous vraiment bannir ${peerInfo.name} du salon ?`)) return;
+        const confirmed = await Modal.confirm(i18n('ban'), `${i18n('banConfirm')} ${peerInfo.name} ?`, true);
+        if (!confirmed) return;
 
-        const reason = prompt(`Raison du bannissement de ${peerInfo.name} :`, 'Comportement inapproprié');
+        const reason = await Modal.prompt(i18n('ban'), i18n('banReason') + ` (${peerInfo.name})`, '', i18n('banReason'));
         if (reason === null) return;
 
         broadcastMessage({
@@ -6858,11 +7440,11 @@
         });
     }
 
-    function reportUser(peerId) {
+    async function reportUser(peerId) {
         const peerInfo = state.connections.get(peerId);
         if (!peerInfo) return;
 
-        const reason = prompt(`Raison du signalement de ${peerInfo.name} :`, 'Comportement inapproprié');
+        const reason = await Modal.prompt(i18n('warning'), i18n('reportReason') + ` (${peerInfo.name})`, '', i18n('reportReason'));
         if (reason === null) return;
 
         appendSystemMessage(`🚨 Vous avez signalé ${peerInfo.name} aux administrateurs`, 'info');
@@ -6876,14 +7458,15 @@
         });
     }
 
-    function initiateVote(peerId) {
+    async function initiateVote(peerId) {
         const peerInfo = state.connections.get(peerId);
         if (!peerInfo) return;
 
-        const reason = prompt(`Raison du vote d'expulsion contre ${peerInfo.name} :`, 'Comportement inapproprié');
+        const reason = await Modal.prompt(i18n('kick'), i18n('voteKickReason') + ` (${peerInfo.name})`, '', i18n('voteKickReason'));
         if (reason === null) return;
 
-        if (!confirm(`Voulez-vous vraiment lancer un vote d'expulsion contre ${peerInfo.name} ? Les participants devront voter avec /oui ou /non`)) return;
+        const confirmed = await Modal.confirm(i18n('kick'), i18n('voteKickConfirm') + ` (${peerInfo.name})`);
+        if (!confirmed) return;
 
         const voteId = generateId(10);
         state.activeVotes.set(voteId, {
@@ -6906,11 +7489,12 @@
         });
     }
 
-    function assignAdmin(peerId) {
+    async function assignAdmin(peerId) {
         const peerInfo = state.connections.get(peerId);
         if (!peerInfo) return;
 
-        if (!confirm(`Voulez-vous nommer ${peerInfo.name} administrateur ?`)) return;
+        const confirmed = await Modal.confirm(i18n('promote'), `${i18n('promoteConfirm')} (${peerInfo.name})`);
+        if (!confirmed) return;
 
         // Update room admins list
         if (state.currentRoom) {
@@ -6946,11 +7530,12 @@
         updateParticipantsList();
     }
 
-    function revokeAdmin(peerId) {
+    async function revokeAdmin(peerId) {
         const peerInfo = state.connections.get(peerId);
         if (!peerInfo) return;
 
-        if (!confirm(`Voulez-vous révoquer les droits d'admin de ${peerInfo.name} ?`)) return;
+        const confirmed = await Modal.confirm(i18n('revoke'), `${i18n('revokeConfirm')} (${peerInfo.name})`, true);
+        if (!confirmed) return;
 
         appendSystemMessage(`⬇️ Vous avez révoqué les droits d'admin de ${peerInfo.name}`, 'warning');
         showToast(`${peerInfo.name} n'est plus administrateur`, 'warning');
@@ -7018,8 +7603,8 @@
     }
 
     function handlePeerError(err) {
-        console.error('Peer error:', err);
-        console.error('Peer error details:', {
+        Logger.error('Peer error:', err);
+        Logger.error('Peer error details:', {
             type: err.type,
             message: err.message,
             stack: err.stack
@@ -7031,11 +7616,11 @@
             message = 'Pair introuvable. Vérifiez l\'ID et réessayez.';
             updateStatusBar('error', message);
             showToast(message, 'error');
-            console.warn('Peer unavailable - check if connection exists or peer is online');
+            Logger.warn('Peer unavailable - check if connection exists or peer is online');
         } else if (err.type === 'network' || err.type === 'server-error') {
             // Network errors are usually temporary and don't affect existing P2P connections
             message = 'Erreur réseau temporaire. Connexions P2P actives.';
-            console.log('Temporary network error - P2P connections remain active');
+            Logger.debug('Temporary network error - P2P connections remain active');
             updateStatusBar('connecting', 'Reconnexion au serveur...');
             // Don't show error toast for temporary network issues, but show system message
             appendSystemMessage('⚠️ Erreur de connexion au serveur de signalisation. Les connexions P2P restent actives. Reconnexion en cours...');
@@ -7077,7 +7662,7 @@
         const oldDirectMessages = localStorage.getItem('directMessages');
 
         // These are now loaded in state initialization, but we need to migrate them if they use old format
-        console.log('Migration: Checking for old format data...');
+        Logger.debug('Migration: Checking for old format data...');
     }
 
     // ============================================
@@ -7148,8 +7733,7 @@
 
     function refreshRoomsList() {
         // Recharge la liste des salons depuis localStorage
-        const savedRooms = JSON.parse(localStorage.getItem('privateRooms') || '[]');
-        state.privateRooms = savedRooms;
+        state.privateRooms = safeJsonParse('privateRooms', '[]');
         updatePrivateRoomsList();
         showToast('Liste des salons actualisée', 'success');
     }
@@ -7164,9 +7748,11 @@
     function generateRoomId() {
         const prefix = 'RT';
         const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const randomValues = new Uint32Array(8);
+        crypto.getRandomValues(randomValues);
         let id = '';
         for (let i = 0; i < 8; i++) {
-            id += chars.charAt(Math.floor(Math.random() * chars.length));
+            id += chars.charAt(randomValues[i] % chars.length);
         }
         return `${prefix}-${id}`;
     }
@@ -7290,7 +7876,7 @@
         elements.deleteSelectedRoomsBtn.disabled = count === 0;
     }
 
-    function deleteSelectedRooms() {
+    async function deleteSelectedRooms() {
         if (state.selectedRooms.size === 0) {
             showToast('Aucun salon sélectionné', 'warning');
             return;
@@ -7323,7 +7909,7 @@
             confirmMessage = `Êtes-vous sûr de vouloir quitter ${leaveCount} salon${leaveCount > 1 ? 's' : ''} ?`;
         }
 
-        if (!confirm(confirmMessage)) return;
+        if (!await Modal.confirm(i18n('deleteSelected'), confirmMessage, true)) return;
 
         // Delete rooms where user is creator
         roomsToDelete.forEach(room => {
@@ -7550,8 +8136,15 @@
             inputArea.style.display = 'block';
         }
 
-        // Clear and update messages
-        elements.messagesContainer.innerHTML = `<div class="message system">Bienvenue dans le salon "${escapeHtml(room.name)}" !</div>`;
+        // Clear and load persisted messages
+        elements.messagesContainer.innerHTML = `<div class="message system">${state.lang === 'fr' ? `Bienvenue dans le salon "${escapeHtml(room.name)}" !` : `Welcome to room "${escapeHtml(room.name)}"!`}</div>`;
+
+        // Load persisted messages from IndexedDB
+        MessageDB.getMessages(room.id).then(messages => {
+            messages.forEach(msg => {
+                appendMessage(msg.content, msg.type, msg.sender, msg.timestamp, msg.encrypted, msg.messageId);
+            });
+        }).catch(() => {});
 
         // Update participants list
         updateParticipantsList();
@@ -7572,11 +8165,11 @@
             .catch(() => showToast('Erreur lors de la copie', 'error'));
     }
 
-    function leaveRoom() {
+    async function leaveRoom() {
         if (!state.currentRoom) return;
 
         const roomName = state.currentRoom.name;
-        if (!confirm(`Êtes-vous sûr de vouloir quitter le salon "${roomName}" ?`)) return;
+        if (!await Modal.confirm(i18n('leaveRoom'), `${i18n('leaveConfirm')} (${roomName})`)) return;
 
         // Remove user from members (by username)
         const memberIndex = state.currentRoom.members.indexOf(state.myName);
@@ -7603,11 +8196,11 @@
         showToast(`Vous avez quitté le salon "${roomName}"`, 'success');
     }
 
-    function deleteRoom() {
+    async function deleteRoom() {
         if (!state.currentRoom || !state.isRoomCreator) return;
 
         const roomName = state.currentRoom.name;
-        if (!confirm(`Êtes-vous sûr de vouloir supprimer définitivement le salon "${roomName}" ?\n\nCette action est irréversible.`)) return;
+        if (!await Modal.confirm(i18n('deleteRoom'), `${i18n('deleteConfirm')} (${roomName})`, true)) return;
 
         // Remove room from state
         const roomIndex = state.privateRooms.findIndex(r => r.id === state.currentRoom.id);
@@ -8237,23 +8830,23 @@
         const senderUsername = peerInfo ? (peerInfo.name || peerInfo.username) : null;
 
         if (!senderUsername) {
-            console.warn('[FRIENDS] Received friend-sync from unknown peer:', peerId);
+            Logger.warn('[FRIENDS] Received friend-sync from unknown peer:', peerId);
             return;
         }
 
         // Log the sync (but limit console spam)
         const now = Date.now();
         if (!this.lastSyncLog || now - this.lastSyncLog > 5000) {
-            console.log(`[FRIENDS] Received friend-sync from ${senderUsername}:`, friends);
-            console.log(`[FRIENDS] Our friend list:`, state.friends);
-            console.log(`[FRIENDS] My username:`, state.myName);
+            Logger.debug(`[FRIENDS] Received friend-sync from ${senderUsername}:`, friends);
+            Logger.debug(`[FRIENDS] Our friend list:`, state.friends);
+            Logger.debug(`[FRIENDS] My username:`, state.myName);
             this.lastSyncLog = now;
         }
 
         // Check for inconsistencies and inform user without auto-adding
         // They think we're friends but we don't have them
         if (friends.includes(state.myName) && !state.friends.includes(senderUsername)) {
-            console.log(`[FRIENDS] Note: ${senderUsername} considers us a friend but we don't have them`);
+            Logger.debug(`[FRIENDS] Note: ${senderUsername} considers us a friend but we don't have them`);
             // Just log it, don't auto-add. User can manually add them via UI
             // Use a debounce to avoid toast spam
             if (!this.lastToastTime || now - this.lastToastTime > 3000) {
@@ -8264,7 +8857,7 @@
 
         // We think they're friends but they don't have us
         if (state.friends.includes(senderUsername) && !friends.includes(state.myName)) {
-            console.log(`[FRIENDS] Note: We consider ${senderUsername} a friend but they don't have us`);
+            Logger.debug(`[FRIENDS] Note: We consider ${senderUsername} a friend but they don't have us`);
             // Only send sync reply if we haven't sent one recently (avoid infinite loop)
             const lastSentSync = this.lastSentSyncs ? this.lastSentSyncs.get(peerId) : 0;
             if (!lastSentSync || now - lastSentSync > 10000) { // Wait 10s before resending
@@ -8275,12 +8868,12 @@
                         friends: [state.myName],
                         myPeerId: state.myPeerId
                     });
-                    console.log(`[FRIENDS] Sent friend-sync reply to ${senderUsername}`);
+                    Logger.debug(`[FRIENDS] Sent friend-sync reply to ${senderUsername}`);
                     if (!this.lastSentSyncs) this.lastSentSyncs = new Map();
                     this.lastSentSyncs.set(peerId, now);
                 }
             } else {
-                console.log(`[FRIENDS] Skipping sync reply to ${senderUsername} (too recent)`);
+                Logger.debug(`[FRIENDS] Skipping sync reply to ${senderUsername} (too recent)`);
             }
         }
     }
@@ -8300,9 +8893,9 @@
             saveFriends();
             updateFriendsList();
             updateConnectedUsersList(true);
-            console.log(`[FRIENDS] Added ${fromUsername} to friends list (accepted request)`);
+            Logger.debug(`[FRIENDS] Added ${fromUsername} to friends list (accepted request)`);
         } else {
-            console.log(`[FRIENDS] ${fromUsername} already in friends list`);
+            Logger.debug(`[FRIENDS] ${fromUsername} already in friends list`);
         }
 
         // Remove from sent requests list
@@ -8310,7 +8903,7 @@
         if (sentIndex > -1) {
             state.friendRequestsSent.splice(sentIndex, 1);
             saveFriendRequestsSent();
-            console.log(`[FRIENDS] Removed sent request for ${fromUsername}`);
+            Logger.debug(`[FRIENDS] Removed sent request for ${fromUsername}`);
         }
 
         showToast(`${fromUsername} a accepté votre demande d'ami !`, 'success');
@@ -8342,8 +8935,8 @@
     // Synchronize friends list with all connected peers
     // This function can be called to fix inconsistencies in friend lists
     function syncFriendsWithPeers() {
-        console.log('[FRIENDS] Starting friend synchronization with all connected peers...');
-        console.log('[FRIENDS] Current friends list:', state.friends);
+        Logger.debug('[FRIENDS] Starting friend synchronization with all connected peers...');
+        Logger.debug('[FRIENDS] Current friends list:', state.friends);
         let syncCount = 0;
 
         state.connections.forEach((peerInfo, peerId) => {
@@ -8357,29 +8950,29 @@
             }
         });
 
-        console.log(`[FRIENDS] Sent sync messages to ${syncCount} connected peers`);
+        Logger.debug(`[FRIENDS] Sent sync messages to ${syncCount} connected peers`);
         showToast(`Synchronisation envoyée à ${syncCount} ami(s) connecté(s)`, 'info');
     }
 
     // Debug function: Log current state of friends and connections
     function debugFriendState() {
-        console.log('=== FRIENDS DEBUG ===');
-        console.log('My username:', state.myName);
-        console.log('My friends:', state.friends);
-        console.log('Connected users:');
+        Logger.debug('=== FRIENDS DEBUG ===');
+        Logger.debug('My username:', state.myName);
+        Logger.debug('My friends:', state.friends);
+        Logger.debug('Connected users:');
         state.connections.forEach((info, peerId) => {
             const username = info.name || info.username;
             const isFriend = state.friends.includes(username);
-            console.log(`  - ${username} (${peerId}): ${isFriend ? 'FRIEND' : 'NOT FRIEND'}`);
+            Logger.debug(`  - ${username} (${peerId}): ${isFriend ? 'FRIEND' : 'NOT FRIEND'}`);
         });
-        console.log('====================');
+        Logger.debug('====================');
         showToast('Informations de débogage dans la console', 'info');
     }
 
     // Function to remove non-friend users from localStorage cache
     // This can help if there are old/cached friend entries
     function clearFriendCache() {
-        console.log('[FRIENDS] Clearing friend cache and reloading from localStorage...');
+        Logger.debug('[FRIENDS] Clearing friend cache and reloading from localStorage...');
         state.friends = JSON.parse(localStorage.getItem('friends') || '[]');
         saveFriends();
         updateFriendsList();
@@ -8395,8 +8988,8 @@
 
         // We need to check each friend's list by sending a query
         // For now, just log the friends we have
-        console.log('[FRIENDS] Cleaning up one-sided friendships...');
-        console.log('[FRIENDS] Current friends:', state.friends);
+        Logger.debug('[FRIENDS] Cleaning up one-sided friendships...');
+        Logger.debug('[FRIENDS] Current friends:', state.friends);
 
         // Send a query to each friend to check their friend list
         state.connections.forEach((peerInfo, peerId) => {
@@ -8407,7 +9000,7 @@
                     fromUsername: state.myName,
                     fromPeerId: state.myPeerId
                 });
-                console.log(`[FRIENDS] Sent friend-query to ${username}`);
+                Logger.debug(`[FRIENDS] Sent friend-query to ${username}`);
             }
         });
 
@@ -8416,12 +9009,12 @@
 
     // Function to completely reset friends list
     // Use this if friend list is completely corrupted
-    function resetFriendList() {
-        if (!confirm('ATTENTION: Cela va supprimer TOUTES vos amitiés. Continuer ?')) {
+    async function resetFriendList() {
+        if (!await Modal.confirm(i18n('warning'), state.lang === 'fr' ? 'ATTENTION: Cela va supprimer TOUTES vos amitiés. Continuer ?' : 'WARNING: This will delete ALL your friendships. Continue?', true)) {
             return;
         }
 
-        console.log('[FRIENDS] Resetting friend list...');
+        Logger.debug('[FRIENDS] Resetting friend list...');
         state.friends = [];
         state.friendRequestsReceived = [];
         state.friendRequestsSent = [];
@@ -8447,21 +9040,21 @@
                 fromPeerId: state.myPeerId,
                 friends: state.friends
             });
-            console.log(`[FRIENDS] Responded to friend-query from ${fromUsername}`);
+            Logger.debug(`[FRIENDS] Responded to friend-query from ${fromUsername}`);
         }
     }
 
     // Handle friend query response
     function handleFriendQueryResponse(data, peerId) {
         const { fromUsername, fromPeerId, friends } = data;
-        console.log(`[FRIENDS] Friend query response from ${fromUsername}:`, friends);
+        Logger.debug(`[FRIENDS] Friend query response from ${fromUsername}:`, friends);
 
         // Check if they have us in their list
         const theyHaveUs = friends.includes(state.myName);
         const weHaveThem = state.friends.includes(fromUsername);
 
         if (weHaveThem && !theyHaveUs) {
-            console.log(`[FRIENDS] Removing ${fromUsername} from friends list (one-sided)`);
+            Logger.debug(`[FRIENDS] Removing ${fromUsername} from friends list (one-sided)`);
             const index = state.friends.indexOf(fromUsername);
             if (index > -1) {
                 state.friends.splice(index, 1);
@@ -8531,9 +9124,9 @@
 
             const removeBtn = item.querySelector('.remove-friend-btn');
             if (removeBtn) {
-                removeBtn.addEventListener('click', (e) => {
+                removeBtn.addEventListener('click', async (e) => {
                     e.stopPropagation();
-                    if (confirm(`Supprimer ${username} de vos amis ?`)) {
+                    if (await Modal.confirm(i18n('warning'), state.lang === 'fr' ? `Supprimer ${username} de vos amis ?` : `Remove ${username} from friends?`, true)) {
                         removeFriend(username);
                     }
                 });
@@ -8619,13 +9212,13 @@
         }
     }
 
-    function regenerateUserId() {
+    async function regenerateUserId() {
         if (state.autoGenerateId) {
             showToast('La génération automatique est activée. Rafraîchissez la page pour un nouvel ID.', 'warning');
             return;
         }
 
-        if (!confirm('Êtes-vous sûr de vouloir générer un nouvel ID ?\n\nVos contacts devront utiliser ce nouvel ID pour vous trouver.')) {
+        if (!await Modal.confirm(i18n('warning'), state.lang === 'fr' ? 'Êtes-vous sûr de vouloir générer un nouvel ID ? Vos contacts devront utiliser ce nouvel ID pour vous trouver.' : 'Are you sure you want to generate a new ID? Your contacts will need this new ID to find you.')) {
             return;
         }
 
@@ -8700,11 +9293,11 @@
         });
     }
 
-    function deleteDmConversation(peerId) {
+    async function deleteDmConversation(peerId) {
         const connection = state.connections.get(peerId);
         const name = connection ? connection.name : peerId;
 
-        if (!confirm(`Êtes-vous sûr de vouloir supprimer la conversation avec ${name} ?`)) return;
+        if (!await Modal.confirm(i18n('warning'), state.lang === 'fr' ? `Supprimer la conversation avec ${name} ?` : `Delete conversation with ${name}?`, true)) return;
 
         // Supprimer de l'état AVANT de mettre à jour l'interface
         const wasDeleted = state.directMessages.delete(peerId);
@@ -8986,7 +9579,7 @@
         }
 
         if (!senderConnection || !senderConnection.conn.open) {
-            console.error('No connection found for DM sender:', from);
+            Logger.error('No connection found for DM sender:', from);
             return;
         }
 
@@ -9029,7 +9622,7 @@
             showToast(`Message de ${from}`, 'info');
 
         } catch (err) {
-            console.error('Error decrypting DM:', err);
+            Logger.error('Error decrypting DM:', err);
         }
     }
 
@@ -9068,11 +9661,11 @@
     if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('/sw.js')
-                .then(reg => console.log('✅ Service Worker enregistré:', reg.scope))
-                .catch(err => console.warn('⚠️ Service Worker:', err.message));
+                .then(reg => Logger.debug('✅ Service Worker enregistré:', reg.scope))
+                .catch(err => Logger.warn('⚠️ Service Worker:', err.message));
         });
     } else if (location.protocol === 'file:') {
-        console.log('ℹ️ Service Worker désactivé en mode fichier local (ouvrez via serveur HTTP)');
+        Logger.debug('ℹ️ Service Worker désactivé en mode fichier local (ouvrez via serveur HTTP)');
     }
 
     // Share API Support
@@ -9089,7 +9682,7 @@
                 showToast('ID partagé avec succès!', 'success');
             } catch (err) {
                 if (err.name !== 'AbortError') {
-                    console.error('Erreur partage:', err);
+                    Logger.error('Erreur partage:', err);
                 }
             }
         });
@@ -9215,7 +9808,7 @@
 
     function reconnectWithBackoff(peerId) {
         if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-            console.log('❌ Maximum de tentatives de reconnexion atteint');
+            Logger.debug('❌ Maximum de tentatives de reconnexion atteint');
             showToast('Impossible de se reconnecter après plusieurs tentatives', 'error');
             reconnectAttempts = 0;
             return;
@@ -9224,7 +9817,7 @@
         const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
         reconnectAttempts++;
 
-        console.log(`🔄 Tentative de reconnexion ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS} dans ${delay}ms...`);
+        Logger.debug(`🔄 Tentative de reconnexion ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS} dans ${delay}ms...`);
 
         setTimeout(() => {
             connectToPeer(peerId);
@@ -9328,7 +9921,483 @@
         return result;
     };
 
-    console.log('✅ Toutes les améliorations sont activées!');
+    // ============================================
+    // INDEXEDDB - MESSAGE PERSISTENCE
+    // ============================================
+    const MessageDB = {
+        db: null,
+        async open() {
+            return new Promise((resolve, reject) => {
+                const req = indexedDB.open('PeerTextDB', 1);
+                req.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains('roomMessages')) {
+                        const store = db.createObjectStore('roomMessages', { keyPath: 'id', autoIncrement: true });
+                        store.createIndex('roomId', 'roomId', { unique: false });
+                        store.createIndex('timestamp', 'timestamp', { unique: false });
+                    }
+                };
+                req.onsuccess = (e) => { this.db = e.target.result; resolve(); };
+                req.onerror = (e) => { Logger.error('IndexedDB error:', e); reject(e); };
+            });
+        },
+        async saveMessage(roomId, message) {
+            if (!this.db) return;
+            const tx = this.db.transaction('roomMessages', 'readwrite');
+            tx.objectStore('roomMessages').add({ ...message, roomId, timestamp: Date.now() });
+        },
+        async getMessages(roomId, limit = 100) {
+            if (!this.db) return [];
+            return new Promise((resolve) => {
+                const tx = this.db.transaction('roomMessages', 'readonly');
+                const idx = tx.objectStore('roomMessages').index('roomId');
+                const req = idx.getAll(roomId);
+                req.onsuccess = () => {
+                    const msgs = req.result || [];
+                    resolve(msgs.slice(-limit));
+                };
+                req.onerror = () => resolve([]);
+            });
+        },
+        async clearRoom(roomId) {
+            if (!this.db) return;
+            const tx = this.db.transaction('roomMessages', 'readwrite');
+            const store = tx.objectStore('roomMessages');
+            const idx = store.index('roomId');
+            const req = idx.openCursor(roomId);
+            req.onsuccess = (e) => {
+                const cursor = e.target.result;
+                if (cursor) { cursor.delete(); cursor.continue(); }
+            };
+        }
+    };
+
+    // ============================================
+    // IDENTITY VERIFICATION (SIGNATURE)
+    // ============================================
+    const Identity = {
+        _signingKey: null,
+        _verifyKey: null,
+        async init() {
+            const keyPair = await crypto.subtle.generateKey(
+                { name: 'ECDSA', namedCurve: 'P-256' },
+                true,
+                ['sign', 'verify']
+            );
+            this._signingKey = keyPair.privateKey;
+            this._verifyKey = keyPair.publicKey;
+        },
+        async exportVerifyKey() {
+            const exported = await crypto.subtle.exportKey('raw', this._verifyKey);
+            return btoa(String.fromCharCode(...new Uint8Array(exported)));
+        },
+        async sign(data) {
+            const encoded = new TextEncoder().encode(JSON.stringify(data));
+            const sig = await crypto.subtle.sign(
+                { name: 'ECDSA', hash: 'SHA-256' },
+                this._signingKey,
+                encoded
+            );
+            return btoa(String.fromCharCode(...new Uint8Array(sig)));
+        },
+        async verify(data, signatureBase64, verifyKeyBase64) {
+            try {
+                const keyBytes = Uint8Array.from(atob(verifyKeyBase64), c => c.charCodeAt(0));
+                const verifyKey = await crypto.subtle.importKey(
+                    'raw', keyBytes, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']
+                );
+                const sigBytes = Uint8Array.from(atob(signatureBase64), c => c.charCodeAt(0));
+                const encoded = new TextEncoder().encode(JSON.stringify(data));
+                return await crypto.subtle.verify(
+                    { name: 'ECDSA', hash: 'SHA-256' },
+                    verifyKey, sigBytes, encoded
+                );
+            } catch { return false; }
+        }
+    };
+
+    // ============================================
+    // READ RECEIPTS
+    // ============================================
+    const ReadReceipts = {
+        _messageStatus: new Map(), // messageId -> 'sent' | 'delivered' | 'read'
+        setStatus(messageId, status) {
+            this._messageStatus.set(messageId, status);
+            this._updateUI(messageId, status);
+        },
+        _updateUI(messageId, status) {
+            const el = document.querySelector(`[data-msg-id="${messageId}"] .message-status`);
+            if (!el) return;
+            el.className = `message-status ${status}`;
+            const checkSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+            const dblCheckSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 6 7 17 2 12"></polyline><polyline points="24 6 13 17 10 14"></polyline></svg>';
+            el.innerHTML = status === 'sent' ? checkSvg : dblCheckSvg;
+        },
+        sendDeliveryReceipt(conn, messageId) {
+            if (conn && conn.open) {
+                conn.send({ type: 'delivery-receipt', messageId });
+            }
+        },
+        sendReadReceipt(conn, messageId) {
+            if (conn && conn.open) {
+                conn.send({ type: 'read-receipt', messageId });
+            }
+        }
+    };
+
+    // ============================================
+    // MESSAGE SEARCH
+    // ============================================
+    const MessageSearch = {
+        _results: [],
+        _currentIndex: -1,
+        open() {
+            const bar = document.getElementById('search-bar');
+            const input = document.getElementById('search-input');
+            bar.classList.add('show');
+            input.placeholder = i18n('searchMessages');
+            input.focus();
+        },
+        close() {
+            document.getElementById('search-bar').classList.remove('show');
+            document.getElementById('search-input').value = '';
+            document.getElementById('search-count').textContent = '';
+            this._clearHighlights();
+            this._results = [];
+            this._currentIndex = -1;
+        },
+        search(query) {
+            this._clearHighlights();
+            if (!query.trim()) {
+                document.getElementById('search-count').textContent = '';
+                this._results = [];
+                return;
+            }
+            const messages = elements.messagesContainer.querySelectorAll('.message:not(.system)');
+            this._results = [];
+            const lowerQuery = query.toLowerCase();
+            messages.forEach(msg => {
+                const content = msg.querySelector('.message-content');
+                if (content && content.textContent.toLowerCase().includes(lowerQuery)) {
+                    this._results.push(msg);
+                }
+            });
+            const countEl = document.getElementById('search-count');
+            countEl.textContent = this._results.length > 0
+                ? `${this._results.length} ${i18n('noResults').replace(i18n('noResults'), '')}`
+                : i18n('noResults');
+            if (this._results.length > 0) {
+                countEl.textContent = `${this._results.length} found`;
+                this._currentIndex = 0;
+                this._highlightCurrent();
+            }
+        },
+        next() {
+            if (this._results.length === 0) return;
+            this._currentIndex = (this._currentIndex + 1) % this._results.length;
+            this._highlightCurrent();
+        },
+        prev() {
+            if (this._results.length === 0) return;
+            this._currentIndex = (this._currentIndex - 1 + this._results.length) % this._results.length;
+            this._highlightCurrent();
+        },
+        _highlightCurrent() {
+            this._clearHighlights();
+            if (this._results[this._currentIndex]) {
+                this._results[this._currentIndex].classList.add('search-highlight');
+                this._results[this._currentIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                document.getElementById('search-count').textContent =
+                    `${this._currentIndex + 1}/${this._results.length}`;
+            }
+        },
+        _clearHighlights() {
+            document.querySelectorAll('.search-highlight').forEach(el => el.classList.remove('search-highlight'));
+        }
+    };
+
+    // ============================================
+    // MESSAGE REACTIONS
+    // ============================================
+    const REACTION_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏', '🔥', '👏'];
+    const Reactions = {
+        toggle(messageId, emoji) {
+            let reactions = state.messageReactions.get(messageId) || {};
+            if (!reactions[emoji]) reactions[emoji] = new Set();
+            if (reactions[emoji].has(state.myName)) {
+                reactions[emoji].delete(state.myName);
+                if (reactions[emoji].size === 0) delete reactions[emoji];
+            } else {
+                reactions[emoji].add(state.myName);
+            }
+            state.messageReactions.set(messageId, reactions);
+            this.render(messageId);
+            this.broadcast(messageId, emoji);
+        },
+        handleRemote(messageId, emoji, sender) {
+            let reactions = state.messageReactions.get(messageId) || {};
+            if (!reactions[emoji]) reactions[emoji] = new Set();
+            if (reactions[emoji].has(sender)) {
+                reactions[emoji].delete(sender);
+                if (reactions[emoji].size === 0) delete reactions[emoji];
+            } else {
+                reactions[emoji].add(sender);
+            }
+            state.messageReactions.set(messageId, reactions);
+            this.render(messageId);
+        },
+        render(messageId) {
+            const msgEl = document.querySelector(`[data-msg-id="${messageId}"]`);
+            if (!msgEl) return;
+            let container = msgEl.querySelector('.message-reactions');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'message-reactions';
+                msgEl.appendChild(container);
+            }
+            const reactions = state.messageReactions.get(messageId) || {};
+            container.innerHTML = Object.entries(reactions).map(([emoji, users]) => {
+                const isMine = users.has(state.myName);
+                return `<span class="reaction-badge ${isMine ? 'mine' : ''}" data-emoji="${emoji}">
+                    ${emoji} <span class="count">${users.size}</span>
+                </span>`;
+            }).join('');
+            container.querySelectorAll('.reaction-badge').forEach(badge => {
+                badge.addEventListener('click', () => {
+                    this.toggle(messageId, badge.dataset.emoji);
+                });
+            });
+        },
+        broadcast(messageId, emoji) {
+            state.connections.forEach(({ conn }) => {
+                if (conn.open) {
+                    conn.send({ type: 'reaction', messageId, emoji, sender: state.myName });
+                }
+            });
+        }
+    };
+
+    // ============================================
+    // THEME TOGGLE
+    // ============================================
+    function applyTheme(theme) {
+        state.theme = theme;
+        localStorage.setItem('theme', theme);
+        document.body.classList.toggle('light-theme', theme === 'light');
+        const iconPath = document.getElementById('theme-icon-path');
+        if (iconPath) {
+            iconPath.setAttribute('d', theme === 'light'
+                ? 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z'
+                : 'M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z'
+            );
+        }
+    }
+
+    // ============================================
+    // ONBOARDING FLOW
+    // ============================================
+    function showOnboarding() {
+        if (state.onboardingComplete) return;
+
+        const overlay = document.createElement('div');
+        overlay.className = 'onboarding-overlay';
+        overlay.id = 'onboarding-overlay';
+
+        const steps = [
+            {
+                title: i18n('welcome'),
+                content: `
+                    <p>${i18n('onboardingDesc')}</p>
+                    <div class="lang-selector">
+                        <button class="lang-btn ${state.lang === 'en' ? 'active' : ''}" data-lang="en">English</button>
+                        <button class="lang-btn ${state.lang === 'fr' ? 'active' : ''}" data-lang="fr">Français</button>
+                    </div>
+                `
+            },
+            {
+                title: state.lang === 'fr' ? 'Fonctionnalités' : 'Features',
+                content: `
+                    <div class="onboarding-feature">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0110 0v4"></path>
+                        </svg>
+                        <span>${i18n('onboardingFeature1')}</span>
+                    </div>
+                    <div class="onboarding-feature">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="2"></circle><path d="M16.24 7.76a6 6 0 010 8.49m-8.48-.01a6 6 0 010-8.49"></path>
+                        </svg>
+                        <span>${i18n('onboardingFeature2')}</span>
+                    </div>
+                    <div class="onboarding-feature">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"></path>
+                        </svg>
+                        <span>${i18n('onboardingFeature3')}</span>
+                    </div>
+                `
+            },
+            {
+                title: i18n('chooseName'),
+                content: `
+                    <input type="text" class="onboarding-name-input" id="onboarding-name"
+                        value="${escapeHtml(state.myName)}" placeholder="${i18n('chooseName')}" maxlength="30">
+                `
+            }
+        ];
+
+        let currentStep = 0;
+
+        function renderStep() {
+            const step = steps[currentStep];
+            overlay.innerHTML = `
+                <div class="onboarding-card">
+                    <div class="onboarding-steps">
+                        ${steps.map((_, i) => `<div class="onboarding-step ${i === currentStep ? 'active' : ''}"></div>`).join('')}
+                    </div>
+                    <h2>${step.title}</h2>
+                    ${step.content}
+                    <div style="display:flex;gap:10px;justify-content:center;margin-top:20px;">
+                        ${currentStep > 0 ? `<button class="custom-modal-btn cancel" id="onb-prev">${state.lang === 'fr' ? 'Précédent' : 'Previous'}</button>` : ''}
+                        ${currentStep < steps.length - 1
+                            ? `<button class="custom-modal-btn confirm" id="onb-next">${i18n('next')}</button>`
+                            : `<button class="custom-modal-btn confirm" id="onb-finish">${i18n('getStarted')}</button>`
+                        }
+                    </div>
+                </div>
+            `;
+
+            // Language selector handlers
+            overlay.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    state.lang = btn.dataset.lang;
+                    localStorage.setItem('lang', state.lang);
+                    overlay.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    // Re-render to update translations
+                    renderStep();
+                });
+            });
+
+            const nextBtn = overlay.querySelector('#onb-next');
+            const prevBtn = overlay.querySelector('#onb-prev');
+            const finishBtn = overlay.querySelector('#onb-finish');
+
+            if (nextBtn) nextBtn.addEventListener('click', () => { currentStep++; renderStep(); });
+            if (prevBtn) prevBtn.addEventListener('click', () => { currentStep--; renderStep(); });
+            if (finishBtn) finishBtn.addEventListener('click', () => {
+                const nameInput = overlay.querySelector('#onboarding-name');
+                if (nameInput && nameInput.value.trim()) {
+                    state.myName = nameInput.value.trim();
+                    localStorage.setItem('peerName', state.myName);
+                    if (elements.myName) elements.myName.value = state.myName;
+                }
+                state.onboardingComplete = true;
+                localStorage.setItem('onboardingComplete', 'true');
+                overlay.remove();
+            });
+        }
+
+        renderStep();
+        document.body.appendChild(overlay);
+    }
+
+    // ============================================
+    // MEMORY LEAK FIXES
+    // ============================================
+    const _intervals = [];
+    const _objectUrls = new Set();
+
+    function safeSetInterval(fn, ms) {
+        const id = setInterval(fn, ms);
+        _intervals.push(id);
+        return id;
+    }
+
+    function safeCreateObjectURL(blob) {
+        const url = URL.createObjectURL(blob);
+        _objectUrls.add(url);
+        return url;
+    }
+
+    function cleanupObjectURLs() {
+        _objectUrls.forEach(url => URL.revokeObjectURL(url));
+        _objectUrls.clear();
+    }
+
+    window.addEventListener('beforeunload', () => {
+        _intervals.forEach(id => clearInterval(id));
+        cleanupObjectURLs();
+    });
+
+    // ============================================
+    // INITIALIZE NEW FEATURES
+    // ============================================
+    async function initNewFeatures() {
+        // Init custom modal
+        Modal._init();
+
+        // Init theme
+        applyTheme(state.theme);
+
+        // Theme toggle
+        const themeBtn = document.getElementById('theme-toggle-btn');
+        if (themeBtn) {
+            themeBtn.addEventListener('click', () => {
+                applyTheme(state.theme === 'dark' ? 'light' : 'dark');
+            });
+        }
+
+        // Search functionality
+        const searchInput = document.getElementById('search-input');
+        const searchCloseBtn = document.getElementById('search-close-btn');
+        const searchPrevBtn = document.getElementById('search-prev-btn');
+        const searchNextBtn = document.getElementById('search-next-btn');
+
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => MessageSearch.search(e.target.value));
+        }
+        if (searchCloseBtn) searchCloseBtn.addEventListener('click', () => MessageSearch.close());
+        if (searchPrevBtn) searchPrevBtn.addEventListener('click', () => MessageSearch.prev());
+        if (searchNextBtn) searchNextBtn.addEventListener('click', () => MessageSearch.next());
+
+        // Ctrl+F for search
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                e.preventDefault();
+                MessageSearch.open();
+            }
+        });
+
+        // Init IndexedDB
+        try {
+            await MessageDB.open();
+            Logger.debug('IndexedDB initialized');
+        } catch (e) {
+            Logger.warn('IndexedDB unavailable, room messages will not persist');
+        }
+
+        // Init identity signing keys
+        try {
+            await Identity.init();
+            Logger.debug('Identity signing keys generated');
+        } catch (e) {
+            Logger.warn('Identity signing unavailable');
+        }
+
+        // Ban dialog close buttons
+        document.querySelectorAll('.close-ban-dialog-btn').forEach(btn => {
+            btn.addEventListener('click', () => closeBanDialog());
+        });
+
+        // Show onboarding for new users
+        showOnboarding();
+    }
+
+    // Run after DOM is ready
+    initNewFeatures();
+
+    Logger.info('PeerText: All improvements loaded');
     </script>
 
     <!-- Drag & Drop Overlay -->
@@ -9341,6 +10410,16 @@
             </svg>
             <h3>Déposez votre fichier ici</h3>
             <p>Le fichier sera envoyé de manière sécurisée</p>
+        </div>
+    </div>
+
+    <!-- Custom Modal Overlay (replaces prompt/confirm/alert) -->
+    <div class="custom-modal-overlay" id="custom-modal-overlay">
+        <div class="custom-modal-box" id="custom-modal-box">
+            <div class="custom-modal-title" id="custom-modal-title"></div>
+            <div class="custom-modal-message" id="custom-modal-message"></div>
+            <input class="custom-modal-input" id="custom-modal-input" style="display:none" autocomplete="off">
+            <div class="custom-modal-actions" id="custom-modal-actions"></div>
         </div>
     </div>
 
