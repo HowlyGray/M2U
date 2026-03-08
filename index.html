@@ -3423,7 +3423,8 @@
         privateRooms: safeJsonParse('privateRooms', '[]'),
         currentTab: 'rooms',
         // Friends & DM system
-        friends: safeJsonParse('friends', '[]'),
+        friends: safeJsonParse('friends', '[]'), // Array of usernames
+        friendPeerIds: safeJsonParse('friendPeerIds', '{}'), // Object: username -> peerId
         friendRequestsReceived: safeJsonParse('friendRequestsReceived', '[]'),
         friendRequestsSent: safeJsonParse('friendRequestsSent', '[]'),
         pendingJoinRequests: new Map(),
@@ -4462,6 +4463,10 @@
                 setTimeout(tryBootstrapPeers, 2000);
                 setInterval(tryBootstrapPeers, 30000); // Retry bootstrap every 30s
 
+                // Connect to friends with known peerIds
+                setTimeout(connectToFriends, 3000);
+                setInterval(connectToFriends, 60000); // Retry every 60s
+
                 // Start heartbeat system
                 setInterval(sendHeartbeat, 5000); // Send heartbeat every 5s
 
@@ -4966,6 +4971,43 @@
 
         localStorage.setItem('bootstrapPeers', JSON.stringify(state.bootstrapPeers));
         Logger.debug(`💾 Saved ${peerId} as bootstrap peer`);
+    }
+
+    // Connect to friends who have known peerIds
+    async function connectToFriends() {
+        if (!state.friendPeerIds || Object.keys(state.friendPeerIds).length === 0) {
+            Logger.debug('[FRIENDS] No friend peerIds to connect to');
+            return;
+        }
+
+        Logger.debug(`[FRIENDS] Attempting to connect to ${Object.keys(state.friendPeerIds).length} friend(s)...`);
+
+        for (const [username, peerId] of Object.entries(state.friendPeerIds)) {
+            // Skip if already connected
+            if (state.connections.has(peerId)) {
+                Logger.debug(`[FRIENDS] Already connected to ${username}`);
+                continue;
+            }
+
+            // Skip if pending connection
+            if (state.pendingConnections.has(peerId)) {
+                Logger.debug(`[FRIENDS] Connection pending to ${username}`);
+                continue;
+            }
+
+            // Skip if it's our own peerId
+            if (peerId === state.myPeerId) continue;
+
+            Logger.debug(`[FRIENDS] Connecting to friend ${username} at ${peerId}`);
+            try {
+                await connectToPeer(peerId);
+            } catch (err) {
+                Logger.debug(`[FRIENDS] Could not connect to ${username}:`, err.message);
+            }
+
+            // Small delay between connections
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
     }
 
     // Handle discovery request - send all known peers to requester
@@ -8825,6 +8867,10 @@
             saveFriends();
         }
 
+        // Store peerId for this friend
+        state.friendPeerIds[request.username] = request.peerId;
+        localStorage.setItem('friendPeerIds', JSON.stringify(state.friendPeerIds));
+
         // Remove from pending requests
         state.friendRequestsReceived.splice(requestIndex, 1);
         saveFriendRequests();
@@ -8839,14 +8885,26 @@
             });
             showToast(`${request.username} ajouté à vos amis !`, 'success');
         } else {
-            // Connection not available - cannot establish friendship
-            state.friends.splice(state.friends.indexOf(request.username), 1);
-            saveFriends();
-            showToast('Impossible de communiquer avec cet utilisateur. Veuillez réessayer.', 'error');
-            elements.acceptFriendIdInput.value = '';
-            updateFriendRequestsList();
-            updateFriendsList();
-            return;
+            // Try to connect to the friend's peerId
+            console.log(`[FRIENDS] Attempting to connect to ${request.username} at ${request.peerId}`);
+            connectToPeer(request.peerId).then(() => {
+                setTimeout(() => {
+                    const newConnection = state.connections.get(request.peerId);
+                    if (newConnection && newConnection.conn.open) {
+                        newConnection.conn.send({
+                            type: 'friend-accepted',
+                            fromUsername: state.myName,
+                            fromPeerId: state.myPeerId
+                        });
+                        showToast(`${request.username} ajouté à vos amis !`, 'success');
+                    } else {
+                        showToast(`${request.username} ajouté à vos amis ! (connexion en cours...)`, 'success');
+                    }
+                }, 1000);
+            }).catch(err => {
+                console.log(`[FRIENDS] Could not connect to ${request.peerId}:`, err);
+                showToast(`${request.username} ajouté à vos amis ! (sera connecté ultérieurement)`, 'success');
+            });
         }
 
         elements.acceptFriendIdInput.value = '';
@@ -8929,6 +8987,13 @@
             Logger.debug(`[FRIENDS] Added ${fromUsername} to friends list (accepted request)`);
         } else {
             Logger.debug(`[FRIENDS] ${fromUsername} already in friends list`);
+        }
+
+        // Store peerId for this friend
+        if (fromPeerId) {
+            state.friendPeerIds[fromUsername] = fromPeerId;
+            localStorage.setItem('friendPeerIds', JSON.stringify(state.friendPeerIds));
+            Logger.debug(`[FRIENDS] Stored peerId ${fromPeerId} for ${fromUsername}`);
         }
 
         // Remove from sent requests list
