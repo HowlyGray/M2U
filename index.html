@@ -3318,6 +3318,29 @@
         </div>
     </div>
 
+    <!-- Drag & Drop Overlay -->
+    <div class="drag-drop-overlay" id="drag-drop-overlay">
+        <div class="drag-drop-content">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <h3>Déposez votre fichier ici</h3>
+            <p>Le fichier sera envoyé de manière sécurisée</p>
+        </div>
+    </div>
+
+    <!-- Custom Modal Overlay (replaces prompt/confirm/alert) -->
+    <div class="custom-modal-overlay" id="custom-modal-overlay">
+        <div class="custom-modal-box" id="custom-modal-box">
+            <div class="custom-modal-title" id="custom-modal-title"></div>
+            <div class="custom-modal-message" id="custom-modal-message"></div>
+            <input class="custom-modal-input" id="custom-modal-input" style="display:none" autocomplete="off">
+            <div class="custom-modal-actions" id="custom-modal-actions"></div>
+        </div>
+    </div>
+
     <script>
     // ============================================
     // CONFIGURATION
@@ -3499,16 +3522,26 @@
         _resolve: null,
         _init() {
             this._overlay = document.getElementById('custom-modal-overlay');
+            if (!this._overlay) {
+                Logger.error('Modal overlay not found in DOM - custom modals will be unavailable');
+                return;
+            }
             this._overlay.addEventListener('click', (e) => {
                 if (e.target === this._overlay) this._close(null);
             });
             document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && this._overlay.classList.contains('show')) {
+                if (e.key === 'Escape' && this._overlay && this._overlay.classList.contains('show')) {
                     this._close(null);
                 }
             });
         },
         _show(title, message, inputConfig, buttons) {
+            if (!this._overlay) {
+                // Fallback to native dialogs if modal overlay unavailable
+                if (inputConfig) return Promise.resolve(window.prompt(message, inputConfig.default || ''));
+                if (buttons.length > 1) return Promise.resolve(window.confirm(message));
+                window.alert(message); return Promise.resolve(true);
+            }
             return new Promise((resolve) => {
                 this._resolve = resolve;
                 const titleEl = document.getElementById('custom-modal-title');
@@ -10186,10 +10219,13 @@
         document.body.classList.toggle('light-theme', theme === 'light');
         const iconPath = document.getElementById('theme-icon-path');
         if (iconPath) {
-            iconPath.setAttribute('d', theme === 'light'
-                ? 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z'
-                : 'M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z'
-            );
+            // Swap the entire SVG content for proper multi-path icons
+            const svg = iconPath.parentElement;
+            if (theme === 'light') {
+                svg.innerHTML = '<circle cx="12" cy="12" r="5" id="theme-icon-path"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+            } else {
+                svg.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" id="theme-icon-path"></path>';
+            }
         }
     }
 
@@ -10399,29 +10435,6 @@
 
     Logger.info('PeerText: All improvements loaded');
     </script>
-
-    <!-- Drag & Drop Overlay -->
-    <div class="drag-drop-overlay" id="drag-drop-overlay">
-        <div class="drag-drop-content">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="17 8 12 3 7 8"></polyline>
-                <line x1="12" y1="3" x2="12" y2="15"></line>
-            </svg>
-            <h3>Déposez votre fichier ici</h3>
-            <p>Le fichier sera envoyé de manière sécurisée</p>
-        </div>
-    </div>
-
-    <!-- Custom Modal Overlay (replaces prompt/confirm/alert) -->
-    <div class="custom-modal-overlay" id="custom-modal-overlay">
-        <div class="custom-modal-box" id="custom-modal-box">
-            <div class="custom-modal-title" id="custom-modal-title"></div>
-            <div class="custom-modal-message" id="custom-modal-message"></div>
-            <input class="custom-modal-input" id="custom-modal-input" style="display:none" autocomplete="off">
-            <div class="custom-modal-actions" id="custom-modal-actions"></div>
-        </div>
-    </div>
 
 </body>
 </html>
