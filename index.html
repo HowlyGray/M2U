@@ -3580,6 +3580,14 @@
                         </div>
 
                         <div class="input-area">
+                            <!-- DM Reply preview bar -->
+                            <div class="reply-preview" id="dm-reply-preview">
+                                <div class="reply-preview-content">
+                                    <div class="reply-preview-sender" id="dm-reply-preview-sender"></div>
+                                    <div class="reply-preview-text" id="dm-reply-preview-text"></div>
+                                </div>
+                                <button class="reply-preview-close" id="dm-reply-cancel-btn" title="Annuler la réponse">&times;</button>
+                            </div>
                             <div class="input-row">
                                 <div class="input-actions">
                                     <button class="action-btn dm-attach-btn" title="Envoyer un fichier">
@@ -3587,9 +3595,40 @@
                                             <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
                                         </svg>
                                     </button>
+                                    <button class="action-btn" id="dm-emoji-btn" title="Emojis">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                                            <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                                            <line x1="15" y1="9" x2="15.01" y2="9"></line>
+                                        </svg>
+                                    </button>
+                                    <button class="voice-record-btn" id="dm-voice-record-btn" title="Message vocal">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                                            <line x1="12" y1="19" x2="12" y2="23"></line>
+                                            <line x1="8" y1="23" x2="16" y2="23"></line>
+                                        </svg>
+                                    </button>
                                 </div>
                                 <div class="message-input-wrapper">
+                                    <!-- DM Voice recording indicator -->
+                                    <div class="voice-recording-indicator" id="dm-voice-recording-indicator">
+                                        <div class="voice-recording-dot"></div>
+                                        <span class="voice-recording-time" id="dm-voice-recording-time">00:00</span>
+                                        <span style="color:#94a3b8;font-size:0.8rem;">Enregistrement en cours...</span>
+                                        <button class="voice-recording-cancel" id="dm-voice-cancel-btn">Annuler</button>
+                                    </div>
                                     <textarea id="dm-input" class="message-input" placeholder="Écrivez un message privé..." rows="1"></textarea>
+                                    <!-- DM Command autocomplete -->
+                                    <div class="command-autocomplete" id="dm-command-autocomplete"></div>
+                                    <!-- DM Emoji picker -->
+                                    <div class="emoji-picker-panel" id="dm-emoji-picker-panel">
+                                        <input type="text" class="emoji-picker-search" id="dm-emoji-search" placeholder="Rechercher un emoji..." autocomplete="off">
+                                        <div class="emoji-picker-categories" id="dm-emoji-categories"></div>
+                                        <div class="emoji-picker-grid" id="dm-emoji-grid"></div>
+                                    </div>
                                 </div>
                                 <button class="send-btn dm-send-btn" title="Envoyer">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -10150,19 +10189,94 @@
         scrollToBottom(elements.dmMessages);
     }
 
-    function appendDmMessage(content, fromMe, timestamp = Date.now()) {
+    function appendDmMessage(content, fromMe, timestamp = Date.now(), senderName = null, replyTo = null) {
+        const msgId = 'dm-msg-' + generateId(8);
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${fromMe ? 'sent' : 'received'}`;
+        messageDiv.setAttribute('data-msg-id', msgId);
+        messageDiv.setAttribute('data-sender', senderName || (fromMe ? state.myName : ''));
+        messageDiv.setAttribute('data-content', content || '');
+        messageDiv.style.position = 'relative';
 
         const timeStr = new Date(timestamp).toLocaleTimeString('fr-FR', {
             hour: '2-digit',
             minute: '2-digit'
         });
 
+        // Build reply quote if replying
+        let replyHtml = '';
+        if (replyTo) {
+            replyHtml = `<div class="message-reply-quote" data-reply-to="${escapeHtml(replyTo.msgId || '')}">
+                <div class="reply-author">${escapeHtml(replyTo.sender || '')}</div>
+                <div class="reply-text">${escapeHtml(replyTo.content || '').substring(0, 80)}</div>
+            </div>`;
+        }
+
+        const formattedContent = formatMarkdown(escapeHtml(content));
+        const sender = senderName || (fromMe ? state.myName : state.activeDMConversation || '');
+
         messageDiv.innerHTML = `
-            <div class="message-content">${escapeHtml(content)}</div>
-            <div class="message-time">${timeStr}</div>
+            <div class="message-action-bar">
+                <button class="react-btn" title="${i18n('react')}">😊</button>
+                <button class="reply-btn" title="Répondre">↩</button>
+            </div>
+            ${replyHtml}
+            <div class="message-header">
+                <span class="message-sender">${escapeHtml(sender)}</span>
+                <span class="message-time">${timeStr}</span>
+            </div>
+            <div class="message-content">${formattedContent}</div>
+            <div class="message-encryption"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> ${i18n('encrypted')}</div>
+            <div class="message-reactions"></div>
         `;
+
+        // Reply button
+        const replyBtn = messageDiv.querySelector('.reply-btn');
+        if (replyBtn) {
+            replyBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                DMReplySystem.setReplyTo(msgId, sender, content);
+            });
+        }
+
+        // Reply quote click -> scroll to original
+        const replyQuote = messageDiv.querySelector('.message-reply-quote');
+        if (replyQuote) {
+            replyQuote.addEventListener('click', () => {
+                const originalMsg = elements.dmMessages.querySelector(`[data-msg-id="${replyQuote.dataset.replyTo}"]`);
+                if (originalMsg) {
+                    originalMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    originalMsg.style.boxShadow = '0 0 0 2px #63b3ed';
+                    setTimeout(() => { originalMsg.style.boxShadow = ''; }, 2000);
+                }
+            });
+        }
+
+        // Reaction button
+        const reactBtn = messageDiv.querySelector('.react-btn');
+        if (reactBtn) {
+            reactBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                let picker = messageDiv.querySelector('.reaction-picker');
+                if (picker) {
+                    picker.classList.toggle('show');
+                } else {
+                    picker = document.createElement('div');
+                    picker.className = 'reaction-picker show';
+                    REACTION_EMOJIS.forEach(emoji => {
+                        const btn = document.createElement('button');
+                        btn.textContent = emoji;
+                        btn.addEventListener('click', (ev) => {
+                            ev.stopPropagation();
+                            Reactions.toggle(msgId, emoji);
+                            picker.classList.remove('show');
+                        });
+                        picker.appendChild(btn);
+                    });
+                    messageDiv.querySelector('.message-action-bar').appendChild(picker);
+                }
+            });
+        }
 
         elements.dmMessages.appendChild(messageDiv);
         scrollToBottom(elements.dmMessages);
@@ -10171,8 +10285,18 @@
     async function sendDirectMessage() {
         if (!state.activeDMConversation) return;
 
-        const content = elements.dmInput.value.trim();
+        let content = elements.dmInput.value.trim();
         if (!content) return;
+
+        // Check for quick commands
+        const commandOutput = QuickCommands.getOutput(content);
+        if (commandOutput) {
+            content = commandOutput;
+        }
+
+        // Close DM command autocomplete
+        const autocomplete = document.getElementById('dm-command-autocomplete');
+        if (autocomplete) autocomplete.classList.remove('show');
 
         const peerId = state.activeDMConversation;
         const connection = state.connections.get(peerId);
@@ -10182,8 +10306,15 @@
             return;
         }
 
+        // Get DM reply data if any
+        const replyData = DMReplySystem.getReplyData();
+
         // Encrypt and send message
-        const encrypted = await Crypto.encrypt(connection.sharedKey, content);
+        const msgData = {
+            content,
+            replyTo: replyData ? { msgId: replyData.msgId, sender: replyData.sender, content: replyData.content.substring(0, 100) } : null
+        };
+        const encrypted = await Crypto.encrypt(connection.sharedKey, JSON.stringify(msgData));
 
         connection.conn.send({
             type: 'dm',
@@ -10198,13 +10329,20 @@
             content,
             timestamp: Date.now(),
             fromMe: true,
-            read: true
+            read: true,
+            replyTo: replyData
         });
         state.directMessages.set(peerId, messages);
         saveDirectMessages();
 
-        // Display
-        appendDmMessage(content, true, Date.now());
+        // Display with reply
+        appendDmMessage(content, true, Date.now(), state.myName, replyData);
+
+        // Play sent sound
+        playMessageSentSound();
+
+        // Clear reply
+        DMReplySystem.clear();
 
         elements.dmInput.value = '';
     }
@@ -11608,6 +11746,337 @@
     };
 
     // ============================================
+    // DM REPLY SYSTEM
+    // ============================================
+    const DMReplySystem = {
+        _replyTo: null,
+        setReplyTo(msgId, sender, content) {
+            this._replyTo = { msgId, sender, content };
+            const preview = document.getElementById('dm-reply-preview');
+            const previewSender = document.getElementById('dm-reply-preview-sender');
+            const previewText = document.getElementById('dm-reply-preview-text');
+            if (preview && previewSender && previewText) {
+                previewSender.textContent = sender;
+                previewText.textContent = content.substring(0, 100);
+                preview.classList.add('active');
+            }
+            elements.dmInput.focus();
+        },
+        clear() {
+            this._replyTo = null;
+            const preview = document.getElementById('dm-reply-preview');
+            if (preview) preview.classList.remove('active');
+        },
+        getReplyData() {
+            return this._replyTo;
+        }
+    };
+
+    // ============================================
+    // DM EMOJI PICKER
+    // ============================================
+    const DMEmojiPicker = {
+        _isOpen: false,
+        _currentCategory: 'Smileys',
+
+        init() {
+            this._renderCategories();
+            this._renderEmojis();
+            this._setupSearch();
+        },
+
+        toggle() {
+            const panel = document.getElementById('dm-emoji-picker-panel');
+            this._isOpen = !this._isOpen;
+            panel.classList.toggle('show', this._isOpen);
+            if (this._isOpen) {
+                document.getElementById('dm-emoji-search').focus();
+            }
+        },
+
+        close() {
+            this._isOpen = false;
+            const panel = document.getElementById('dm-emoji-picker-panel');
+            if (panel) panel.classList.remove('show');
+        },
+
+        _renderCategories() {
+            const container = document.getElementById('dm-emoji-categories');
+            if (!container) return;
+            const categoryIcons = {
+                'Smileys': '😀', 'Gestures': '👋', 'Hearts': '❤️',
+                'Objects': '🔥', 'Animals': '🐶', 'Food': '🍎', 'Flags': '🏳️'
+            };
+            container.innerHTML = '';
+            Object.keys(EmojiPicker._emojis).forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = `emoji-category-btn ${cat === this._currentCategory ? 'active' : ''}`;
+                btn.textContent = categoryIcons[cat] || cat[0];
+                btn.title = cat;
+                btn.addEventListener('click', () => {
+                    this._currentCategory = cat;
+                    container.querySelectorAll('.emoji-category-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    this._renderEmojis();
+                });
+                container.appendChild(btn);
+            });
+        },
+
+        _renderEmojis(filter = '') {
+            const grid = document.getElementById('dm-emoji-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            let emojis = EmojiPicker._emojis[this._currentCategory] || [];
+            if (filter) {
+                emojis = Object.values(EmojiPicker._emojis).flat();
+            }
+            emojis.forEach(emoji => {
+                const btn = document.createElement('button');
+                btn.textContent = emoji;
+                btn.addEventListener('click', () => {
+                    this._insertEmoji(emoji);
+                });
+                grid.appendChild(btn);
+            });
+        },
+
+        _setupSearch() {
+            const searchInput = document.getElementById('dm-emoji-search');
+            if (!searchInput) return;
+            searchInput.addEventListener('input', (e) => {
+                const val = e.target.value.trim().toLowerCase();
+                if (val) {
+                    this._renderEmojis(val);
+                } else {
+                    this._renderEmojis();
+                }
+            });
+        },
+
+        _insertEmoji(emoji) {
+            const input = elements.dmInput;
+            const start = input.selectionStart;
+            const end = input.selectionEnd;
+            input.value = input.value.substring(0, start) + emoji + input.value.substring(end);
+            input.selectionStart = input.selectionEnd = start + emoji.length;
+            input.focus();
+            this.close();
+        }
+    };
+
+    // ============================================
+    // DM VOICE MESSAGES
+    // ============================================
+    const DMVoiceMessages = {
+        _mediaRecorder: null,
+        _audioChunks: [],
+        _isRecording: false,
+        _startTime: 0,
+        _timerInterval: null,
+
+        async startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                this._mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
+                this._audioChunks = [];
+
+                this._mediaRecorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) this._audioChunks.push(e.data);
+                };
+
+                this._mediaRecorder.onstop = () => {
+                    stream.getTracks().forEach(t => t.stop());
+                    if (this._audioChunks.length > 0) {
+                        const blob = new Blob(this._audioChunks, { type: 'audio/webm' });
+                        this._sendVoiceMessage(blob);
+                    }
+                };
+
+                this._mediaRecorder.start(100);
+                this._isRecording = true;
+                this._startTime = Date.now();
+                this._updateUI(true);
+                this._startTimer();
+
+            } catch (err) {
+                Logger.error('Microphone access denied:', err);
+                showToast(i18n('micDenied'), 'error');
+            }
+        },
+
+        stopRecording() {
+            if (this._mediaRecorder && this._isRecording) {
+                this._mediaRecorder.stop();
+                this._isRecording = false;
+                this._updateUI(false);
+                this._stopTimer();
+            }
+        },
+
+        cancelRecording() {
+            if (this._mediaRecorder && this._isRecording) {
+                this._audioChunks = [];
+                this._mediaRecorder.stop();
+                this._isRecording = false;
+                this._updateUI(false);
+                this._stopTimer();
+                showToast(i18n('recordingCancelled'), 'info');
+            }
+        },
+
+        _updateUI(recording) {
+            const btn = document.getElementById('dm-voice-record-btn');
+            const indicator = document.getElementById('dm-voice-recording-indicator');
+            const input = elements.dmInput;
+            if (recording) {
+                btn.classList.add('recording');
+                indicator.classList.add('active');
+                input.style.display = 'none';
+            } else {
+                btn.classList.remove('recording');
+                indicator.classList.remove('active');
+                input.style.display = '';
+            }
+        },
+
+        _startTimer() {
+            const timeEl = document.getElementById('dm-voice-recording-time');
+            this._timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - this._startTime) / 1000);
+                const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
+                const secs = String(elapsed % 60).padStart(2, '0');
+                if (timeEl) timeEl.textContent = `${mins}:${secs}`;
+            }, 200);
+        },
+
+        _stopTimer() {
+            if (this._timerInterval) {
+                clearInterval(this._timerInterval);
+                this._timerInterval = null;
+            }
+        },
+
+        async _sendVoiceMessage(blob) {
+            if (!state.activeDMConversation) return;
+            const duration = Math.floor((Date.now() - this._startTime) / 1000);
+            const peerId = state.activeDMConversation;
+            const connection = state.connections.get(peerId);
+
+            if (!connection || !connection.conn.open) {
+                showToast('Non connecté à ce contact', 'warning');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async () => {
+                const base64 = reader.result;
+                // Display locally
+                VoiceMessages._appendVoiceMessage(base64, duration, 'sent', state.myName);
+                // Scroll DM messages
+                scrollToBottom(elements.dmMessages);
+
+                // Send via DM
+                try {
+                    const voiceData = {
+                        type: 'dm-voice',
+                        audio: base64,
+                        duration,
+                        sender: state.myName,
+                        timestamp: new Date().toISOString()
+                    };
+                    const encrypted = await Crypto.encrypt(connection.sharedKey, JSON.stringify(voiceData));
+                    connection.conn.send({
+                        type: 'dm-voice',
+                        encrypted: encrypted,
+                        from: state.myName
+                    });
+                } catch (err) {
+                    Logger.error('DM voice message send error:', err);
+                }
+            };
+            reader.readAsDataURL(blob);
+        }
+    };
+
+    // ============================================
+    // DM QUICK COMMANDS
+    // ============================================
+    const DMQuickCommands = {
+        _selectedIndex: -1,
+        _filteredCommands: [],
+
+        showAutocomplete(inputValue) {
+            const panel = document.getElementById('dm-command-autocomplete');
+            if (!panel) return;
+
+            if (!inputValue.startsWith('/') || inputValue.includes(' ')) {
+                panel.classList.remove('show');
+                this._filteredCommands = [];
+                this._selectedIndex = -1;
+                return;
+            }
+
+            const search = inputValue.toLowerCase();
+            this._filteredCommands = Object.entries(QuickCommands._commands)
+                .filter(([cmd]) => cmd.startsWith(search))
+                .slice(0, 8);
+            this._selectedIndex = -1;
+
+            if (this._filteredCommands.length === 0) {
+                panel.classList.remove('show');
+                return;
+            }
+
+            panel.innerHTML = this._filteredCommands.map(([cmd, info], i) =>
+                `<div class="command-item" data-cmd="${cmd}" data-index="${i}">
+                    <span class="command-item-name">${cmd}</span>
+                    <span class="command-item-desc">${info.desc}</span>
+                </div>`
+            ).join('');
+
+            panel.querySelectorAll('.command-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    elements.dmInput.value = QuickCommands._commands[item.dataset.cmd].output;
+                    panel.classList.remove('show');
+                    elements.dmInput.focus();
+                });
+            });
+
+            panel.classList.add('show');
+        },
+
+        navigateAutocomplete(direction) {
+            if (this._filteredCommands.length === 0) return false;
+            const panel = document.getElementById('dm-command-autocomplete');
+            if (!panel || !panel.classList.contains('show')) return false;
+
+            if (direction === 'up') {
+                this._selectedIndex = Math.max(0, this._selectedIndex - 1);
+            } else {
+                this._selectedIndex = Math.min(this._filteredCommands.length - 1, this._selectedIndex + 1);
+            }
+
+            panel.querySelectorAll('.command-item').forEach((item, i) => {
+                item.classList.toggle('selected', i === this._selectedIndex);
+            });
+            return true;
+        },
+
+        selectCurrent() {
+            if (this._selectedIndex >= 0 && this._selectedIndex < this._filteredCommands.length) {
+                const [cmd, info] = this._filteredCommands[this._selectedIndex];
+                elements.dmInput.value = info.output;
+                document.getElementById('dm-command-autocomplete').classList.remove('show');
+                this._filteredCommands = [];
+                this._selectedIndex = -1;
+                return true;
+            }
+            return false;
+        }
+    };
+
+    // ============================================
     // ENHANCED NOTIFICATION SOUNDS
     // ============================================
     function playMessageSentSound() {
@@ -11770,6 +12239,66 @@
 
         // ===== USER STATUS =====
         UserStatus.init();
+
+        // ===== DM EMOJI PICKER =====
+        DMEmojiPicker.init();
+        const dmEmojiBtn = document.getElementById('dm-emoji-btn');
+        if (dmEmojiBtn) {
+            dmEmojiBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                DMEmojiPicker.toggle();
+            });
+        }
+        document.addEventListener('click', (e) => {
+            const dmPanel = document.getElementById('dm-emoji-picker-panel');
+            if (dmPanel && !dmPanel.contains(e.target) && e.target.id !== 'dm-emoji-btn') {
+                DMEmojiPicker.close();
+            }
+        });
+
+        // ===== DM VOICE MESSAGES =====
+        const dmVoiceBtn = document.getElementById('dm-voice-record-btn');
+        const dmVoiceCancelBtn = document.getElementById('dm-voice-cancel-btn');
+        if (dmVoiceBtn) {
+            dmVoiceBtn.addEventListener('click', () => {
+                if (DMVoiceMessages._isRecording) {
+                    DMVoiceMessages.stopRecording();
+                } else {
+                    DMVoiceMessages.startRecording();
+                }
+            });
+        }
+        if (dmVoiceCancelBtn) {
+            dmVoiceCancelBtn.addEventListener('click', () => {
+                DMVoiceMessages.cancelRecording();
+            });
+        }
+
+        // ===== DM REPLY SYSTEM =====
+        const dmReplyCancelBtn = document.getElementById('dm-reply-cancel-btn');
+        if (dmReplyCancelBtn) {
+            dmReplyCancelBtn.addEventListener('click', () => DMReplySystem.clear());
+        }
+
+        // ===== DM QUICK COMMANDS =====
+        elements.dmInput.addEventListener('input', (e) => {
+            DMQuickCommands.showAutocomplete(e.target.value);
+        });
+        elements.dmInput.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp') {
+                if (DMQuickCommands.navigateAutocomplete('up')) e.preventDefault();
+            } else if (e.key === 'ArrowDown') {
+                if (DMQuickCommands.navigateAutocomplete('down')) e.preventDefault();
+            } else if (e.key === 'Tab' || (e.key === 'Enter' && !e.shiftKey)) {
+                const autocomplete = document.getElementById('dm-command-autocomplete');
+                if (autocomplete && autocomplete.classList.contains('show')) {
+                    if (DMQuickCommands.selectCurrent()) {
+                        e.preventDefault();
+                        return;
+                    }
+                }
+            }
+        });
 
         // Show onboarding for new users
         showOnboarding();
